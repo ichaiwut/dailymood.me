@@ -1,0 +1,27 @@
+{
+  "common": {
+    "appName": "Dailymood",
+    "login": "Login",
+    "loginWithGoogle": "Continue with Google",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading..."
+  },
+  "home": {
+    "greeting": "How are you feeling today?",
+    "selectMood": "Select your mood",
+    "addNote": "Add a note about your day... (optional)",
+    "saveMood": "Save Mood",
+    "saved": "Saved!"
+  },
+  "auth": {
+    "welcome": "Welcome to Dailymood",
+    "signInDescription": "Sign in to track your mood and discover patterns.",
+    "guestNotice": "Or continue as guest — your data will be saved for 24 hours."
+  },
+  "guest": {
+    "notice": "You're in guest mode. Your data will be saved for 24 hours.",
+    "loginPrompt": "Login to save your data permanently."
+  }
+}
