@@ -73,6 +73,75 @@ export async function analyzeImage(imageBytes: Uint8Array, mimeType: string): Pr
   return JSON.parse(r.response.text()) as { tags: string[] };
 }
 
+// ── Insights: executive summary + correlation ──
+
+export interface InsightsResult {
+  summary: string;
+  headline: string;
+  patterns: { title: string; description: string; tag: string }[];
+  suggestion: { title: string; description: string } | null;
+}
+
+const INSIGHTS_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    headline: { type: SchemaType.STRING },
+    summary: { type: SchemaType.STRING },
+    patterns: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          title: { type: SchemaType.STRING },
+          description: { type: SchemaType.STRING },
+          tag: {
+            type: SchemaType.STRING,
+            enum: ["pattern", "correlation", "alert"],
+            format: "enum",
+          },
+        },
+        required: ["title", "description", "tag"],
+      },
+    },
+    suggestion: {
+      type: SchemaType.OBJECT,
+      properties: {
+        title: { type: SchemaType.STRING },
+        description: { type: SchemaType.STRING },
+      },
+      required: ["title", "description"],
+    },
+  },
+  required: ["headline", "summary", "patterns"],
+};
+
+const INSIGHTS_PROMPT = `You are an empathetic mood analyst for a mood-tracking app called DailyMood.
+You receive a JSON object with the user's mood data over the past 30 days and must produce insights.
+
+Rules:
+- "headline": a short punchy insight (max 60 chars). Example: "สัปดาห์นี้อารมณ์ดีขึ้น 20%"
+- "summary": 2-3 sentence executive summary of the week/month. Warm, encouraging tone.
+- "patterns": 1-3 findings. Each has a "title" (short), "description" (1-2 sentences explaining the pattern), and "tag" (one of: "pattern" for recurring behavior, "correlation" for tag-mood links, "alert" for concerning trends).
+  - Look for: which tags/activities correlate with positive or negative moods, day-of-week patterns, mood trends over time.
+- "suggestion": one actionable tip based on the data, or null if no strong signal.
+- Respond in the SAME language as the user's locale (provided in the data).
+- Be specific — reference actual tags, moods, and days from the data. Don't make up data.
+- If there's very little data, say so honestly and keep it short.`;
+
+export async function generateInsights(data: string): Promise<InsightsResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: INSIGHTS_SCHEMA,
+      temperature: 0.6,
+    },
+    systemInstruction: INSIGHTS_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as InsightsResult;
+}
+
 function uint8ToBase64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; // 32 KB — safe under spread/argv limits
   let binary = "";

@@ -63,6 +63,7 @@
     "navHome": "หน้าหลัก",
     "navCalendar": "ปฏิทิน",
     "navStats": "สถิติ",
+    "navInsights": "Insights",
     "navExplore": "สำรวจ",
     "navJourney": "เส้นทาง",
     "navProfile": "โปรไฟล์",
@@ -183,5 +184,55 @@
   "guest": {
     "notice": "คุณอยู่ในโหมดผู้เยี่ยมชม ข้อมูลจะถูกเก็บไว้ 24 ชั่วโมง",
     "loginPrompt": "เข้าสู่ระบบเพื่อบันทึกข้อมูลถาวร"
+  },
+  "calendar": {
+    "title": "ปฏิทิน",
+    "yourYear": "ปีของคุณ",
+    "avgMood": "อารมณ์เฉลี่ย",
+    "streak": "STREAK",
+    "logged": "บันทึกแล้ว",
+    "yearInPixels": "ปีในพิกเซล",
+    "noData": "ไม่มีข้อมูล"
+  },
+  "stats": {
+    "title": "สถิติ",
+    "last7": "7 วันล่าสุด",
+    "avgMood": "อารมณ์เฉลี่ย",
+    "vsLastWeek": "เทียบสัปดาห์ก่อน",
+    "moodMix": "สัดส่วนอารมณ์",
+    "bestDay": "วันที่ดีที่สุด",
+    "whatLifts": "อะไรทำให้อารมณ์ดี",
+    "activityImpact": "ผลกระทบจากกิจกรรม",
+    "week": "สัปดาห์",
+    "month": "เดือน",
+    "year": "ปี"
+  },
+  "insights": {
+    "title": "Insights",
+    "weeklySummary": "สรุปประจำสัปดาห์",
+    "readFull": "อ่านเพิ่ม",
+    "share": "แชร์",
+    "pattern": "แพทเทิร์น",
+    "tryThis": "ลองดู",
+    "addToRoutine": "เพิ่มเข้า routine",
+    "streak": "วัน streak"
+  },
+  "history": {
+    "title": "ไทม์ไลน์",
+    "entries": "รายการ",
+    "today": "วันนี้",
+    "yesterday": "เมื่อวาน",
+    "all": "ทั้งหมด",
+    "noEntries": "ยังไม่มีรายการ เริ่มบันทึกอารมณ์กันเลย!"
+  },
+  "entry": {
+    "feeling": "รู้สึก",
+    "yourNote": "บันทึกของคุณ",
+    "aiSummary": "AI สรุป",
+    "tags": "Tags",
+    "add": "เพิ่ม",
+    "edit": "แก้ไข",
+    "compare": "เปรียบเทียบ",
+    "intensity": "ระดับความเข้ม"
   }
 }

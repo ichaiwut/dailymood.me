@@ -46,9 +46,9 @@ export function BottomNav({
           </svg>
         </button>
 
-        <Link href={"/stats" as "/"} className="nav-item" data-active={isActive("/stats") ? "true" : undefined}>
-          <ChartIcon active={isActive("/stats")} />
-          <span>{t("navStats")}</span>
+        <Link href={"/insights" as "/"} className="nav-item" data-active={isActive("/insights") ? "true" : undefined}>
+          <InsightsIcon active={isActive("/insights")} />
+          <span>{t("navInsights")}</span>
         </Link>
 
         <Link href={"/settings" as "/"} className="nav-item" data-active={isActive("/settings") ? "true" : undefined}>
@@ -102,16 +102,16 @@ function CalIcon({ active }: { active: boolean }) {
   );
 }
 
-function ChartIcon({ active }: { active: boolean }) {
+function InsightsIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d="M3 20h18M7 16V10M12 16V6M17 16v-9"
+        d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity={active ? 1 : 0.7}
+        fill={active ? "rgba(166,115,241,0.15)" : "none"}
       />
     </svg>
   );

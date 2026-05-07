@@ -63,6 +63,7 @@
     "navHome": "Home",
     "navCalendar": "Calendar",
     "navStats": "Stats",
+    "navInsights": "Insights",
     "navExplore": "Explore",
     "navJourney": "Journey",
     "navProfile": "Profile",
@@ -183,5 +184,55 @@
   "guest": {
     "notice": "You're in guest mode. Your data will be saved for 24 hours.",
     "loginPrompt": "Login to save your data permanently."
+  },
+  "calendar": {
+    "title": "Calendar",
+    "yourYear": "Your year",
+    "avgMood": "AVG MOOD",
+    "streak": "STREAK",
+    "logged": "LOGGED",
+    "yearInPixels": "Year in pixels",
+    "noData": "No data"
+  },
+  "stats": {
+    "title": "Stats",
+    "last7": "Last 7 days",
+    "avgMood": "AVERAGE MOOD",
+    "vsLastWeek": "vs last week",
+    "moodMix": "MOOD MIX",
+    "bestDay": "BEST DAY",
+    "whatLifts": "WHAT LIFTS YOUR MOOD",
+    "activityImpact": "Activity impact",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year"
+  },
+  "insights": {
+    "title": "Insights",
+    "weeklySummary": "WEEKLY SUMMARY",
+    "readFull": "Read full",
+    "share": "Share",
+    "pattern": "PATTERN",
+    "tryThis": "TRY THIS",
+    "addToRoutine": "Add to routine",
+    "streak": "day streak"
+  },
+  "history": {
+    "title": "Timeline",
+    "entries": "entries",
+    "today": "TODAY",
+    "yesterday": "YESTERDAY",
+    "all": "All",
+    "noEntries": "No entries yet. Start logging your moods!"
+  },
+  "entry": {
+    "feeling": "FEELING",
+    "yourNote": "YOUR NOTE",
+    "aiSummary": "AI SUMMARY",
+    "tags": "TAGS",
+    "add": "Add",
+    "edit": "Edit",
+    "compare": "Compare",
+    "intensity": "Intensity"
   }
 }

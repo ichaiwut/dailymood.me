@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { signOut } from "next-auth/react";
+import { Link } from "@/i18n/navigation";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -12,18 +14,22 @@ function getInitials(name: string | null): string {
 
 export function TopBarClient({
   name,
+  email,
 }: {
   name: string | null;
   image: string | null;
   email: string | null;
 }) {
   const t = useTranslations("home");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const firstName = name?.split(" ")[0] ?? name;
   const initials = getInitials(name);
 
   const [dayLabel, setDayLabel] = useState("");
   const [greeting, setGreeting] = useState<"greetMorning" | "greetAfternoon" | "greetEvening">("greetAfternoon");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const now = new Date();
@@ -38,11 +44,32 @@ export function TopBarClient({
     );
   }, [locale]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(e: MouseEvent) {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
+
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3 min-w-0">
-        <div
-          className="shrink-0 grid place-items-center"
+      <div ref={menuRef} className="relative flex items-center gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-label={tc("menu")}
+          className="shrink-0 grid place-items-center transition active:scale-95"
           style={{
             width: 44,
             height: 44,
@@ -51,10 +78,11 @@ export function TopBarClient({
             color: "#fff",
             fontWeight: 800,
             fontSize: 16,
+            border: "none",
           }}
         >
           {initials}
-        </div>
+        </button>
         <div className="min-w-0">
           <p
             className="text-xs truncate"
@@ -66,73 +94,69 @@ export function TopBarClient({
           <p
             className="truncate"
             style={{
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: 800,
               color: "var(--ink)",
               lineHeight: 1.2,
             }}
             suppressHydrationWarning
           >
-            {t(greeting)}, {firstName} ✨
+            {t(greeting)}, {firstName}
           </p>
         </div>
-      </div>
 
-      <div className="flex gap-2.5 shrink-0">
-        <button
-          aria-label="Search"
-          className="icon-btn transition active:scale-95"
-        >
-          <SearchIcon />
-        </button>
-        <button
-          aria-label="Notifications"
-          className="icon-btn relative transition active:scale-95"
-        >
-          <BellIcon />
-          <span
-            aria-hidden
-            className="absolute"
+        {menuOpen && (
+          <div
+            role="menu"
+            className="absolute left-0 top-[calc(100%+8px)] z-50 w-60 overflow-hidden"
             style={{
-              top: 10,
-              right: 12,
-              width: 8,
-              height: 8,
-              borderRadius: 999,
-              background: "#FCA45B",
-              boxShadow: "0 0 0 2px #fff",
+              background: "var(--surface)",
+              borderRadius: 18,
+              boxShadow: "0 14px 40px rgba(0,0,0,0.12), 0 0 0 1px var(--hairline)",
             }}
-          />
-        </button>
+          >
+            <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--hairline)" }}>
+              <div
+                className="truncate text-sm font-semibold"
+                style={{ color: "var(--ink)" }}
+              >
+                {name}
+              </div>
+              {email && (
+                <div
+                  className="truncate text-xs"
+                  style={{ color: "var(--ink-3)" }}
+                >
+                  {email}
+                </div>
+              )}
+            </div>
+
+            <div className="py-1.5">
+              <Link
+                href="/settings"
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2.5 text-sm transition hover:bg-black/5"
+                style={{ color: "var(--ink)" }}
+              >
+                {tc("settings")}
+              </Link>
+              <button
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  signOut();
+                }}
+                className="block w-full px-4 py-2.5 text-left text-sm transition hover:bg-black/5"
+                style={{ color: "var(--ink-2)" }}
+              >
+                {tc("logout")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M6 8a6 6 0 1112 0c0 7 3 7 3 9H3c0-2 3-2 3-9zM10 21a2 2 0 004 0"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

@@ -52,9 +52,14 @@
 
 #### Visualization
 - [x] Today's Timeline — entry grid (1/2/3 cols) with horizontal day-axis above (spine + mood-colored dots positioned by time-of-day, pulsing "Now" cap on the right)
-- [ ] Mood Calendar — ปฏิทินแสดงสี/emoji ของแต่ละวัน
-- [ ] Mood Analytics — กราฟ/สถิติแนวโน้มอารมณ์
+- [x] Mood Calendar — monthly grid + year-in-pixels view (`/calendar`)
+- [x] Stats Page (`/stats`) — average mood line chart, mood mix donut, best day, activity impact (mock AI data); week/month/year segmented control; fetches `/api/stats`
 - [ ] Streak & Habits
+
+#### Pages
+- [x] AI Insights page (`/insights`) — Gemini-powered executive summary, correlation detection (tag-mood links, day-of-week patterns), actionable suggestions. API at `/api/insights` fetches 30-day mood data → Gemini analyzes → returns headline, summary, patterns (pattern/correlation/alert), suggestion. Bottom nav linked.
+- [x] History/Timeline page (`/history`) — fetches `/api/log`, groups entries by date, filter chips, card-based entries
+- [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, edit/compare actions
 
 #### AI Features (Gemini) — Planned
 - [ ] AI Mood Analysis (trends)

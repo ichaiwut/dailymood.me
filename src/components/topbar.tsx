@@ -6,7 +6,7 @@ export async function TopBar() {
   const session = await auth();
 
   return (
-    <header className="px-5 pt-5">
+    <header className="relative z-30 px-5 pt-5 pb-4">
       <div className="mx-auto w-full max-w-[768px]">
         {session?.user ? (
           <TopBarClient

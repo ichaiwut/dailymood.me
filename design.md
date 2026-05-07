@@ -58,10 +58,11 @@
 | Home | Streak strip, AI composer card, mood picker row, recent entries list | Done (Moodly v1) |
 | Login | Email-first flow with Google OAuth, purple/peach buttons | Done |
 | Smart Log | Full-screen modal: mood picker → note input → AI analysis → tag extraction → confirm | Done |
-| Calendar | Month grid with mood-colored days + year-in-pixels | Planned |
-| Timeline | Grouped entries by day, filter chips, card-based entries | Planned |
-| Stats | Mood line chart, mood mix donut, activity impact bars | Planned |
-| AI Insights | Hero summary card, pattern cards, suggestion cards, streak nudge | Planned |
+| Calendar | Month grid with mood-colored days, mini stats row (avg/streak/logged), year-in-pixels heatmap, prev/next navigation | Done |
+| Timeline | Grouped entries by day, filter chips (All/Happy/Sad/Work/Friends/Rain), card-based entries with mood emoji square, fetches `/api/log` | Done |
+| Stats | Mood line chart (purple #A673F1 gradient fill), mood mix donut, best day card, activity impact diverging bars; week/month/year segmented pill control | Done |
+| AI Insights | Hero gradient summary card (#A673F1→#C89BF5→#FCA45B) with Gemini executive summary, dynamic pattern/correlation/alert cards, green suggestion card (#FAFFF8). Loading skeleton, empty state, error state. | Done |
+| Entry Detail | Mood hero card (full-width, mood-colored bg, giant faded 200px emoji), note section, AI summary gradient card (#F4EBFE→#FDE8DA), tags pills, edit/compare buttons | Done |
 | Settings | Custom mood manager (Premium), mood pack picker | Done (default style) |
 
 ## Components
@@ -76,6 +77,10 @@
 | `MoodPicker` | 7-mood grid (legacy, replaced by inline row in HomeShell) |
 | `LoginForm` | Email-first Linear-style: email → password / register / google_only / verify_sent |
 | `VoiceButton` | Browser STT (Web Speech API), locale-aware (TH/EN) |
+| `StatsShell` | Stats page: header with period segmented control, average mood line chart card, mood mix donut + best day 2-col grid, activity impact list with diverging bars |
+| `InsightsShell` | AI Insights page: hero gradient summary card, pattern card with mini bar chart, suggestion card with routine button, streak nudge row |
+| `HistoryShell` | History/Timeline page: filter chips row, day-grouped entry cards with mood emoji squares, search/filter icon buttons |
+| `EntryDetail` | Entry detail page: mood hero card with giant emoji + intensity bar, note section, AI summary gradient card, tag pills, edit/compare buttons |
 
 ## Smart Log Flow (UX)
 
@@ -99,3 +104,4 @@
 | 2026-05-07 | **Moodly redesign** — drop Clean Wellness → Moodly style. Urbanist font, purple/mint/peach palette, floating pill nav, streak strip, AI composer card. Based on Moodly Figma reference | ผู้ใช้ซื้อ Moodly Figma และต้องการ redesign ทั้งหมดให้เหมือน reference |
 | 2026-05-07 | Mood colors: peach=happy, mint=calm, yellow=neutral, blue=sad, lavender=anxious, purple=tired | จับคู่กับ Moodly palette |
 | 2026-05-07 | AI Composer card on home (not modal) with caret animation | Centerpiece UX — AI ควรเด่นชัดบนหน้า Home |
+| 2026-05-07 | Implement all 10 design screens from Claude Design handoff | Calendar, Stats, AI Insights, History, Entry Detail — ทั้งหมดจาก Moodly design prototype |
