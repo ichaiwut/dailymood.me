@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `mood_pack` text DEFAULT 'set_486038' NOT NULL;

@@ -1,0 +1,13 @@
+name = "dailymood"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "dailymood"
+database_id = "d5840684-6453-4441-bd1f-b933fa6aa9b9"
+migrations_dir = "drizzle"
+
+# R2 access goes through the S3 API (see src/lib/r2.ts) instead of a
+# binding so dev and prod write to the same real bucket.

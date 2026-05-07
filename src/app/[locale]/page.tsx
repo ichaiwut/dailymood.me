@@ -1,19 +1,25 @@
-import { useTranslations } from "next-intl";
-import { MoodPicker } from "@/components/mood-picker";
+import { auth } from "@/lib/auth";
+import { getLocale } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
+import { getSessionInfo } from "@/lib/tier";
+import { HomeShell } from "@/components/home-shell";
 
-export default function Home() {
-  const t = useTranslations("home");
+export const runtime = "edge";
+
+export default async function Home() {
+  const session = await auth();
+  const locale = await getLocale();
+
+  if (!session?.user) {
+    redirect({ href: "/login", locale });
+  }
+
+  const { tier, moodPack } = await getSessionInfo();
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        {t("greeting")}
-      </h1>
-      <p className="mt-2 text-zinc-500">
-        {t("selectMood")}
-      </p>
-      <div className="mt-10 w-full">
-        <MoodPicker />
+    <main className="flex-1 px-5 pb-16">
+      <div className="mx-auto w-full max-w-[768px]">
+        <HomeShell tier={tier} pack={moodPack} />
       </div>
     </main>
   );
