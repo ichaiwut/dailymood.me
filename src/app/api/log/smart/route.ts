@@ -30,21 +30,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "premium_required", feature: "vision" }, { status: 403 });
   }
 
-  // Cooldown: 1 AI analyze per 5 minutes per user
-  const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 1, windowSec: 300 });
-  if (!cooldown.ok) {
-    return NextResponse.json(
-      { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec },
-      { status: 429 },
-    );
-  }
-
-  // Rate limit: free users get FREE_NLP_DAILY_LIMIT NLP calls/day
   if (tier === "free") {
+    // Free: 1 AI call/day — no cooldown needed
     const used = await getNlpUsage(userId);
     if (used >= FREE_NLP_DAILY_LIMIT) {
       return NextResponse.json(
         { error: "rate_limited", used, limit: FREE_NLP_DAILY_LIMIT },
+        { status: 429 },
+      );
+    }
+  } else {
+    // Premium: cooldown 1 call per 5 minutes
+    const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 1, windowSec: 300 });
+    if (!cooldown.ok) {
+      return NextResponse.json(
+        { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec },
         { status: 429 },
       );
     }

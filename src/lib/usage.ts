@@ -2,7 +2,7 @@ import { getDb } from "@/lib/cf";
 import { aiUsage } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
-export const FREE_NLP_DAILY_LIMIT = 5;
+export const FREE_NLP_DAILY_LIMIT = 1;
 
 export function todayKey(): string {
   return new Date().toISOString().slice(0, 10);

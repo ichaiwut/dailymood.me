@@ -76,11 +76,25 @@ export function VoiceButton({ onTranscript }: Props) {
       type="button"
       onClick={toggle}
       aria-label="Voice input"
-      className={`rounded-full p-2 transition ${
-        recording ? "bg-red-500 text-white animate-pulse" : "bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
-      }`}
+      className={`icon-btn transition ${recording ? "animate-pulse" : ""}`}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        background: recording ? "#EF4444" : undefined,
+        color: recording ? "#fff" : undefined,
+      }}
     >
-      {recording ? "■" : "🎤"}
+      {recording ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <rect x="9" y="2" width="6" height="12" rx="3" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M5 11a7 7 0 0014 0M12 18v4M8 22h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
     </button>
   );
 }

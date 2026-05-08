@@ -201,22 +201,51 @@ export function SmartLogModal({
             </div>
             <div className="flex items-center gap-2.5 mt-3">
               <VoiceButton onTranscript={(s) => setText((p) => (p ? p + " " : "") + s)} />
-              <label className="icon-btn" style={{ width: 40, height: 40, borderRadius: 12, cursor: "pointer" }}>
+              <label
+                className="icon-btn"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  cursor: tier === "premium" ? "pointer" : "default",
+                  opacity: tier === "premium" ? 1 : 0.45,
+                  position: "relative",
+                }}
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      setImageFile(f);
-                      setImagePreview(URL.createObjectURL(f));
-                    }
-                  }}
-                />
+                {tier !== "premium" && (
+                  <span style={{
+                    position: "absolute",
+                    top: -4,
+                    right: -6,
+                    background: "#0A0A0A",
+                    color: "#fff",
+                    fontSize: 8,
+                    fontWeight: 800,
+                    padding: "1px 4px",
+                    borderRadius: 4,
+                    letterSpacing: "0.3px",
+                    lineHeight: 1.3,
+                  }}>
+                    PRO
+                  </span>
+                )}
+                {tier === "premium" && (
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setImageFile(f);
+                        setImagePreview(URL.createObjectURL(f));
+                      }
+                    }}
+                  />
+                )}
               </label>
             </div>
             {imagePreview && (
@@ -237,28 +266,47 @@ export function SmartLogModal({
 
           {/* ── Analyze with AI button ── */}
           {!suggestion && (
-            <button
-              onClick={handleAnalyze}
-              disabled={!hasInput || analyzing || aiCooldown}
-              className="w-full flex items-center justify-center gap-2 mb-4 transition active:scale-[0.98]"
-              style={{
-                height: 48,
-                background: "#A673F1",
-                color: "#fff",
-                border: "none",
-                borderRadius: 14,
-                fontWeight: 700,
-                fontSize: 15,
-                opacity: !hasInput || analyzing || aiCooldown ? 0.4 : 1,
-              }}
-            >
-              <SparkleIcon />
-              {analyzing
-                ? (locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing...")
-                : aiCooldown
-                  ? (locale === "th" ? "AI ยังไม่พร้อม" : "AI on cooldown")
-                  : (locale === "th" ? "วิเคราะห์ด้วย AI" : "Analyze with AI")}
-            </button>
+            <div style={{ position: "relative", marginBottom: 16 }}>
+              <button
+                onClick={handleAnalyze}
+                disabled={!hasInput || analyzing || aiCooldown}
+                className="w-full flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                style={{
+                  height: 48,
+                  background: "#A673F1",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  opacity: !hasInput || analyzing || aiCooldown ? 0.4 : 1,
+                }}
+              >
+                <SparkleIcon />
+                {analyzing
+                  ? (locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing...")
+                  : aiCooldown
+                    ? (locale === "th" ? "AI ยังไม่พร้อม" : "AI on cooldown")
+                    : (locale === "th" ? "วิเคราะห์ด้วย AI" : "Analyze with AI")}
+              </button>
+              {tier !== "premium" && (
+                <span style={{
+                  position: "absolute",
+                  top: -6,
+                  right: -4,
+                  background: "#0A0A0A",
+                  color: "#fff",
+                  fontSize: 9,
+                  fontWeight: 800,
+                  padding: "2px 6px",
+                  borderRadius: 5,
+                  letterSpacing: "0.3px",
+                  lineHeight: 1.3,
+                }}>
+                  PRO
+                </span>
+              )}
+            </div>
           )}
 
           {/* ── Info / Error ── */}
