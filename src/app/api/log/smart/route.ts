@@ -3,6 +3,7 @@ import { getSessionInfo, meetsTier } from "@/lib/tier";
 import { analyzeText, analyzeImage } from "@/lib/gemini";
 import { uploadObject } from "@/lib/r2";
 import { FREE_NLP_DAILY_LIMIT, getNlpUsage, incNlpUsage, incVisionUsage, todayKey } from "@/lib/usage";
+import { rateLimit } from "@/lib/rate-limit";
 import { ulid } from "@/lib/ulid";
 
 export const runtime = "edge";
@@ -27,6 +28,15 @@ export async function POST(req: NextRequest) {
   // Vision is premium-only
   if (hasImage && !meetsTier(tier, "premium")) {
     return NextResponse.json({ error: "premium_required", feature: "vision" }, { status: 403 });
+  }
+
+  // Cooldown: 1 AI analyze per 5 minutes per user
+  const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 1, windowSec: 300 });
+  if (!cooldown.ok) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec },
+      { status: 429 },
+    );
   }
 
   // Rate limit: free users get FREE_NLP_DAILY_LIMIT NLP calls/day

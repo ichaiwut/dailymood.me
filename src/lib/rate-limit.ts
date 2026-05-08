@@ -19,19 +19,19 @@ export async function rateLimit(opts: {
   windowSec: number;
 }): Promise<{ ok: true } | { ok: false; retryAfterSec: number }> {
   const db = getDb();
-  const now = Date.now();
-  const resetAt = new Date(now + opts.windowSec * 1000);
+  const nowMs = Date.now();
+  const nowSec = Math.floor(nowMs / 1000);
+  const resetAtSec = nowSec + opts.windowSec;
+  const resetAt = new Date(resetAtSec * 1000);
 
-  // Atomic upsert that resets the window when expired and increments otherwise.
-  // SQLite UPSERT with conditional update via excluded.
   await db
     .insert(rateLimits)
     .values({ key: opts.key, count: 1, resetAt })
     .onConflictDoUpdate({
       target: rateLimits.key,
       set: {
-        count: sql`CASE WHEN ${rateLimits.resetAt} < ${now} THEN 1 ELSE ${rateLimits.count} + 1 END`,
-        resetAt: sql`CASE WHEN ${rateLimits.resetAt} < ${now} THEN ${resetAt.getTime()} ELSE ${rateLimits.resetAt} END`,
+        count: sql`CASE WHEN ${rateLimits.resetAt} < ${nowSec} THEN 1 ELSE ${rateLimits.count} + 1 END`,
+        resetAt: sql`CASE WHEN ${rateLimits.resetAt} < ${nowSec} THEN ${resetAtSec} ELSE ${rateLimits.resetAt} END`,
       },
     });
 
@@ -43,10 +43,8 @@ export async function rateLimit(opts: {
 
   if (!row) return { ok: true };
   if (row.count > opts.limit) {
-    return {
-      ok: false,
-      retryAfterSec: Math.max(1, Math.ceil((row.resetAt.getTime() - now) / 1000)),
-    };
+    const retryAfter = Math.max(1, Math.ceil(row.resetAt.getTime() / 1000) - nowSec);
+    return { ok: false, retryAfterSec: retryAfter };
   }
   return { ok: true };
 }

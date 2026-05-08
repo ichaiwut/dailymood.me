@@ -135,10 +135,15 @@
     "contact": "Contact"
   },
   "auth": {
-    "welcome": "Welcome to Dailymood",
-    "signInDescription": "Sign in to track your mood and discover patterns.",
+    "welcome": "Welcome back.",
+    "signInDescription": "Pick up where you left off — your moods are waiting.",
     "guestNotice": "Or continue as guest — your data will be saved for 24 hours.",
     "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "continueWithFacebook": "Continue with Facebook",
+    "signInWithEmail": "Sign in with email",
+    "newHere": "New here?",
+    "createAnAccount": "Create an account",
     "or": "or",
     "email": "Email",
     "emailPlaceholder": "you@example.com",

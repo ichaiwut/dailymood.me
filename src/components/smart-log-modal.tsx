@@ -41,13 +41,25 @@ export function SmartLogModal({
   const [moodId, setMoodId] = useState<string>(preSelectedMoodId ?? "neutral");
   const [tags, setTags] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiCooldown, setAiCooldown] = useState(false);
 
   const selectedMood = DEFAULT_MOODS.find((m) => m.id === moodId);
+  const hasInput = text.trim().length > 0 || !!imageFile;
+
+  const now = new Date();
+  const dateLabel = now.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
+    weekday: "long",
+  });
+  const timeLabel = now.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   async function handleAnalyze() {
     if (!text.trim() && !imageFile) return;
-    setBusy(true);
+    setAnalyzing(true);
     setError(null);
     try {
       const fd = new FormData();
@@ -58,290 +70,229 @@ export function SmartLogModal({
       }
       const res = await fetch("/api/log/smart", { method: "POST", body: fd });
       if (!res.ok) {
-        const j = (await res.json()) as { error?: string };
-        setError(j.error ?? "error");
+        const j = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSec?: number };
+        if (j.error === "rate_limited") {
+          const min = Math.ceil((j.retryAfterSec ?? 300) / 60);
+          setAiCooldown(true);
+          setError(locale === "th" ? `AI พร้อมใช้อีกครั้งใน ${min} นาที — บันทึกธรรมดาได้เลย` : `AI available in ${min} min — you can still save normally`);
+        } else {
+          setError(j.error ?? "error");
+        }
         return;
       }
       const s = (await res.json()) as AiSuggestion;
       setSuggestion(s);
       setMoodId(s.suggestedMoodId);
       setTags(s.tags);
+    } catch (e) {
+      console.error("[SmartLog] fetch error:", e);
+      setError("error");
     } finally {
-      setBusy(false);
+      setAnalyzing(false);
     }
   }
 
-  async function handleConfirm() {
+  async function handleSave() {
     setBusy(true);
+    setError(null);
     try {
-      await fetch("/api/log/confirm", {
+      const res = await fetch("/api/log/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           moodTypeId: moodId,
           note: text.trim() || undefined,
-          tags,
+          tags: suggestion ? tags : undefined,
           sentiment: suggestion?.sentiment ?? null,
           imageKey: suggestion?.imageKey ?? null,
           aiSource: suggestion?.aiSource ?? "manual",
         }),
       });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSec?: number };
+        if (j.error === "rate_limited") {
+          const min = Math.ceil((j.retryAfterSec ?? 300) / 60);
+          setError(locale === "th" ? `โพสได้อีกครั้งใน ${min} นาที` : `Try again in ${min} min`);
+        } else {
+          setError(j.error ?? "error");
+        }
+        return;
+      }
       onSaved();
     } finally {
       setBusy(false);
     }
   }
 
-  function pickImage(file: File) {
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+  function handleDone() {
+    handleSave();
   }
-
-  async function handleQuickSave() {
-    setBusy(true);
-    try {
-      await fetch("/api/log/confirm", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          moodTypeId: moodId,
-          note: text.trim() || undefined,
-          aiSource: "manual",
-        }),
-      });
-      onSaved();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const hasInput = text.trim().length > 0 || !!imageFile;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(0, 0, 0, 0.35)" }}
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 fade-in" style={{ background: "#FEFEFE" }}>
       <div
-        className="w-full max-w-lg max-h-[92vh] overflow-y-auto pop"
-        style={{
-          background: "#FEFEFE",
-          borderRadius: "28px 28px 0 0",
-          boxShadow: "var(--shadow-lift)",
-          padding: "20px 20px calc(20px + env(safe-area-inset-bottom))",
-        }}
-        onClick={(e) => e.stopPropagation()}
+        className="flex flex-col h-full mx-auto w-full max-w-lg"
+        style={{ padding: "0 20px env(safe-area-inset-bottom)" }}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between mb-1">
-          <button
-            onClick={onClose}
-            className="icon-btn"
-          >
+        <div className="flex items-center justify-between py-3.5">
+          <button onClick={onClose} className="icon-btn" style={{ width: 40, height: 40, borderRadius: 12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           </button>
           <span style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>
-            {t("title")}
+            {locale === "th" ? "บันทึกใหม่" : "New entry"}
           </span>
           <button
-            onClick={suggestion ? handleConfirm : hasInput ? handleAnalyze : handleQuickSave}
-            disabled={busy}
+            onClick={handleDone}
+            disabled={busy || analyzing}
             style={{
               background: "transparent",
               border: "none",
               fontWeight: 700,
               color: "#A673F1",
               fontSize: 15,
-              opacity: busy ? 0.5 : 1,
+              opacity: busy || analyzing ? 0.4 : 1,
             }}
           >
             Done
           </button>
         </div>
 
-        {!suggestion ? (
-          <div className="flex flex-col" style={{ minHeight: 400 }}>
-            {/* Date + title */}
-            <div className="mt-3">
-              <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
-                {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
-                  weekday: "long",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 800, marginTop: 4, lineHeight: 1.2, color: "var(--ink)" }}>
-                How was<br />your day?
-              </div>
+        {/* ── Scrollable content ── */}
+        <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 100 }}>
+          {/* Date + heading */}
+          <div className="mt-1 mb-4">
+            <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
+              {dateLabel} · {timeLabel}
             </div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 4, lineHeight: 1.2, color: "var(--ink)", whiteSpace: "pre-line" }}>
+              {locale === "th" ? "วันนี้เป็นยังไง?" : "How was\nyour day?"}
+            </h1>
+          </div>
 
-            {/* Mood picker row */}
-            <div className="mt-5 mb-4">
-              <div className="grid grid-cols-7 gap-2">
-                {DEFAULT_MOODS.map((m) => {
-                  const active = moodId === m.id;
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => setMoodId(m.id)}
-                      aria-label={locale === "th" ? m.labelTh : m.label}
-                      aria-pressed={active}
-                      className="grid place-items-center transition-transform p-[12%]"
-                      style={{
-                        aspectRatio: "1",
-                        borderRadius: 16,
-                        background: active ? m.color : "var(--surface-2)",
-                        transform: active ? "scale(1.08)" : "scale(1)",
-                        boxShadow: active
-                          ? `0 0 0 3px #fff, 0 0 0 5px ${m.color}`
-                          : "none",
-                      }}
-                    >
-                      <span style={{ fontSize: 28, lineHeight: 1 }}>{m.emoji}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {selectedMood && (
-                <p className="text-center mt-2 text-sm font-bold" style={{ color: "var(--ink)" }}>
-                  {locale === "th" ? selectedMood.labelTh : selectedMood.label}
-                </p>
-              )}
+          {/* ── Text area ── */}
+          <div className="mb-4">
+            <div className="flex gap-2 items-end">
+              <textarea
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (suggestion) setSuggestion(null);
+                }}
+                placeholder={t("textPlaceholder")}
+                rows={4}
+                className="flex-1 resize-none text-base"
+                style={{
+                  background: "#FAF7FE",
+                  color: "var(--ink)",
+                  borderRadius: 20,
+                  border: "1.5px solid #E6DBF7",
+                  padding: "14px 16px",
+                  fontSize: 16,
+                  lineHeight: 1.5,
+                  outline: "none",
+                  WebkitAppearance: "none",
+                }}
+              />
             </div>
-
-            {/* Note input */}
-            <div className="mb-3">
-              <div className="flex gap-2 items-start">
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder={t("textPlaceholder")}
-                  rows={4}
-                  className="flex-1 resize-none text-base focus:outline-none"
-                  style={{
-                    background: "#FAF7FE",
-                    color: "var(--ink)",
-                    borderRadius: 22,
-                    border: "2px solid #E6DBF7",
-                    padding: "14px 16px",
-                    fontSize: 17,
-                    lineHeight: 1.5,
-                  }}
-                />
-                <VoiceButton onTranscript={(s) => setText((p) => (p ? p + " " : "") + s)} />
-              </div>
-            </div>
-
-            {/* Image upload (premium) */}
-            {tier === "premium" && (
-              <div className="mb-3">
-                <label
-                  className="text-sm font-medium mb-1 block"
-                  style={{ color: "var(--ink-2)" }}
-                >
-                  {t("imageOptional")}
-                </label>
+            <div className="flex items-center gap-2.5 mt-3">
+              <VoiceButton onTranscript={(s) => setText((p) => (p ? p + " " : "") + s)} />
+              <label className="icon-btn" style={{ width: 40, height: 40, borderRadius: 12, cursor: "pointer" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && pickImage(e.target.files[0])}
-                  className="text-sm"
-                  style={{ color: "var(--ink-2)" }}
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      setImageFile(f);
+                      setImagePreview(URL.createObjectURL(f));
+                    }
+                  }}
                 />
-                {imagePreview && (
-                  <img
-                    src={imagePreview}
-                    alt=""
-                    className="mt-2 max-h-40"
-                    style={{ borderRadius: 16 }}
-                  />
-                )}
-              </div>
-            )}
-
-            {tier === "free" && (
-              <p className="mb-3 text-sm" style={{ color: "var(--ink-3)" }}>
-                {t("freeNotice")}
-              </p>
-            )}
-
-            {error && (
-              <p className="mb-3 text-sm font-medium" style={{ color: "#D14343" }}>
-                {t(`err.${error}` as never) || error}
-              </p>
-            )}
-
-            <div className="mt-auto" />
-
-            {/* Action buttons */}
-            <div className="flex gap-2.5 mt-4">
-              {hasInput ? (
+              </label>
+            </div>
+            {imagePreview && (
+              <div className="relative mt-3">
+                <img src={imagePreview} alt="" className="w-full max-h-40 object-cover" style={{ borderRadius: 16 }} />
                 <button
-                  onClick={handleAnalyze}
-                  disabled={busy}
-                  className="flex-1 flex items-center justify-center gap-2"
-                  style={{
-                    height: 56,
-                    background: "#FCA45B",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 30,
-                    fontWeight: 700,
-                    fontSize: 17,
-                    boxShadow: "0 10px 24px rgba(252,164,91,0.4)",
-                    opacity: busy ? 0.6 : 1,
-                  }}
+                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="absolute top-2 right-2 icon-btn"
+                  style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.5)", color: "#fff" }}
                 >
-                  <SparkleIcon />
-                  {busy ? t("analyzing") : "Save with AI tags"}
-                </button>
-              ) : (
-                <button
-                  onClick={handleQuickSave}
-                  disabled={busy}
-                  className="flex-1 flex items-center justify-center gap-2"
-                  style={{
-                    height: 56,
-                    background: "#FCA45B",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 30,
-                    fontWeight: 700,
-                    fontSize: 17,
-                    boxShadow: "0 10px 24px rgba(252,164,91,0.4)",
-                    opacity: busy ? 0.6 : 1,
-                  }}
-                >
-                  {busy ? t("saving") : t("confirm")}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        ) : (
-          /* ── AI suggestion review step ── */
-          <div className="flex flex-col" style={{ minHeight: 400 }}>
-            {/* AI detection section */}
-            <div
-              className="mt-3 mb-4"
+
+          {/* ── Analyze with AI button ── */}
+          {!suggestion && (
+            <button
+              onClick={handleAnalyze}
+              disabled={!hasInput || analyzing || aiCooldown}
+              className="w-full flex items-center justify-center gap-2 mb-4 transition active:scale-[0.98]"
               style={{
-                padding: 16,
-                borderRadius: 20,
+                height: 48,
+                background: "#A673F1",
+                color: "#fff",
+                border: "none",
+                borderRadius: 14,
+                fontWeight: 700,
+                fontSize: 15,
+                opacity: !hasInput || analyzing || aiCooldown ? 0.4 : 1,
+              }}
+            >
+              <SparkleIcon />
+              {analyzing
+                ? (locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing...")
+                : aiCooldown
+                  ? (locale === "th" ? "AI ยังไม่พร้อม" : "AI on cooldown")
+                  : (locale === "th" ? "วิเคราะห์ด้วย AI" : "Analyze with AI")}
+            </button>
+          )}
+
+          {/* ── Info / Error ── */}
+          {error && (
+            <div
+              className="mb-4"
+              style={{
+                padding: "12px 16px",
+                borderRadius: 14,
+                background: aiCooldown ? "#F4EEFB" : "#FEF0F0",
+                border: aiCooldown ? "1px solid #E6DBF7" : "1px solid #F5D0D0",
+              }}
+            >
+              <p style={{ fontSize: 13, fontWeight: 600, color: aiCooldown ? "#7A4DD0" : "#D14343" }}>
+                {aiCooldown ? error : (t(`err.${error}` as never) || (locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong. Try again."))}
+              </p>
+            </div>
+          )}
+
+          {/* ── AI Analysis (analyzing state) ── */}
+          {analyzing && (
+            <div
+              className="fade-in"
+              style={{
+                padding: "18px 16px",
+                borderRadius: 22,
                 background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)",
               }}
             >
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2.5">
                 <div
                   className="pulse"
                   style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 7,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
                     background: "#A673F1",
                     display: "flex",
                     alignItems: "center",
@@ -353,73 +304,123 @@ export function SmartLogModal({
                     <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.4px" }}>
-                  AI DETECTED
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+                  {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI IS READING YOUR DAY..."}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ── AI Results ── */}
+          {suggestion && !analyzing && (
+            <div
+              className="fade-in"
+              style={{
+                padding: "18px 16px",
+                borderRadius: 22,
+                background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)",
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-2.5 mb-4">
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    background: "#A673F1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+                  {locale === "th" ? "AI อ่านวันของคุณแล้ว" : "AI READ YOUR DAY"}
                 </span>
               </div>
 
-              {/* Detected mood */}
-              <div className="mb-3">
-                <div style={{ fontSize: 11, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>
+              {/* Detected mood pills */}
+              <div className="mb-4">
+                <div style={{ fontSize: 11, color: "#8C7BA9", fontWeight: 700, marginBottom: 8, letterSpacing: "0.5px" }}>
                   DETECTED MOOD
                 </div>
-                <div className="grid grid-cols-7 gap-2">
-                  {DEFAULT_MOODS.map((m) => {
-                    const active = moodId === m.id;
-                    return (
+                <div className="flex flex-wrap gap-2">
+                  {DEFAULT_MOODS.filter((m) => m.id === moodId).map((m) => (
+                    <span
+                      key={m.id}
+                      className="pop flex items-center gap-1.5"
+                      style={{
+                        background: m.color,
+                        color: "#fff",
+                        padding: "7px 14px",
+                        borderRadius: 100,
+                        fontSize: 14,
+                        fontWeight: 700,
+                      }}
+                    >
+                      <img src={m.iconUrl} alt="" width={18} height={18} />
+                      {locale === "th" ? m.labelTh : m.label}
+                      {suggestion.sentiment !== null && (
+                        <span style={{ opacity: 0.85, fontSize: 12 }}>
+                          {Math.round(Math.abs(suggestion.sentiment) * 100)}%
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                  {DEFAULT_MOODS.filter((m) => m.id !== moodId)
+                    .slice(0, 1)
+                    .map((m) => (
                       <button
                         key={m.id}
                         onClick={() => setMoodId(m.id)}
-                        className="grid place-items-center transition-transform p-[12%]"
+                        className="flex items-center gap-1.5 transition active:scale-95"
                         style={{
-                          aspectRatio: "1",
-                          borderRadius: 14,
-                          background: active ? m.color : "rgba(255,255,255,0.7)",
-                          transform: active ? "scale(1.08)" : "scale(1)",
-                          boxShadow: active ? `0 0 0 2px #fff, 0 0 0 4px ${m.color}` : "none",
+                          background: "rgba(255,255,255,0.7)",
+                          border: "1.5px solid #E6DBF7",
+                          padding: "6px 12px",
+                          borderRadius: 100,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "var(--ink-2)",
                         }}
                       >
-                        <span style={{ fontSize: 22, lineHeight: 1 }}>{m.emoji}</span>
+                        <img src={m.iconUrl} alt="" width={16} height={16} />
+                        {locale === "th" ? m.labelTh : m.label}
                       </button>
-                    );
-                  })}
+                    ))}
                 </div>
-                {selectedMood && (
-                  <p className="text-center mt-2 text-sm font-bold" style={{ color: "var(--ink)" }}>
-                    {locale === "th" ? selectedMood.labelTh : selectedMood.label}
-                    {suggestion.sentiment !== null && (
-                      <span style={{ color: "#8C8C8C", fontSize: 11, marginLeft: 6 }}>
-                        {Math.round(Math.abs(suggestion.sentiment) * 100)}%
-                      </span>
-                    )}
-                  </p>
-                )}
               </div>
 
               {/* Tags */}
               {tags.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 11, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>
+                  <div style={{ fontSize: 11, color: "#8C7BA9", fontWeight: 700, marginBottom: 8, letterSpacing: "0.5px" }}>
                     FOUND IN YOUR NOTE
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {tags.map((tag, i) => (
                       <span
                         key={i}
                         className="pop flex items-center gap-1.5"
                         style={{
                           background: "#fff",
-                          padding: "6px 12px",
+                          padding: "7px 12px",
                           borderRadius: 100,
                           fontSize: 13,
                           fontWeight: 700,
+                          color: "var(--ink)",
                           animationDelay: `${i * 60}ms`,
                         }}
                       >
                         {tag}
                         <button
                           onClick={() => setTags((p) => p.filter((_, j) => j !== i))}
-                          style={{ color: "var(--ink-3)", marginLeft: 2 }}
+                          style={{ color: "var(--ink-3)", display: "flex" }}
                         >
                           <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
                             <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -430,7 +431,7 @@ export function SmartLogModal({
                     <span
                       style={{
                         background: "rgba(255,255,255,0.5)",
-                        padding: "6px 12px",
+                        padding: "7px 12px",
                         borderRadius: 100,
                         fontSize: 13,
                         fontWeight: 700,
@@ -443,48 +444,48 @@ export function SmartLogModal({
                 </div>
               )}
             </div>
+          )}
+        </div>
 
-            {imagePreview && (
-              <img src={imagePreview} alt="" className="mb-4 max-h-40 w-full object-cover" style={{ borderRadius: 16 }} />
-            )}
-
-            <div className="flex-1" />
-
-            {/* Actions */}
-            <div className="flex gap-2.5 mt-4">
-              <button
-                onClick={() => setSuggestion(null)}
-                className="icon-btn"
-                style={{ width: "auto", padding: "0 16px", borderRadius: 30 }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={busy}
-                className="flex-1 flex items-center justify-center gap-2"
-                style={{
-                  height: 56,
-                  background: "#FCA45B",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 30,
-                  fontWeight: 700,
-                  fontSize: 17,
-                  boxShadow: "0 10px 24px rgba(252,164,91,0.4)",
-                  opacity: busy ? 0.6 : 1,
-                }}
-              >
-                {busy ? t("saving") : t("confirm")}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
+        {/* ── Fixed bottom CTA ── */}
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: "12px 20px calc(12px + env(safe-area-inset-bottom))",
+            background: "linear-gradient(transparent, #FEFEFE 20%)",
+          }}
+        >
+          <div className="mx-auto max-w-lg">
+            <button
+              onClick={handleSave}
+              disabled={!hasInput || busy || analyzing}
+              className="w-full flex items-center justify-center gap-2"
+              style={{
+                height: 56,
+                background: "#FCA45B",
+                color: "#fff",
+                border: "none",
+                borderRadius: 30,
+                fontWeight: 700,
+                fontSize: 17,
+                boxShadow: "0 10px 24px rgba(252,164,91,0.35)",
+                opacity: !hasInput || busy || analyzing ? 0.4 : 1,
+              }}
+            >
+              {busy
+                ? t("saving")
+                : suggestion
+                  ? (locale === "th" ? "บันทึกพร้อม AI tags" : "Save with AI tags")
+                  : (locale === "th" ? "บันทึก" : "Save entry")}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -493,10 +494,7 @@ export function SmartLogModal({
 function SparkleIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z"
-        fill="currentColor"
-      />
+      <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor" />
     </svg>
   );
 }

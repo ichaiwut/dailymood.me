@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { SmartLogModal } from "./smart-log-modal";
+import { optimizeImage } from "@/lib/client-image";
+import { VoiceButton } from "./voice-button";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -40,6 +42,101 @@ export function HomeShell({
   const [logMoodId, setLogMoodId] = useState<string | null>(null);
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+
+  // Inline AI composer state
+  const [composerText, setComposerText] = useState("");
+  const [composerAnalyzing, setComposerAnalyzing] = useState(false);
+  const [composerSuggestion, setComposerSuggestion] = useState<{
+    suggestedMoodId: string;
+    sentiment: number | null;
+    tags: string[];
+    imageKey: string | null;
+    aiSource: string;
+  } | null>(null);
+  const [composerMoodId, setComposerMoodId] = useState("neutral");
+  const [composerTags, setComposerTags] = useState<string[]>([]);
+  const [composerImage, setComposerImage] = useState<File | null>(null);
+  const [composerImagePreview, setComposerImagePreview] = useState<string | null>(null);
+  const [composerBusy, setComposerBusy] = useState(false);
+  const [composerError, setComposerError] = useState<string | null>(null);
+  const composerHasInput = composerText.trim().length > 0 || !!composerImage;
+
+  function handleComposerImage(file: File) {
+    setComposerImage(file);
+    setComposerImagePreview(URL.createObjectURL(file));
+  }
+
+  async function handleComposerAnalyze() {
+    if (!composerText.trim() && !composerImage) return;
+    setComposerAnalyzing(true);
+    setComposerError(null);
+    try {
+      const fd = new FormData();
+      if (composerText.trim()) fd.append("text", composerText.trim());
+      if (composerImage) {
+        const opt = await optimizeImage(composerImage);
+        fd.append("image", opt);
+      }
+      const res = await fetch("/api/log/smart", { method: "POST", body: fd });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSec?: number };
+        if (j.error === "rate_limited") {
+          const min = Math.ceil((j.retryAfterSec ?? 300) / 60);
+          setComposerError(locale === "th" ? `AI พร้อมใช้อีกครั้งใน ${min} นาที` : `AI available again in ${min} min`);
+        } else {
+          setComposerError(locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong. Try again.");
+        }
+        return;
+      }
+      const s = await res.json();
+      setComposerSuggestion(s);
+      setComposerMoodId(s.suggestedMoodId);
+      setComposerTags(s.tags);
+    } catch {
+      setComposerError("error");
+    } finally {
+      setComposerAnalyzing(false);
+    }
+  }
+
+  async function handleComposerSave() {
+    if (!composerText.trim() && !composerImage) return;
+    setComposerBusy(true);
+    setComposerError(null);
+    try {
+      const res = await fetch("/api/log/confirm", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          moodTypeId: composerMoodId,
+          note: composerText.trim() || undefined,
+          tags: composerSuggestion ? composerTags : undefined,
+          sentiment: composerSuggestion?.sentiment ?? null,
+          imageKey: composerSuggestion?.imageKey ?? null,
+          aiSource: composerSuggestion?.aiSource ?? "manual",
+        }),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSec?: number };
+        if (j.error === "rate_limited") {
+          const min = Math.ceil((j.retryAfterSec ?? 300) / 60);
+          setComposerError(locale === "th" ? `โพสได้อีกครั้งใน ${min} นาที` : `Try again in ${min} min`);
+        } else {
+          setComposerError(j.error ?? "error");
+        }
+        return;
+      }
+      setComposerText("");
+      setComposerSuggestion(null);
+      setComposerTags([]);
+      setComposerMoodId("neutral");
+      setComposerImage(null);
+      setComposerImagePreview(null);
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setComposerBusy(false);
+    }
+  }
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -69,7 +166,7 @@ export function HomeShell({
 
   return (
     <>
-      {/* ── AI COMPOSER CARD ─── */}
+      {/* ── AI COMPOSER CARD (inline) ─── */}
       <section className="mb-6 fade-in" style={{ animationDelay: "40ms" }}>
         <div
           style={{
@@ -92,7 +189,7 @@ export function HomeShell({
               background: "radial-gradient(circle, rgba(166,115,241,0.18), transparent 70%)",
             }}
           />
-          <div className="flex items-center gap-2 mb-3.5" style={{ position: "relative" }}>
+          <div className="flex items-center gap-2 mb-3" style={{ position: "relative" }}>
             <div
               style={{
                 width: 28,
@@ -109,77 +206,196 @@ export function HomeShell({
                 <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#A673F1",
-                letterSpacing: "0.3px",
-              }}
-            >
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#A673F1", letterSpacing: "0.3px" }}>
               AI MOOD ASSISTANT
             </span>
           </div>
 
-          <button
-            onClick={() => setLogMoodId("neutral")}
-            className="w-full text-left"
-            style={{
-              fontSize: 16,
-              lineHeight: 1.45,
-              color: "var(--ink-3)",
-              minHeight: 44,
-              background: "none",
-              border: "none",
-              padding: 0,
+          {/* Textarea */}
+          <textarea
+            value={composerText}
+            onChange={(e) => {
+              setComposerText(e.target.value);
+              if (composerSuggestion) {
+                setComposerSuggestion(null);
+                setComposerTags([]);
+              }
             }}
-          >
-            {t("smartLogHint")}
-            <span className="caret" />
-          </button>
+            placeholder={t("smartLogHint")}
+            rows={3}
+            className="w-full resize-none"
+            style={{
+              background: "#FAF7FE",
+              color: "var(--ink)",
+              borderRadius: 16,
+              border: "1.5px solid #E6DBF7",
+              padding: "12px 14px",
+              fontSize: 15,
+              lineHeight: 1.5,
+              outline: "none",
+            }}
+          />
 
-          <div className="flex gap-2.5 mt-4">
-            <button
-              className="icon-btn"
-              aria-label="Voice"
-              onClick={() => setLogMoodId("neutral")}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10a7 7 0 01-14 0M12 19v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              className="icon-btn"
-              aria-label="Camera"
-              onClick={() => setLogMoodId("neutral")}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          {/* Voice + camera */}
+          <div className="flex items-center gap-2 mt-2.5">
+            <VoiceButton onTranscript={(s) => setComposerText((p) => (p ? p + " " : "") + s)} />
+            <label className="icon-btn" style={{ width: 36, height: 36, borderRadius: 10, cursor: "pointer" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleComposerImage(f);
+                }}
+              />
+            </label>
+          </div>
+
+          {/* Image preview */}
+          {composerImagePreview && (
+            <div className="relative mt-2.5">
+              <img src={composerImagePreview} alt="" className="w-full max-h-32 object-cover" style={{ borderRadius: 14 }} />
+              <button
+                onClick={() => { setComposerImage(null); setComposerImagePreview(null); }}
+                className="absolute top-1.5 right-1.5"
+                style={{ width: 24, height: 24, borderRadius: 8, background: "rgba(0,0,0,0.5)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+                  <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Error / Info */}
+          {composerError && (
+            <div className="mt-2.5" style={{ padding: "10px 14px", borderRadius: 12, background: "#F4EEFB", border: "1px solid #E6DBF7" }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#7A4DD0" }}>
+                {composerError}
+              </p>
+            </div>
+          )}
+
+          {/* Analyze button */}
+          {!composerSuggestion && (
             <button
-              onClick={() => setLogMoodId("neutral")}
+              onClick={handleComposerAnalyze}
+              disabled={!composerHasInput || composerAnalyzing}
+              className="w-full flex items-center justify-center gap-2 mt-3 transition active:scale-[0.98]"
               style={{
-                flex: 1,
-                height: 48,
-                background: "#0A0A0A",
+                height: 44,
+                background: "#A673F1",
                 color: "#fff",
                 border: "none",
-                borderRadius: 24,
+                borderRadius: 14,
                 fontWeight: 700,
-                fontSize: 15,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
+                fontSize: 14,
+                opacity: !composerHasInput || composerAnalyzing ? 0.4 : 1,
               }}
             >
-              {t("saveMood")}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor" />
               </svg>
+              {composerAnalyzing
+                ? (locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing...")
+                : (locale === "th" ? "วิเคราะห์ด้วย AI" : "Analyze with AI")}
             </button>
-          </div>
+          )}
+
+          {/* AI analyzing state */}
+          {composerAnalyzing && (
+            <div className="mt-3 fade-in" style={{ padding: "14px", borderRadius: 18, background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)" }}>
+              <div className="flex items-center gap-2">
+                <div className="pulse" style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.4px" }}>
+                  {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI IS READING YOUR DAY..."}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* AI Results */}
+          {composerSuggestion && !composerAnalyzing && (
+            <div className="mt-3 fade-in" style={{ padding: "14px", borderRadius: 18, background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.4px" }}>
+                  {locale === "th" ? "AI อ่านวันของคุณแล้ว" : "AI READ YOUR DAY"}
+                </span>
+              </div>
+
+              {/* Detected mood */}
+              <div className="mb-3">
+                <div style={{ fontSize: 10, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>DETECTED MOOD</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {DEFAULT_MOODS.filter((m) => m.id === composerMoodId).map((m) => (
+                    <span key={m.id} className="pop flex items-center gap-1" style={{ background: m.color, color: "#fff", padding: "5px 10px", borderRadius: 100, fontSize: 12, fontWeight: 700 }}>
+                      <img src={m.iconUrl} alt="" width={16} height={16} />
+                      {locale === "th" ? m.labelTh : m.label}
+                      {composerSuggestion.sentiment !== null && (
+                        <span style={{ opacity: 0.85, fontSize: 11 }}>{Math.round(Math.abs(composerSuggestion.sentiment) * 100)}%</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tags */}
+              {composerTags.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>FOUND IN YOUR NOTE</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {composerTags.map((tag, i) => (
+                      <span key={i} className="pop flex items-center gap-1" style={{ background: "#fff", padding: "5px 10px", borderRadius: 100, fontSize: 12, fontWeight: 700, color: "var(--ink)", animationDelay: `${i * 50}ms` }}>
+                        {tag}
+                        <button onClick={() => setComposerTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", display: "flex" }}>
+                          <svg width="8" height="8" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                        </button>
+                      </span>
+                    ))}
+                    <span style={{ background: "rgba(255,255,255,0.5)", padding: "5px 10px", borderRadius: 100, fontSize: 12, fontWeight: 700, color: "#A673F1" }}>+ add tag</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Save with AI tags */}
+              <button
+                onClick={handleComposerSave}
+                disabled={composerBusy}
+                className="w-full flex items-center justify-center gap-2 mt-3 transition active:scale-[0.98]"
+                style={{
+                  height: 44,
+                  background: "#FCA45B",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  boxShadow: "0 6px 16px rgba(252,164,91,0.3)",
+                  opacity: composerBusy ? 0.6 : 1,
+                }}
+              >
+                {composerBusy
+                  ? (locale === "th" ? "กำลังบันทึก..." : "Saving...")
+                  : (locale === "th" ? "บันทึกพร้อม AI tags" : "Save with AI tags")}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

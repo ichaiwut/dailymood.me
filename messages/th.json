@@ -135,10 +135,15 @@
     "contact": "ติดต่อเรา"
   },
   "auth": {
-    "welcome": "ยินดีต้อนรับสู่ Dailymood",
-    "signInDescription": "เข้าสู่ระบบเพื่อบันทึก mood และค้นพบแนวโน้มอารมณ์ของคุณ",
+    "welcome": "ยินดีต้อนรับกลับมา",
+    "signInDescription": "กลับมาต่อจากที่ค้างไว้ — อารมณ์ของคุณรออยู่",
     "guestNotice": "หรือใช้งานแบบไม่ต้องเข้าสู่ระบบ — ข้อมูลจะถูกเก็บไว้ 24 ชั่วโมง",
     "continueWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "continueWithApple": "เข้าสู่ระบบด้วย Apple",
+    "continueWithFacebook": "เข้าสู่ระบบด้วย Facebook",
+    "signInWithEmail": "เข้าสู่ระบบด้วยอีเมล",
+    "newHere": "ใหม่ที่นี่?",
+    "createAnAccount": "สร้างบัญชี",
     "or": "หรือ",
     "email": "อีเมล",
     "emailPlaceholder": "you@example.com",
