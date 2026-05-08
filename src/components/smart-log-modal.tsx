@@ -276,6 +276,39 @@ export function SmartLogModal({
             </div>
           )}
 
+          {/* ── AI blocked — mood picker + manual save ── */}
+          {aiCooldown && !suggestion && (
+            <div className="mb-4">
+              <div style={{ fontSize: 10, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>
+                {locale === "th" ? "เลือกอารมณ์" : "PICK A MOOD"}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {DEFAULT_MOODS.map((m) => {
+                  const active = m.id === moodId;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setMoodId(m.id)}
+                      className="flex items-center gap-1 transition active:scale-95"
+                      style={{
+                        background: active ? m.color : "var(--surface-2)",
+                        color: active ? "#fff" : "var(--ink-2)",
+                        padding: "5px 10px",
+                        borderRadius: 100,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        border: "none",
+                      }}
+                    >
+                      <img src={m.iconUrl} alt="" width={16} height={16} />
+                      {locale === "th" ? m.labelTh : m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* ── AI Analysis (analyzing state) ── */}
           {analyzing && (
             <div

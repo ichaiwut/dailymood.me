@@ -75,7 +75,7 @@
     "cancel": "ยกเลิก",
     "saved": "บันทึกแล้ว",
     "smartLog": "Smart Log ด้วย AI",
-    "smartLogHint": "พิมพ์หรือพูด — Gemini สกัด tags + sentiment ให้",
+    "smartLogHint": "วันนี้เป็นยังไงบ้าง...",
     "today": "วันนี้",
     "now": "ตอนนี้",
     "chars": "ตัวอักษร",
@@ -92,7 +92,7 @@
   "smart": {
     "title": "บันทึกอารมณ์",
     "pickMood": "วันนี้รู้สึกยังไง?",
-    "textPlaceholder": "เล่าเกี่ยวกับวันนี้สิ...",
+    "textPlaceholder": "วันนี้เป็นยังไงบ้าง...",
     "imageOptional": "เพิ่มรูป (ไม่บังคับ)",
     "freeNotice": "Free: ใช้ AI ได้ 5 ครั้ง/วัน — วิเคราะห์รูปภาพต้องเป็น Premium",
     "analyze": "วิเคราะห์",

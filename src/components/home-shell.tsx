@@ -59,6 +59,8 @@ export function HomeShell({
   const [composerImagePreview, setComposerImagePreview] = useState<string | null>(null);
   const [composerBusy, setComposerBusy] = useState(false);
   const [composerError, setComposerError] = useState<string | null>(null);
+  const [composerAiBlocked, setComposerAiBlocked] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const composerHasInput = composerText.trim().length > 0 || !!composerImage;
 
   function handleComposerImage(file: File) {
@@ -83,6 +85,7 @@ export function HomeShell({
         if (j.error === "rate_limited") {
           const min = Math.ceil((j.retryAfterSec ?? 300) / 60);
           setComposerError(locale === "th" ? `AI พร้อมใช้อีกครั้งใน ${min} นาที` : `AI available again in ${min} min`);
+          setComposerAiBlocked(true);
         } else {
           setComposerError(locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong. Try again.");
         }
@@ -132,7 +135,11 @@ export function HomeShell({
       setComposerMoodId("neutral");
       setComposerImage(null);
       setComposerImagePreview(null);
+      setComposerAiBlocked(false);
+      setComposerError(null);
       setRefreshKey((k) => k + 1);
+      setToast(locale === "th" ? "บันทึกแล้ว ✓" : "Saved ✓");
+      setTimeout(() => setToast(null), 2500);
     } finally {
       setComposerBusy(false);
     }
@@ -280,8 +287,8 @@ export function HomeShell({
             </div>
           )}
 
-          {/* Analyze button */}
-          {!composerSuggestion && (
+          {/* Analyze / Manual save buttons */}
+          {!composerSuggestion && !composerAiBlocked && (
             <button
               onClick={handleComposerAnalyze}
               disabled={!composerHasInput || composerAnalyzing}
@@ -304,6 +311,62 @@ export function HomeShell({
                 ? (locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing...")
                 : (locale === "th" ? "วิเคราะห์ด้วย AI" : "Analyze with AI")}
             </button>
+          )}
+
+          {/* AI blocked — manual mood picker + save */}
+          {composerAiBlocked && !composerSuggestion && (
+            <div className="mt-3">
+              <div style={{ fontSize: 10, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>
+                {locale === "th" ? "เลือกอารมณ์" : "PICK A MOOD"}
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {DEFAULT_MOODS.map((m) => {
+                  const active = m.id === composerMoodId;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setComposerMoodId(m.id)}
+                      className="flex items-center gap-1 transition active:scale-95"
+                      style={{
+                        background: active ? m.color : "var(--surface-2)",
+                        color: active ? "#fff" : "var(--ink-2)",
+                        padding: "5px 10px",
+                        borderRadius: 100,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        border: "none",
+                      }}
+                    >
+                      <img src={m.iconUrl} alt="" width={16} height={16} />
+                      {locale === "th" ? m.labelTh : m.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={handleComposerSave}
+                disabled={!composerHasInput || composerBusy}
+                className="w-full flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                style={{
+                  height: 44,
+                  background: "#FCA45B",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  fontSize: 14,
+                  boxShadow: "0 6px 16px rgba(252,164,91,0.3)",
+                  opacity: !composerHasInput || composerBusy ? 0.4 : 1,
+                }}
+              >
+                {composerBusy
+                  ? (locale === "th" ? "กำลังบันทึก..." : "Saving...")
+                  : (locale === "th" ? "บันทึกธรรมดา" : "Save without AI")}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
           )}
 
           {/* AI analyzing state */}
@@ -336,19 +399,32 @@ export function HomeShell({
                 </span>
               </div>
 
-              {/* Detected mood */}
+              {/* Detected mood + picker */}
               <div className="mb-3">
                 <div style={{ fontSize: 10, color: "#8C7BA9", fontWeight: 700, marginBottom: 6, letterSpacing: "0.4px" }}>DETECTED MOOD</div>
                 <div className="flex flex-wrap gap-1.5">
-                  {DEFAULT_MOODS.filter((m) => m.id === composerMoodId).map((m) => (
-                    <span key={m.id} className="pop flex items-center gap-1" style={{ background: m.color, color: "#fff", padding: "5px 10px", borderRadius: 100, fontSize: 12, fontWeight: 700 }}>
-                      <img src={m.iconUrl} alt="" width={16} height={16} />
-                      {locale === "th" ? m.labelTh : m.label}
-                      {composerSuggestion.sentiment !== null && (
-                        <span style={{ opacity: 0.85, fontSize: 11 }}>{Math.round(Math.abs(composerSuggestion.sentiment) * 100)}%</span>
-                      )}
-                    </span>
-                  ))}
+                  {DEFAULT_MOODS.map((m) => {
+                    const active = m.id === composerMoodId;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => setComposerMoodId(m.id)}
+                        className="pop flex items-center gap-1 transition active:scale-95"
+                        style={{
+                          background: active ? m.color : "rgba(255,255,255,0.7)",
+                          color: active ? "#fff" : "var(--ink-2)",
+                          padding: "5px 10px",
+                          borderRadius: 100,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          border: active ? "none" : "1.5px solid #E6DBF7",
+                        }}
+                      >
+                        <img src={m.iconUrl} alt="" width={16} height={16} />
+                        {locale === "th" ? m.labelTh : m.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -615,6 +691,26 @@ export function HomeShell({
             setRefreshKey((k) => k + 1);
           }}
         />
+      )}
+      {/* ── TOAST ─── */}
+      {toast && (
+        <div
+          className="fixed left-1/2 pop"
+          style={{
+            top: 24,
+            transform: "translateX(-50%)",
+            background: "#0A0A0A",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: 100,
+            fontSize: 14,
+            fontWeight: 700,
+            zIndex: 60,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+          }}
+        >
+          {toast}
+        </div>
       )}
     </>
   );

@@ -75,7 +75,7 @@
     "cancel": "Cancel",
     "saved": "Logged",
     "smartLog": "Smart Log with AI",
-    "smartLogHint": "Type or speak — Gemini extracts tags + sentiment",
+    "smartLogHint": "How's your day going...",
     "today": "Today",
     "now": "Now",
     "chars": "chars",
@@ -92,7 +92,7 @@
   "smart": {
     "title": "Log Mood",
     "pickMood": "How are you feeling?",
-    "textPlaceholder": "Tell me about your day...",
+    "textPlaceholder": "How's your day going...",
     "imageOptional": "Add a photo (optional)",
     "freeNotice": "Free tier: 5 AI logs per day. Photo analysis is Premium.",
     "analyze": "Analyze",
