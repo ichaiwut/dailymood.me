@@ -15,6 +15,7 @@ interface ConfirmBody {
   sentiment?: number | null;
   imageKey?: string | null;
   aiSource?: "manual" | "nlp" | "vision" | "nlp+vision";
+  aiSummary?: string | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
     tags: (body.tags ?? []).slice(0, 12),
     sentiment: body.sentiment ?? null,
     imageKey: body.imageKey ?? null,
+    aiSummary: body.aiSummary ?? null,
     aiSource: body.aiSource ?? "manual",
     date: todayKey(),
   });

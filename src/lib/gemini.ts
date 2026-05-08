@@ -8,6 +8,7 @@ export interface NlpResult {
   suggestedMoodId: string; // one of DEFAULT_MOODS ids; "neutral" if unsure
   sentiment: number; // -1..1
   tags: string[]; // 3-8 short lowercase tags
+  summary: string;
 }
 
 const NLP_SCHEMA: Schema = {
@@ -20,14 +21,16 @@ const NLP_SCHEMA: Schema = {
     },
     sentiment: { type: SchemaType.NUMBER },
     tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    summary: { type: SchemaType.STRING },
   },
-  required: ["suggestedMoodId", "sentiment", "tags"],
+  required: ["suggestedMoodId", "sentiment", "tags", "summary"],
 };
 
 const NLP_PROMPT = `You analyze a short journal entry from a mood-tracking app and extract structured signals.
 - suggestedMoodId: pick the BEST match from the enum (default to "neutral" if unclear).
 - sentiment: number in [-1, 1]; -1 = very negative, 0 = neutral, 1 = very positive.
 - tags: 3 to 8 short lowercase keywords describing activities, people, places, or feelings (single words or 2-word phrases). No emojis. No duplicates.
+- summary: สรุปอารมณ์และเรื่องราวของวันนี้ 1-3 ประโยค ภาษาไทย โทนอบอุ่นเป็นกันเอง เหมือนเพื่อนที่เข้าใจ ใช้ **ตัวหนา** กับวลีสำคัญ 1-3 จุด ห้ามเริ่มด้วย "สรุปว่า" ห้ามพูดถึง AI หรือการวิเคราะห์
 Respond with JSON only. The journal text may be in Thai or English.`;
 
 export async function analyzeText(text: string): Promise<NlpResult> {

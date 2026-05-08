@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 
 interface EntryData {
@@ -10,268 +10,226 @@ interface EntryData {
   moodTypeId: string;
   note: string | null;
   tags?: string[] | null;
-  intensity?: number;
+  sentiment: number | null;
   aiSummary?: string | null;
+  aiSource: string;
+  imageUrl?: string | null;
+  date: string;
   createdAt: string | number;
 }
 
-/* Mock entry used when the API doesn't support single-entry fetch */
-const MOCK_ENTRY: EntryData = {
-  id: "mock-1",
-  moodTypeId: "amazing",
-  note: "Had a wonderful morning jog in the park. The weather was perfect and I felt really energized afterward. Met a friend for coffee too.",
-  tags: ["🏃 Exercise", "☕ Coffee", "🌤 Outdoors", "🤝 Friends"],
-  intensity: 4,
-  aiSummary:
-    "A positive start to the day driven by physical activity and social connection. Morning exercise correlates with your happiest entries — this pattern has held for 3 weeks.",
-  createdAt: Date.now() - 3600000,
-};
-
 export function EntryDetail({ id }: { id: string }) {
   const locale = useLocale();
+  const t = useTranslations("entry");
   const router = useRouter();
   const [entry, setEntry] = useState<EntryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-    fetch(`/api/log?id=${id}`)
-      .then((r) => (r.ok ? r.json() as Promise<Record<string, unknown>> : null))
-      .then((data) => {
-        if (!alive) return;
-        if (data?.entry) {
-          setEntry(data.entry as EntryData);
-        } else if (data?.entries) {
-          const found = (data.entries as EntryData[]).find((e) => e.id === id);
-          setEntry(found ?? MOCK_ENTRY);
-        } else {
-          setEntry(MOCK_ENTRY);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        if (alive) {
-          setEntry(MOCK_ENTRY);
-          setLoading(false);
-        }
-      });
-    return () => {
-      alive = false;
-    };
+    fetch(`/api/log/${id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setEntry(data as EntryData | null))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading || !entry) {
-    return <LoadingSkeleton />;
+  if (loading) return <LoadingSkeleton />;
+  if (!entry) {
+    return (
+      <div className="text-center py-20 fade-in">
+        <div style={{ fontSize: 48, marginBottom: 12 }}>😶</div>
+        <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>
+          {t("notFound")}
+        </p>
+      </div>
+    );
   }
 
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
   const moodColor = mood?.color ?? "#F4F2F7";
-  const moodEmoji = mood?.emoji ?? "·";
-  const moodLabel = locale === "th" ? (mood?.labelTh ?? "Unknown") : (mood?.label ?? "Unknown");
+  const moodLabel = locale === "th" ? mood?.labelTh : mood?.label;
   const date = new Date(entry.createdAt);
-  const dayLabel = date.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
+
+  const dateLabel = date.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
-  const time = date.toLocaleTimeString(locale === "th" ? "th-TH" : "en-US", {
+  const timeLabel = date.toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const intensity = entry.intensity ?? 3;
-  const tags = entry.tags ?? [];
+
+  const isAi = entry.aiSource !== "manual";
 
   return (
-    <>
-      {/* ── TOP BAR ─── */}
-      <header className="flex items-center justify-between pt-4 pb-3 fade-in">
-        <button className="icon-btn" aria-label="Back" onClick={() => router.back()}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink-3)" }}>
-          {dayLabel}
-        </span>
-        <button className="icon-btn" aria-label="More">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-            <circle cx="12" cy="19" r="1.5" fill="currentColor" />
-          </svg>
-        </button>
-      </header>
-
-      {/* ── MOOD HERO CARD ─── */}
-      <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
-        <div
-          style={{
-            background: moodColor,
-            borderRadius: 32,
-            padding: "28px 24px",
-            position: "relative",
-            overflow: "hidden",
-          }}
+    <div className="fade-in">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between py-4">
+        <button
+          onClick={() => router.back()}
+          className="icon-btn"
+          style={{ width: 40, height: 40, borderRadius: 12 }}
         >
-          {/* Giant faded emoji */}
-          <span
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+          {dateLabel}
+        </span>
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="icon-btn"
+            style={{ width: 40, height: 40, borderRadius: 12 }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+              <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+            </svg>
+          </button>
+          {menuOpen && (
+            <>
+              <div
+                style={{ position: "fixed", inset: 0, zIndex: 40 }}
+                onClick={() => setMenuOpen(false)}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 44,
+                  background: "#fff",
+                  borderRadius: 14,
+                  padding: "6px 0",
+                  minWidth: 160,
+                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                  border: "1px solid #F2F0F5",
+                  zIndex: 50,
+                }}
+                className="pop"
+              >
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2.5 w-full"
+                  style={{
+                    padding: "10px 16px",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--ink)",
+                    background: "none",
+                    border: "none",
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {t("edit")}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Mood Hero Card ── */}
+      <div
+        className="mb-5"
+        style={{
+          background: moodColor + "99",
+          borderRadius: 28,
+          padding: "24px 22px",
+          position: "relative",
+          overflow: "hidden",
+          minHeight: 160,
+        }}
+      >
+        {mood && (
+          <img
+            src={mood.iconUrl}
+            alt=""
+            width={120}
+            height={120}
             style={{
               position: "absolute",
-              top: -10,
-              right: -10,
-              fontSize: 200,
-              opacity: 0.25,
-              lineHeight: 1,
+              right: 10,
+              bottom: 10,
+              opacity: 0.6,
               pointerEvents: "none",
-              userSelect: "none",
             }}
-            aria-hidden
-          >
-            {moodEmoji}
-          </span>
-
-          <div style={{ position: "relative" }}>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                opacity: 0.7,
-                letterSpacing: "0.4px",
-                color: "#0A0A0A",
-              }}
-            >
-              {locale === "th" ? "รู้สึก" : "FEELING"}
-            </div>
-            <div
-              style={{
-                fontSize: 40,
-                fontWeight: 800,
-                color: "#0A0A0A",
-                lineHeight: 1.15,
-                marginTop: 4,
-              }}
-            >
-              {moodLabel}
-            </div>
-            <div
-              style={{
-                fontSize: 15,
-                opacity: 0.8,
-                color: "#0A0A0A",
-                marginTop: 6,
-              }}
-            >
-              {time} &middot; {dayLabel}
-            </div>
-
-            {/* Intensity bar */}
-            <div className="flex gap-2 mt-4">
-              {[1, 2, 3, 4, 5].map((level) => (
-                <div
-                  key={level}
-                  style={{
-                    width: 28,
-                    height: 8,
-                    borderRadius: 4,
-                    background: level <= intensity ? "#0A0A0A" : "rgba(10,10,10,0.15)",
-                  }}
-                />
-              ))}
-            </div>
+          />
+        )}
+        <div style={{ position: "relative" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-3)", letterSpacing: "0.5px", marginBottom: 4 }}>
+            {t("feeling")}
+          </div>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1, marginBottom: 8 }}>
+            {moodLabel}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--ink-2)", fontWeight: 600 }}>
+            {t("loggedAt", { time: timeLabel })}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── NOTE SECTION ─── */}
+      {/* ── Your Note ── */}
       {entry.note && (
-        <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
-          <div className="px-1">
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#A673F1",
-                letterSpacing: "0.5px",
-                display: "block",
-                marginBottom: 8,
-              }}
-            >
-              {locale === "th" ? "บันทึกของคุณ" : "YOUR NOTE"}
+        <div className="mb-5">
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
+            {t("yourNote")}
+          </div>
+          <p style={{ fontSize: 16, lineHeight: 1.6, color: "var(--ink)" }}>
+            {entry.note}
+          </p>
+        </div>
+      )}
+
+      {/* ── AI Summary ── */}
+      {(entry.aiSummary || entry.note) && <div className="mb-5">
+        <div
+          style={{
+            padding: "12px 14px",
+            borderRadius: 16,
+            background: "#FAF7FE",
+            border: "1px solid #F0EAF7",
+          }}
+        >
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="#B89AE8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#B89AE8", letterSpacing: "0.3px" }}>
+              {t("aiSummary")}
             </span>
-            <p
-              style={{
-                fontSize: 16,
-                lineHeight: 1.55,
-                color: "var(--ink)",
-              }}
-            >
-              {entry.note}
-            </p>
           </div>
-        </section>
-      )}
-
-      {/* ── AI SUMMARY ─── */}
-      {entry.aiSummary && (
-        <section className="mb-5 fade-in" style={{ animationDelay: "120ms" }}>
-          <div
-            style={{
-              background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)",
-              borderRadius: 22,
-              padding: 18,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2.5">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z"
-                  stroke="#A673F1"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#A673F1",
-                  letterSpacing: "0.4px",
-                }}
-              >
-                AI SUMMARY
-              </span>
-            </div>
-            <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }}>
-              {entry.aiSummary}
+          {entry.aiSummary ? (
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--ink-2)" }}>
+              <BoldMarkdown text={entry.aiSummary} />
             </p>
-          </div>
-        </section>
-      )}
+          ) : (
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: "#B89AE8" }}>
+              {t("aiSummaryTeaser")}
+            </p>
+          )}
+        </div>
+      </div>}
 
-      {/* ── TAGS ─── */}
-      <section className="mb-5 fade-in" style={{ animationDelay: "160ms" }}>
-        <div className="px-1">
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 800,
-              color: "#A673F1",
-              letterSpacing: "0.5px",
-              display: "block",
-              marginBottom: 10,
-            }}
-          >
-            TAGS
-          </span>
+      {/* ── Tags ── */}
+      <div className="mb-5">
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
+          {t("tags")}
+        </div>
+        {entry.tags && entry.tags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag, i) => (
+            {entry.tags.map((tag, i) => (
               <span
                 key={i}
                 style={{
                   background: "#fff",
-                  border: "1.5px solid #ECECEC",
-                  padding: "9px 14px",
+                  border: "1.5px solid #F2F0F5",
+                  padding: "6px 14px",
                   borderRadius: 100,
                   fontSize: 13,
                   fontWeight: 700,
@@ -281,107 +239,72 @@ export function EntryDetail({ id }: { id: string }) {
                 {tag}
               </span>
             ))}
-            <button
+            <span
               style={{
-                background: "#F8F6FB",
-                border: "none",
-                padding: "9px 14px",
+                padding: "6px 14px",
                 borderRadius: 100,
                 fontSize: 13,
                 fontWeight: 700,
                 color: "#A673F1",
-                cursor: "pointer",
               }}
             >
-              + {locale === "th" ? "เพิ่ม" : "Add"}
-            </button>
+              + {t("add")}
+            </span>
           </div>
-        </div>
-      </section>
+        ) : (
+          <div
+            style={{
+              padding: "12px 14px",
+              borderRadius: 16,
+              background: "#FAF7FE",
+              border: "1px solid #F0EAF7",
+            }}
+          >
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: "#B89AE8" }}>
+              {t("tagsTeaser")}
+            </p>
+          </div>
+        )}
+      </div>
 
-      {/* ── ACTION BUTTONS ─── */}
-      <section className="fade-in" style={{ animationDelay: "200ms" }}>
-        <div className="flex gap-3">
-          <button
-            style={{
-              flex: 1,
-              height: 50,
-              background: "#F8F6FB",
-              color: "var(--ink)",
-              border: "none",
-              borderRadius: 18,
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {locale === "th" ? "แก้ไข" : "Edit"}
-          </button>
-          <button
-            style={{
-              flex: 1,
-              height: 50,
-              background: "#F8F6FB",
-              color: "var(--ink)",
-              border: "none",
-              borderRadius: 18,
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M12 2v20M2 12h20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5" />
-              <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-            {locale === "th" ? "เปรียบเทียบ" : "Compare"}
-          </button>
+      {/* ── Moment (photo) ── */}
+      {entry.imageUrl && (
+        <div className="mb-5">
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
+            {t("moment")}
+          </div>
+          <img
+            src={entry.imageUrl}
+            alt=""
+            className="w-full"
+            style={{ borderRadius: 22, maxHeight: 300, objectFit: "cover" }}
+          />
         </div>
-      </section>
+      )}
+
+      <div className="pb-6" />
+    </div>
+  );
+}
+
+function BoldMarkdown({ text }: { text: string }) {
+  const parts = text.split(/\*\*/);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>,
+      )}
     </>
   );
 }
 
-/* ─── Loading skeleton ─── */
-
 function LoadingSkeleton() {
   return (
-    <div className="fade-in">
-      {/* Top bar skeleton */}
-      <div className="flex items-center justify-between pt-4 pb-3">
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--surface-2)", opacity: 0.6 }} />
-        <div style={{ width: 100, height: 14, borderRadius: 7, background: "var(--surface-2)", opacity: 0.5 }} />
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--surface-2)", opacity: 0.6 }} />
-      </div>
-      {/* Hero skeleton */}
-      <div
-        style={{
-          height: 200,
-          borderRadius: 32,
-          background: "var(--surface-2)",
-          opacity: 0.5,
-          marginBottom: 20,
-        }}
-      />
-      {/* Note skeleton */}
-      <div className="space-y-2 px-1" style={{ marginBottom: 20 }}>
-        <div style={{ height: 10, width: 80, background: "var(--surface-2)", borderRadius: 6, opacity: 0.6 }} />
-        <div style={{ height: 12, width: "90%", background: "var(--surface-2)", borderRadius: 6, opacity: 0.4 }} />
-        <div style={{ height: 12, width: "70%", background: "var(--surface-2)", borderRadius: 6, opacity: 0.4 }} />
-      </div>
+    <div className="pt-16 space-y-4 fade-in">
+      <div style={{ height: 160, borderRadius: 28, background: "var(--surface-2)", opacity: 0.6 }} />
+      <div style={{ height: 16, width: "40%", borderRadius: 6, background: "var(--surface-2)", opacity: 0.5 }} />
+      <div style={{ height: 60, borderRadius: 16, background: "var(--surface-2)", opacity: 0.4 }} />
+      <div style={{ height: 100, borderRadius: 20, background: "var(--surface-2)", opacity: 0.35 }} />
     </div>
   );
 }

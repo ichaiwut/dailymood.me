@@ -15,6 +15,7 @@ interface AiSuggestion {
   tags: string[];
   imageKey: string | null;
   aiSource: "manual" | "nlp" | "vision" | "nlp+vision";
+  aiSummary: string | null;
 }
 
 interface Props {
@@ -105,6 +106,7 @@ export function SmartLogModal({
           tags: suggestion ? tags : undefined,
           sentiment: suggestion?.sentiment ?? null,
           imageKey: suggestion?.imageKey ?? null,
+          aiSummary: suggestion?.aiSummary ?? null,
           aiSource: suggestion?.aiSource ?? "manual",
         }),
       });

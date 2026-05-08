@@ -68,6 +68,7 @@ export const moodEntries = sqliteTable("mood_entries", {
   imageKey: text("image_key"), // R2 object key; null if no image
   tags: text("tags", { mode: "json" }).$type<string[]>().default([]),
   sentiment: real("sentiment"), // -1..1, null if not analyzed
+  aiSummary: text("ai_summary"),
   aiSource: text("ai_source", { enum: ["manual", "nlp", "vision", "nlp+vision"] })
     .notNull()
     .default("manual"),

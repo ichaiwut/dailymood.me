@@ -44,7 +44,8 @@
 
 #### Smart Logging (AI)
 - [x] Smart Log Modal — text + voice + image
-- [x] AI NLP Tagging (Gemini) — auto-extract mood + tags + sentiment
+- [x] AI NLP Tagging (Gemini) — auto-extract mood + tags + sentiment + AI summary
+- [x] AI Summary — Gemini generates 1-3 sentence Thai summary with **bold** key phrases; saved to `mood_entries.ai_summary`; entries without summary show teaser fallback
 - [x] AI Vision (Premium) — extract context tags from photo
 - [x] Voice input — Web Speech API (TH/EN)
 - [x] Confirm flow — user แก้/ยืนยัน suggestion ก่อน save
@@ -109,11 +110,11 @@
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
-- `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSource, date, createdAt
+- `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSummary, aiSource, date, createdAt
 - `ai_usage` — (userId, date) PK, nlpCount, visionCount
 - `rate_limits` — key PK (`<endpoint>:<ip>`), count, resetAt — fixed-window rate limit on D1
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Cloudflare)
 

@@ -62,7 +62,7 @@
 | Timeline | Grouped entries by day, filter chips (All/Happy/Sad/Work/Friends/Rain), card-based entries with mood emoji square, fetches `/api/log` | Done |
 | Stats | Mood line chart (purple #A673F1 gradient fill), mood mix donut, best day card, activity impact diverging bars; week/month/year segmented pill control | Done |
 | AI Insights | Hero gradient summary card (#A673F1→#C89BF5→#FCA45B) with Gemini executive summary, dynamic pattern/correlation/alert cards, green suggestion card (#FAFFF8). Loading skeleton, empty state, error state. | Done |
-| Entry Detail | Mood hero card (full-width, mood-colored bg, giant faded 200px emoji), note section, AI summary gradient card (#F4EBFE→#FDE8DA), tags pills, edit/compare buttons | Done |
+| Entry Detail | Mood hero card (full-width, mood-colored bg, giant faded 200px emoji), note section, AI summary gradient card (#F4EBFE→#FDE8DA) with Gemini-generated Thai summary (`**bold**` → `<strong>`; teaser fallback when no summary), tags pills, edit/compare buttons | Done |
 | Settings | Custom mood manager (Premium), mood pack picker | Done (default style) |
 
 ## Components

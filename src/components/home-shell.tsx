@@ -7,6 +7,7 @@ import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { SmartLogModal } from "./smart-log-modal";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
+import { Link } from "@/i18n/navigation";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -52,6 +53,7 @@ export function HomeShell({
     tags: string[];
     imageKey: string | null;
     aiSource: string;
+    aiSummary: string | null;
   } | null>(null);
   const [composerMoodId, setComposerMoodId] = useState("neutral");
   const [composerTags, setComposerTags] = useState<string[]>([]);
@@ -91,7 +93,14 @@ export function HomeShell({
         }
         return;
       }
-      const s = await res.json();
+      const s = (await res.json()) as {
+        suggestedMoodId: string;
+        sentiment: number | null;
+        tags: string[];
+        imageKey: string | null;
+        aiSource: string;
+        aiSummary: string | null;
+      };
       setComposerSuggestion(s);
       setComposerMoodId(s.suggestedMoodId);
       setComposerTags(s.tags);
@@ -116,6 +125,7 @@ export function HomeShell({
           tags: composerSuggestion ? composerTags : undefined,
           sentiment: composerSuggestion?.sentiment ?? null,
           imageKey: composerSuggestion?.imageKey ?? null,
+          aiSummary: composerSuggestion?.aiSummary ?? null,
           aiSource: composerSuggestion?.aiSource ?? "manual",
         }),
       });
@@ -727,8 +737,9 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
   });
 
   return (
-    <div
-      className="shrink-0"
+    <Link
+      href={`/entry/${entry.id}` as "/"}
+      className="shrink-0 block transition active:scale-[0.97]"
       style={{
         width: 200,
         background: "#fff",
@@ -736,6 +747,8 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
         padding: "14px 16px",
         border: "1.5px solid #F0EAF7",
         boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+        textDecoration: "none",
+        color: "inherit",
       }}
     >
       <div className="flex items-center gap-2.5 mb-2">
@@ -783,7 +796,7 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
           ))}
         </div>
       )}
-    </div>
+    </Link>
   );
 }
 

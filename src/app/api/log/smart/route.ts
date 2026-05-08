@@ -69,12 +69,14 @@ export async function POST(req: NextRequest) {
   let suggestedMoodId = "neutral";
   let sentiment: number | null = null;
   let nlpTags: string[] = [];
+  let aiSummary: string | null = null;
 
   if (text) {
     const r = await analyzeText(text);
     suggestedMoodId = r.suggestedMoodId;
     sentiment = r.sentiment;
     nlpTags = r.tags ?? [];
+    aiSummary = r.summary || null;
     if (tier === "free") await incNlpUsage(userId);
   }
 
@@ -88,5 +90,6 @@ export async function POST(req: NextRequest) {
     tags,
     imageKey,
     aiSource,
+    aiSummary,
   });
 }

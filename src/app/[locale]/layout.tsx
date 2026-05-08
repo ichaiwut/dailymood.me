@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { auth } from "@/lib/auth";
 import { TopBar } from "@/components/topbar";
 import { BottomNav } from "@/components/bottom-nav";
 
@@ -8,13 +9,14 @@ export default async function LocaleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const messages = await getMessages();
+  const [messages, session] = await Promise.all([getMessages(), auth()]);
+  const isLoggedIn = !!session?.user;
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <TopBar />
+      {isLoggedIn && <TopBar />}
       {children}
-      <BottomNav />
+      {isLoggedIn && <BottomNav />}
     </NextIntlClientProvider>
   );
 }

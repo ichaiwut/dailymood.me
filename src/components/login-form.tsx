@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
 type Step =
+  | { kind: "landing" }
   | { kind: "email" }
   | { kind: "password"; email: string }
   | { kind: "register"; email: string }
@@ -15,12 +16,12 @@ type Step =
 export function LoginForm() {
   const t = useTranslations("auth");
   const locale = useLocale();
-  const [step, setStep] = useState<Step>({ kind: "email" });
+  const [step, setStep] = useState<Step>({ kind: "landing" });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   function reset() {
-    setStep({ kind: "email" });
+    setStep({ kind: "landing" });
     setError(null);
   }
 
@@ -108,7 +109,7 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <LogoMark />
+      <Sparkles />
       <h1
         className="leading-[1.1] mt-6"
         style={{
@@ -127,12 +128,20 @@ export function LoginForm() {
         {t("signInDescription")}
       </p>
 
+      {step.kind === "landing" && (
+        <LandingStep
+          onGoogle={() => signIn("google", { callbackUrl: "/" })}
+          onEmailSignIn={() => setStep({ kind: "email" })}
+          t={t}
+        />
+      )}
+
       {step.kind === "email" && (
         <EmailStep
           busy={busy}
           error={error}
           onSubmit={onCheckEmail}
-          onGoogle={() => signIn("google", { callbackUrl: "/" })}
+          onBack={() => setStep({ kind: "landing" })}
           t={t}
         />
       )}
@@ -186,44 +195,67 @@ export function LoginForm() {
 
 type T = ReturnType<typeof useTranslations<"auth">>;
 
+function LandingStep({
+  onGoogle,
+  onEmailSignIn,
+  t,
+}: {
+  onGoogle: () => void;
+  onEmailSignIn: () => void;
+  t: T;
+}) {
+  return (
+    <div className="mt-5 space-y-3">
+      <SocialButton onClick={onGoogle} icon={<GoogleIcon />}>
+        {t("continueWithGoogle")}
+      </SocialButton>
+      <SocialButton onClick={() => {}} icon={<FacebookIcon />}>
+        {t("continueWithFacebook")}
+      </SocialButton>
+
+      <Divider label={t("or")} />
+
+      <PrimaryButton busy={false} disabled={false} onClick={onEmailSignIn}>
+        {t("signInWithEmail")}
+      </PrimaryButton>
+
+      <p className="text-center pt-2" style={{ fontSize: 14 }}>
+        <span style={{ color: "var(--ink-3)" }}>{t("newHere")} </span>
+        <button
+          type="button"
+          onClick={onEmailSignIn}
+          className="font-bold"
+          style={{ color: "#A673F1" }}
+        >
+          {t("createAnAccount")}
+        </button>
+      </p>
+    </div>
+  );
+}
+
 function EmailStep({
   busy,
   error,
   onSubmit,
-  onGoogle,
+  onBack,
   t,
 }: {
   busy: boolean;
   error: string | null;
   onSubmit: (email: string) => void;
-  onGoogle: () => void;
+  onBack: () => void;
   t: T;
 }) {
   const [email, setEmail] = useState("");
   return (
     <form
-      className="mt-7 space-y-3"
+      className="mt-5 space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(email);
       }}
     >
-      <button
-        type="button"
-        onClick={onGoogle}
-        className="w-full inline-flex items-center justify-center gap-3 rounded-full px-5 py-3 text-base font-semibold transition active:scale-[0.98]"
-        style={{
-          background: "var(--surface)",
-          color: "var(--ink)",
-          boxShadow: "var(--shadow-card)",
-        }}
-      >
-        <GoogleIcon />
-        {t("continueWithGoogle")}
-      </button>
-
-      <Divider label={t("or")} />
-
       <Input
         type="email"
         autoFocus
@@ -237,6 +269,16 @@ function EmailStep({
         {t("continue")}
       </PrimaryButton>
       <ErrorLine msg={error} />
+      <div className="text-center pt-1">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-base font-medium"
+          style={{ color: "var(--ink-2)" }}
+        >
+          {t("back")}
+        </button>
+      </div>
     </form>
   );
 }
@@ -259,7 +301,7 @@ function PasswordStep({
   const [pwd, setPwd] = useState("");
   return (
     <form
-      className="mt-7 space-y-3"
+      className="mt-5 space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(pwd);
@@ -311,7 +353,7 @@ function RegisterStep({
   const [pwd, setPwd] = useState("");
   return (
     <form
-      className="mt-7 space-y-3"
+      className="mt-5 space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(name, pwd);
@@ -355,26 +397,22 @@ function GoogleOnlyStep({
   t: T;
 }) {
   return (
-    <div className="mt-7 space-y-3">
-      <EmailRow email={email} onBack={onBack} backLabel={t("back")} />
+    <div className="mt-5 space-y-4">
+      <div
+        className="pb-3"
+        style={{ borderBottom: "1px solid var(--hairline)" }}
+      >
+        <EmailRow email={email} onBack={onBack} backLabel={t("back")} />
+      </div>
       <p
         className="text-base leading-snug"
         style={{ color: "var(--ink-2)" }}
       >
         {t("useGoogleInstead")}
       </p>
-      <button
-        type="button"
-        onClick={onGoogle}
-        className="w-full inline-flex items-center justify-center gap-3 rounded-full px-5 py-3 text-base font-semibold"
-        style={{
-          background: "var(--ink)",
-          color: "var(--primary-on)",
-        }}
-      >
-        <GoogleIcon />
+      <SocialButton onClick={onGoogle} icon={<GoogleIcon />}>
         {t("continueWithGoogle")}
-      </button>
+      </SocialButton>
     </div>
   );
 }
@@ -395,7 +433,7 @@ function VerifySentStep({
   t: T;
 }) {
   return (
-    <div className="mt-7 space-y-3">
+    <div className="mt-5 space-y-3">
       <h2
         className="font-bold tracking-tight text-xl"
         style={{ color: "var(--ink)" }}
@@ -483,21 +521,52 @@ function Input({
   );
 }
 
-function PrimaryButton({
-  busy,
-  disabled,
+function SocialButton({
+  onClick,
+  icon,
   children,
 }: {
-  busy?: boolean;
-  disabled?: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <button
-      type="submit"
-      disabled={busy || disabled}
-      className="w-full px-5 py-3 text-base font-semibold rounded-full transition active:scale-[0.98]"
+      type="button"
+      onClick={onClick}
+      className="w-full inline-flex items-center justify-center gap-3 rounded-full text-base font-bold transition active:scale-[0.98]"
       style={{
+        height: 56,
+        background: "var(--surface)",
+        color: "var(--ink)",
+        border: "1px solid var(--hairline)",
+      }}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
+
+function PrimaryButton({
+  busy,
+  disabled,
+  children,
+  onClick,
+}: {
+  busy?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type={onClick ? "button" : "submit"}
+      onClick={onClick}
+      disabled={busy || disabled}
+      className="w-full rounded-full text-[17px] font-bold transition active:scale-[0.98]"
+      style={{
+        height: 56,
         background: "#FCA45B",
         color: "#fff",
         boxShadow: "0 10px 24px rgba(252,164,91,0.4)",
@@ -519,10 +588,7 @@ function EmailRow({
   backLabel: string;
 }) {
   return (
-    <div
-      className="flex items-center justify-between px-4 py-2.5 rounded-2xl"
-      style={{ background: "var(--surface-2)" }}
-    >
+    <div className="flex items-center justify-between py-2">
       <span
         className="text-base truncate"
         style={{ color: "var(--ink)" }}
@@ -555,8 +621,8 @@ function Divider({ label }: { label: string }) {
       </div>
       <div className="relative flex justify-center">
         <span
-          className="px-3 text-sm"
-          style={{ background: "var(--bg)", color: "var(--ink-3)" }}
+          className="px-3"
+          style={{ fontSize: 13, background: "var(--bg)", color: "var(--ink-3)" }}
         >
           {label}
         </span>
@@ -574,6 +640,22 @@ function ErrorLine({ msg }: { msg: string | null }) {
     >
       {msg}
     </p>
+  );
+}
+
+function Sparkles() {
+  return (
+    <div aria-hidden className="relative" style={{ width: 60, height: 40 }}>
+      <span className="absolute" style={{ top: 0, left: 0, fontSize: 20 }}>
+        ✨
+      </span>
+      <span className="absolute" style={{ top: 4, left: 32, fontSize: 16 }}>
+        ✨
+      </span>
+      <span className="absolute" style={{ top: 18, left: 20, fontSize: 14 }}>
+        ✦
+      </span>
+    </div>
   );
 }
 
@@ -614,6 +696,25 @@ function GoogleIcon() {
       <path
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         fill="#EA4335"
+      />
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+        fill="#1877F2"
       />
     </svg>
   );
