@@ -25,34 +25,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "empty_input" }, { status: 400 });
   }
 
-  // Vision is premium-only
+  // Image upload is premium-only
   if (hasImage && !meetsTier(tier, "premium")) {
     return NextResponse.json({ error: "premium_required", feature: "vision" }, { status: 403 });
   }
 
-  if (tier === "free") {
-    // Free: 1 AI call/day — no cooldown needed
-    const used = await getNlpUsage(userId);
-    if (used >= FREE_NLP_DAILY_LIMIT) {
-      return NextResponse.json(
-        { error: "rate_limited", used, limit: FREE_NLP_DAILY_LIMIT },
-        { status: 429 },
-      );
-    }
-  } else {
-    // Premium: cooldown 1 call per 5 minutes
-    const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 1, windowSec: 300 });
-    if (!cooldown.ok) {
-      return NextResponse.json(
-        { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec },
-        { status: 429 },
-      );
-    }
-  }
-
+  // Upload image to R2 first (before rate limit) so it's always saved
   let imageKey: string | null = null;
-  let visionTags: string[] = [];
-
   if (hasImage) {
     const file = image as File;
     if (file.size > MAX_IMAGE_BYTES) {
@@ -61,6 +40,33 @@ export async function POST(req: NextRequest) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     imageKey = `users/${userId}/${todayKey()}/${ulid()}.webp`;
     await uploadObject(imageKey, bytes, file.type || "image/webp");
+  }
+
+  if (tier === "free") {
+    // Free: 1 AI call/day — no cooldown needed
+    const used = await getNlpUsage(userId);
+    if (used >= FREE_NLP_DAILY_LIMIT) {
+      return NextResponse.json(
+        { error: "rate_limited", used, limit: FREE_NLP_DAILY_LIMIT, imageKey },
+        { status: 429 },
+      );
+    }
+  } else {
+    // Premium: cooldown 1 call per 5 minutes
+    const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 1, windowSec: 300 });
+    if (!cooldown.ok) {
+      return NextResponse.json(
+        { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec, imageKey },
+        { status: 429 },
+      );
+    }
+  }
+
+  // AI Vision analysis (premium, image already uploaded above)
+  let visionTags: string[] = [];
+  if (hasImage && imageKey) {
+    const file = image as File;
+    const bytes = new Uint8Array(await file.arrayBuffer());
     const v = await analyzeImage(bytes, file.type || "image/webp");
     visionTags = v.tags ?? [];
     await incVisionUsage(userId);
@@ -76,7 +82,7 @@ export async function POST(req: NextRequest) {
     suggestedMoodId = r.suggestedMoodId;
     sentiment = r.sentiment;
     nlpTags = r.tags ?? [];
-    aiSummary = r.summary || null;
+    if (tier === "premium") aiSummary = r.summary || null;
     if (tier === "free") await incNlpUsage(userId);
   }
 

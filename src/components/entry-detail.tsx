@@ -14,6 +14,7 @@ interface EntryData {
   aiSummary?: string | null;
   aiSource: string;
   imageUrl?: string | null;
+  isPremium?: boolean;
   date: string;
   createdAt: string | number;
 }
@@ -203,6 +204,20 @@ export function EntryDetail({ id }: { id: string }) {
             <span style={{ fontSize: 10, fontWeight: 700, color: "#B89AE8", letterSpacing: "0.3px" }}>
               {t("aiSummary")}
             </span>
+            {!entry.aiSummary && (
+              <span style={{
+                marginLeft: "auto",
+                background: "#0A0A0A",
+                color: "#fff",
+                fontSize: 8,
+                fontWeight: 800,
+                padding: "1px 5px",
+                borderRadius: 4,
+                letterSpacing: "0.3px",
+              }}>
+                PRO
+              </span>
+            )}
           </div>
           {entry.aiSummary ? (
             <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--ink-2)" }}>
@@ -215,6 +230,21 @@ export function EntryDetail({ id }: { id: string }) {
           )}
         </div>
       </div>}
+
+      {/* ── Moment (photo) ── */}
+      {entry.imageUrl && (
+        <div className="mb-5">
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
+            {t("moment")}
+          </div>
+          <img
+            src={entry.imageUrl}
+            alt=""
+            className="w-full"
+            style={{ borderRadius: 22, maxHeight: 300, objectFit: "cover" }}
+          />
+        </div>
+      )}
 
       {/* ── Tags ── */}
       <div className="mb-5">
@@ -239,17 +269,6 @@ export function EntryDetail({ id }: { id: string }) {
                 {tag}
               </span>
             ))}
-            <span
-              style={{
-                padding: "6px 14px",
-                borderRadius: 100,
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#A673F1",
-              }}
-            >
-              + {t("add")}
-            </span>
           </div>
         ) : (
           <div
@@ -266,21 +285,6 @@ export function EntryDetail({ id }: { id: string }) {
           </div>
         )}
       </div>
-
-      {/* ── Moment (photo) ── */}
-      {entry.imageUrl && (
-        <div className="mb-5">
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
-            {t("moment")}
-          </div>
-          <img
-            src={entry.imageUrl}
-            alt=""
-            className="w-full"
-            style={{ borderRadius: 22, maxHeight: 300, objectFit: "cover" }}
-          />
-        </div>
-      )}
 
       <div className="pb-6" />
     </div>

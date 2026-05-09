@@ -83,8 +83,11 @@ export function HomeShell({
       }
       const res = await fetch("/api/log/smart", { method: "POST", body: fd });
       if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSec?: number };
+        const j = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSec?: number; imageKey?: string };
         if (j.error === "rate_limited") {
+          if (j.imageKey) {
+            setComposerSuggestion({ suggestedMoodId: composerMoodId, sentiment: null, tags: [], imageKey: j.imageKey, aiSource: "manual", aiSummary: null });
+          }
           setComposerAiBlocked(true);
           if (tier === "premium") {
             const min = Math.ceil((j.retryAfterSec ?? 300) / 60);
@@ -118,6 +121,17 @@ export function HomeShell({
     setComposerBusy(true);
     setComposerError(null);
     try {
+      let imageKey = composerSuggestion?.imageKey ?? null;
+      if (!imageKey && composerImage) {
+        const fd = new FormData();
+        const opt = await optimizeImage(composerImage);
+        fd.append("image", opt);
+        const upRes = await fetch("/api/upload", { method: "POST", body: fd });
+        if (upRes.ok) {
+          const upData = (await upRes.json()) as { imageKey: string };
+          imageKey = upData.imageKey;
+        }
+      }
       const res = await fetch("/api/log/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -126,7 +140,7 @@ export function HomeShell({
           note: composerText.trim() || undefined,
           tags: composerSuggestion ? composerTags : undefined,
           sentiment: composerSuggestion?.sentiment ?? null,
-          imageKey: composerSuggestion?.imageKey ?? null,
+          imageKey,
           aiSummary: composerSuggestion?.aiSummary ?? null,
           aiSource: composerSuggestion?.aiSource ?? "manual",
         }),

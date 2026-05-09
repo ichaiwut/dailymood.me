@@ -235,6 +235,7 @@
     "yourNote": "YOUR NOTE",
     "aiSummary": "AI SUMMARY",
     "aiSummaryTeaser": "Did you know — AI can summarize your mood. Try logging with AI next time!",
+    "aiSummaryLocked": "Upgrade to Premium to see your AI summary",
     "tags": "TAGS",
     "tagsTeaser": "Add tags to group your moods and find entries more easily",
     "add": "Add",

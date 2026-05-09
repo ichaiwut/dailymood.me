@@ -97,6 +97,17 @@ export function SmartLogModal({
     setBusy(true);
     setError(null);
     try {
+      let imageKey = suggestion?.imageKey ?? null;
+      if (!imageKey && imageFile) {
+        const fd = new FormData();
+        const opt = await optimizeImage(imageFile);
+        fd.append("image", opt);
+        const upRes = await fetch("/api/upload", { method: "POST", body: fd });
+        if (upRes.ok) {
+          const upData = (await upRes.json()) as { imageKey: string };
+          imageKey = upData.imageKey;
+        }
+      }
       const res = await fetch("/api/log/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -105,7 +116,7 @@ export function SmartLogModal({
           note: text.trim() || undefined,
           tags: suggestion ? tags : undefined,
           sentiment: suggestion?.sentiment ?? null,
-          imageKey: suggestion?.imageKey ?? null,
+          imageKey,
           aiSummary: suggestion?.aiSummary ?? null,
           aiSource: suggestion?.aiSource ?? "manual",
         }),

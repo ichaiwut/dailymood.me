@@ -11,7 +11,7 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { userId } = await getSessionInfo();
+  const { userId, tier } = await getSessionInfo();
   if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
   const { id } = await params;
@@ -27,5 +27,5 @@ export async function GET(
 
   const imageUrl = row.imageKey ? await getSignedReadUrl(row.imageKey) : null;
 
-  return NextResponse.json({ ...row, imageUrl });
+  return NextResponse.json({ ...row, imageUrl, isPremium: tier === "premium" });
 }
