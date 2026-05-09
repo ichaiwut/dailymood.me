@@ -53,7 +53,7 @@
 
 #### Visualization
 - [x] Today's Timeline — entry grid (1/2/3 cols) with horizontal day-axis above (spine + mood-colored dots positioned by time-of-day, pulsing "Now" cap on the right)
-- [x] Mood Calendar — monthly grid + year-in-pixels view (`/calendar`)
+- [x] Mood Calendar — monthly mood grid (colored day cells by dominant mood), year-in-pixels (12×31 grid), stat cards (AVG MOOD with delta, STREAK, LOGGED), month navigation. API: `/api/calendar?year=Y&month=MM`
 - [x] Stats Page (`/stats`) — average mood line chart, mood mix donut, best day, activity impact (mock AI data); week/month/year segmented control; fetches `/api/stats`
 - [ ] Streak & Habits
 
@@ -105,6 +105,7 @@
 | PATCH | `/api/log/[id]` | auth | Update entry (mood, note, tags, image, date/time) |
 | DELETE | `/api/log/[id]` | auth | Delete entry + R2 image cleanup |
 | POST | `/api/upload` | premium | Upload image to R2 (returns imageKey) |
+| GET | `/api/calendar` | auth | Calendar data: `?year=Y&month=MM` returns entries + stats; `?year=Y` returns year entries |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
