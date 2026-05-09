@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { BottomSheet } from "./bottom-sheet";
+import { DaySheet } from "./day-sheet";
+import { SmartLogModal } from "./smart-log-modal";
+import type { Tier } from "@/lib/tier";
 
 interface MonthEntry {
   date: string;
@@ -33,15 +37,37 @@ function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
 }
 
-export function CalendarShell() {
+export function CalendarShell({
+  tier = "free",
+  pack,
+}: {
+  tier?: Tier;
+  pack?: string;
+}) {
   const locale = useLocale();
   const t = useTranslations("calendar");
+  const tSheet = useTranslations("daySheet");
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [entries, setEntries] = useState<MonthEntry[] | null>(null);
   const [stats, setStats] = useState<CalendarStats | null>(null);
   const [yearEntries, setYearEntries] = useState<MonthEntry[] | null>(null);
+  const [sheetDate, setSheetDate] = useState<string | null>(null);
+  const [logDate, setLogDate] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function handleDayPress(dateStr: string, isFuture: boolean) {
+    if (isFuture) {
+      clearTimeout(toastTimer.current);
+      setToast(tSheet("futureToast"));
+      toastTimer.current = setTimeout(() => setToast(null), 2500);
+      return;
+    }
+    setSheetDate(dateStr);
+  }
 
   const monthNames = locale === "th" ? MONTH_NAMES_TH : MONTH_NAMES_EN;
   const weekdays = locale === "th" ? WEEKDAYS_TH : WEEKDAYS_EN;
@@ -59,7 +85,7 @@ export function CalendarShell() {
         setStats(data.stats);
       });
     return () => { alive = false; };
-  }, [viewYear, viewMonth]);
+  }, [viewYear, viewMonth, refreshKey]);
 
   // Fetch year data
   useEffect(() => {
@@ -189,9 +215,21 @@ export function CalendarShell() {
             const moodId = entryMap.get(day) ?? null;
             const color = getMoodColor(moodId);
             const isToday = isCurrentMonth && day === todayDate;
+            const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const isSelected = sheetDate === dateStr;
+            const isFuture = new Date(viewYear, viewMonth, day) > new Date(now.getFullYear(), now.getMonth(), now.getDate());
             return (
               <div
                 key={day}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleDayPress(dateStr, isFuture)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleDayPress(dateStr, isFuture);
+                  }
+                }}
                 style={{
                   aspectRatio: "1",
                   borderRadius: 12,
@@ -202,7 +240,14 @@ export function CalendarShell() {
                   fontSize: 14,
                   fontWeight: 700,
                   color: moodId ? "rgba(0,0,0,0.5)" : "var(--ink-3)",
-                  border: isToday ? "2.5px solid #FCA45B" : "none",
+                  border: isSelected
+                    ? "2.5px solid var(--ink)"
+                    : isToday
+                      ? "2.5px solid #FCA45B"
+                      : "none",
+                  cursor: isFuture ? "default" : "pointer",
+                  opacity: isFuture ? 0.4 : 1,
+                  transition: "transform 120ms",
                 }}
               >
                 {day}
@@ -286,6 +331,65 @@ export function CalendarShell() {
           ))}
         </div>
       </div>
+
+      {/* ── Day Sheet ── */}
+      <BottomSheet
+        open={sheetDate !== null}
+        onClose={() => setSheetDate(null)}
+        aria-label={tSheet("dayEntries")}
+      >
+        {sheetDate && (
+          <DaySheet
+            selectedDate={sheetDate}
+            viewYear={viewYear}
+            viewMonth={viewMonth}
+            onClose={() => setSheetDate(null)}
+            onNavigate={(date) => setSheetDate(date)}
+            onOpenLog={(date) => {
+              setSheetDate(null);
+              setLogDate(date);
+            }}
+          />
+        )}
+      </BottomSheet>
+
+      {/* ── Smart Log Modal (from empty day CTA) ── */}
+      {logDate && (
+        <SmartLogModal
+          tier={tier}
+          pack={pack}
+          presetDate={logDate}
+          onClose={() => setLogDate(null)}
+          onSaved={() => {
+            setLogDate(null);
+            setRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
+
+      {/* ── Future date toast ── */}
+      {toast && (
+        <div
+          className="fade-in"
+          style={{
+            position: "fixed",
+            top: 60,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 60,
+            background: "var(--ink)",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: 100,
+            fontSize: 14,
+            fontWeight: 700,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

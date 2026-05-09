@@ -54,6 +54,7 @@
 #### Visualization
 - [x] Today's Timeline — entry grid (1/2/3 cols) with horizontal day-axis above (spine + mood-colored dots positioned by time-of-day, pulsing "Now" cap on the right)
 - [x] Mood Calendar — monthly mood grid (colored day cells by dominant mood), year-in-pixels (12×31 grid), stat cards (AVG MOOD with delta, STREAK, LOGGED), month navigation. API: `/api/calendar?year=Y&month=MM`
+- [x] Calendar Day Sheet — tap a day cell → bottom sheet slides up showing that day's entries. Drag handle, date header with prev/next day arrows, mood card(s), note preview, tag chips, Edit + "Open full entry" CTA. Empty day shows "+ Log mood" button (opens SmartLogModal with preset date). Future dates disabled + toast. Multi-entry days show stacked cards. Dismiss via scrim tap, swipe, or Escape key.
 - [x] Stats Page (`/stats`) — average mood line chart, mood mix donut, best day, activity impact (mock AI data); week/month/year segmented control; fetches `/api/stats`
 - [ ] Streak & Habits
 

@@ -199,6 +199,20 @@
     "yearInPixels": "Year in pixels",
     "noData": "No data"
   },
+  "daySheet": {
+    "emptyTitle": "Nothing logged",
+    "emptyBody": "How was this day?",
+    "logMood": "Log mood",
+    "futureToast": "That day hasn't happened yet",
+    "feeling": "FEELING",
+    "loggedAt": "Logged {time}",
+    "openEntry": "Open full entry",
+    "entries": "{count} entries",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "editEntry": "Edit entry",
+    "dayEntries": "Day entries"
+  },
   "stats": {
     "title": "Stats",
     "last7": "Last 7 days",

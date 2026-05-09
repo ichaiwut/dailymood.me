@@ -70,6 +70,9 @@
 
 | Component | Purpose |
 |---|---|
+| `BottomSheet` | Generic reusable bottom sheet: scrim (`rgba(10,10,10,0.32)`), panel slides up from bottom (28px top corners), drag handle, body scroll lock, Escape dismiss, `sheet-open`/`sheet-close` CSS animation with deferred unmount |
+| `DaySheet` | Calendar day sheet content: date header with prev/next arrows, fetches `/api/log?date=`, renders `EntryMiniCard` list, empty state with "+ Log mood" CTA, loading skeleton |
+| `EntryMiniCard` | Compact entry card for sheets: mood color bg (20% alpha) with ghost icon, mood label + time, 2-line note clamp, tag pills, Edit icon + "Open full entry" black pill CTA |
 | `TopBar` / `TopBarClient` | Purple avatar circle (initials) + day label + greeting with name + search/bell icon buttons |
 | `BottomNav` | Floating white pill nav: Home, Calendar, FAB (+), Stats, Profile. Purple active, peach FAB |
 | `HomeShell` | Home page: streak strip, AI composer, mood picker row, recent entries |
@@ -106,3 +109,4 @@
 | 2026-05-07 | Mood colors: peach=happy, mint=calm, yellow=neutral, blue=sad, lavender=anxious, purple=tired | จับคู่กับ Moodly palette |
 | 2026-05-07 | AI Composer card on home (not modal) with caret animation | Centerpiece UX — AI ควรเด่นชัดบนหน้า Home |
 | 2026-05-07 | Implement all 10 design screens from Claude Design handoff | Calendar, Stats, AI Insights, History, Entry Detail — ทั้งหมดจาก Moodly design prototype |
+| 2026-05-09 | Calendar Day Sheet (bottom sheet) | Daylio-style bottom sheet on day tap — keeps calendar context vs. full-screen push. Generic `BottomSheet` base extracted for reuse |

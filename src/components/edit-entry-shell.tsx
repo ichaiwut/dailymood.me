@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
@@ -60,6 +60,14 @@ export function EditEntryShell({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [showMoodPicker, setShowMoodPicker] = useState(false);
   const [originalImageKey, setOriginalImageKey] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function showToast(msg: string) {
+    clearTimeout(toastTimer.current);
+    setToast(msg);
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  }
 
   useEffect(() => {
     fetch(`/api/log/${id}`)
@@ -130,6 +138,11 @@ export function EditEntryShell({ id }: { id: string }) {
   }
 
   async function handleSave() {
+    const selectedDt = new Date(`${dateVal}T${timeVal}:00`);
+    if (selectedDt > new Date()) {
+      showToast(locale === "th" ? "ไม่สามารถบันทึกเวลาในอนาคตได้" : "Cannot save a future date or time");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -577,6 +590,7 @@ export function EditEntryShell({ id }: { id: string }) {
           <input
             type="date"
             value={dateVal}
+            max={new Date().toISOString().slice(0, 10)}
             onChange={(e) => setDateVal(e.target.value)}
             style={{
               width: "100%",
@@ -681,6 +695,30 @@ export function EditEntryShell({ id }: { id: string }) {
           </button>
         </div>
       </div>
+
+      {/* ── Toast ── */}
+      {toast && (
+        <div
+          className="fade-in"
+          style={{
+            position: "fixed",
+            top: 60,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 60,
+            background: "var(--ink)",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: 100,
+            fontSize: 14,
+            fontWeight: 700,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {toast}
+        </div>
+      )}
 
       {/* ── Delete Confirm Overlay ── */}
       {showDeleteConfirm && (

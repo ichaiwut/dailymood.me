@@ -199,6 +199,20 @@
     "yearInPixels": "ปีในพิกเซล",
     "noData": "ไม่มีข้อมูล"
   },
+  "daySheet": {
+    "emptyTitle": "ยังไม่มีบันทึก",
+    "emptyBody": "วันนั้นเป็นยังไงบ้าง?",
+    "logMood": "บันทึกอารมณ์",
+    "futureToast": "วันนั้นยังมาไม่ถึง",
+    "feeling": "รู้สึก",
+    "loggedAt": "บันทึกเมื่อ {time}",
+    "openEntry": "เปิดบันทึกเต็ม",
+    "entries": "{count} รายการ",
+    "prevDay": "วันก่อนหน้า",
+    "nextDay": "วันถัดไป",
+    "editEntry": "แก้ไขบันทึก",
+    "dayEntries": "บันทึกประจำวัน"
+  },
   "stats": {
     "title": "สถิติ",
     "last7": "7 วันล่าสุด",

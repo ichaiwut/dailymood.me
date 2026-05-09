@@ -16,6 +16,7 @@ interface ConfirmBody {
   imageKey?: string | null;
   aiSource?: "manual" | "nlp" | "vision" | "nlp+vision";
   aiSummary?: string | null;
+  date?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -45,6 +46,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_image_key" }, { status: 400 });
   }
 
+  let entryDate = todayKey();
+  if (body.date) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+      return NextResponse.json({ error: "invalid_date" }, { status: 400 });
+    }
+    if (body.date > todayKey()) {
+      return NextResponse.json({ error: "invalid_date" }, { status: 400 });
+    }
+    entryDate = body.date;
+  }
+
   const id = ulid();
   await db.insert(moodEntries).values({
     id,
@@ -56,7 +68,7 @@ export async function POST(req: NextRequest) {
     imageKey: body.imageKey ?? null,
     aiSummary: body.aiSummary ?? null,
     aiSource: body.aiSource ?? "manual",
-    date: todayKey(),
+    date: entryDate,
   });
 
   return NextResponse.json({ id });

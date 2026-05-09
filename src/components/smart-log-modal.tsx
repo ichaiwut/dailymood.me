@@ -24,6 +24,7 @@ interface Props {
   onSaved: () => void;
   pack?: string;
   preSelectedMoodId?: string;
+  presetDate?: string;
 }
 
 export function SmartLogModal({
@@ -32,6 +33,7 @@ export function SmartLogModal({
   onSaved,
   pack = DEFAULT_MOOD_PACK,
   preSelectedMoodId,
+  presetDate,
 }: Props) {
   const t = useTranslations("smart");
   const locale = useLocale();
@@ -50,8 +52,10 @@ export function SmartLogModal({
   const hasInput = text.trim().length > 0 || !!imageFile;
 
   const now = new Date();
-  const dateLabel = now.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
+  const displayDate = presetDate ? new Date(presetDate + "T12:00:00") : now;
+  const dateLabel = displayDate.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
     weekday: "long",
+    ...(presetDate ? { month: "short", day: "numeric" } : {}),
   });
   const timeLabel = now.toLocaleTimeString(locale, {
     hour: "2-digit",
@@ -119,6 +123,7 @@ export function SmartLogModal({
           imageKey,
           aiSummary: suggestion?.aiSummary ?? null,
           aiSource: suggestion?.aiSource ?? "manual",
+          ...(presetDate ? { date: presetDate } : {}),
         }),
       });
       if (!res.ok) {

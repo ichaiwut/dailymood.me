@@ -3,6 +3,7 @@ import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { moodEntries, moodTypes } from "@/db/schema";
 import { getSignedReadUrl, deleteObject } from "@/lib/r2";
+import { todayKey } from "@/lib/usage";
 import { and, eq, isNull, or } from "drizzle-orm";
 
 export const runtime = "edge";
@@ -86,10 +87,19 @@ export async function PATCH(
   if ("imageKey" in body) updateData.imageKey = body.imageKey ?? null;
   if (body.aiSummary !== undefined) updateData.aiSummary = body.aiSummary;
   if (body.aiSource !== undefined) updateData.aiSource = body.aiSource;
-  if (body.date !== undefined) updateData.date = body.date;
+  if (body.date !== undefined) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+      return NextResponse.json({ error: "invalid_date" }, { status: 400 });
+    }
+    if (body.date > todayKey()) {
+      return NextResponse.json({ error: "future_date" }, { status: 400 });
+    }
+    updateData.date = body.date;
+  }
   if (body.createdAt !== undefined) {
     const d = new Date(body.createdAt);
     if (isNaN(d.getTime())) return NextResponse.json({ error: "invalid_date" }, { status: 400 });
+    if (d > new Date()) return NextResponse.json({ error: "future_date" }, { status: 400 });
     updateData.createdAt = d;
   }
 
