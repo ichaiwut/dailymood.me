@@ -73,6 +73,9 @@
 | `BottomSheet` | Generic reusable bottom sheet: scrim (`rgba(10,10,10,0.32)`), panel slides up from bottom (28px top corners), drag handle, body scroll lock, Escape dismiss, `sheet-open`/`sheet-close` CSS animation with deferred unmount |
 | `DaySheet` | Calendar day sheet content: date header with prev/next arrows, fetches `/api/log?date=`, renders `EntryMiniCard` list, empty state with "+ Log mood" CTA, loading skeleton |
 | `EntryMiniCard` | Compact entry card for sheets: mood color bg (20% alpha) with ghost icon, mood label + time, 2-line note clamp, tag pills, Edit icon + "Open full entry" black pill CTA |
+| `AiSummaryCard` | Calendar AI summary card: gradient bg (#FAF7FE→#FDE8DA), ✨ header, Gemini 2-3 sentence summary with **bold** → `<strong>`, 3 highlight chips (Best day/Hardest day/Top trigger), "Tell me more →" CTA. Free tier: 1st sentence + blurred chips + "Unlock with Premium" |
+| `PatternsFeed` | AI pattern cards below calendar grid: icon + explanation + "View →". Locked state for free users |
+| `AskAiBar` | NL search bar: dashed lavender border, rotating placeholder queries, expands on tap, inline answer with date chips |
 | `TopBar` / `TopBarClient` | Purple avatar circle (initials) + day label + greeting with name + search/bell icon buttons |
 | `BottomNav` | Floating white pill nav: Home, Calendar, FAB (+), Stats, Profile. Purple active, peach FAB |
 | `HomeShell` | Home page: streak strip, AI composer, mood picker row, recent entries |
@@ -110,3 +113,4 @@
 | 2026-05-07 | AI Composer card on home (not modal) with caret animation | Centerpiece UX — AI ควรเด่นชัดบนหน้า Home |
 | 2026-05-07 | Implement all 10 design screens from Claude Design handoff | Calendar, Stats, AI Insights, History, Entry Detail — ทั้งหมดจาก Moodly design prototype |
 | 2026-05-09 | Calendar Day Sheet (bottom sheet) | Daylio-style bottom sheet on day tap — keeps calendar context vs. full-screen push. Generic `BottomSheet` base extracted for reuse |
+| 2026-05-09 | Calendar AI features (Summary + Patterns + Ask AI) | AI turns calendar from passive log to reflective surface. Single Gemini call per month for summary+patterns, cached in D1. Premium gating: free sees 1st sentence + blur + locked states. Pattern rings overlay on grid. Ask AI bar at bottom with NL search |

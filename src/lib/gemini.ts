@@ -145,6 +145,149 @@ export async function generateInsights(data: string): Promise<InsightsResult> {
   return JSON.parse(r.response.text()) as InsightsResult;
 }
 
+// ── Calendar AI: monthly summary + patterns ──
+
+export interface CalendarAiResult {
+  summary: string;
+  summaryFirstSentence: string;
+  highlights: {
+    bestDay: { date: string; emoji: string } | null;
+    hardDay: { date: string; emoji: string } | null;
+    topTag: string | null;
+  };
+  patterns: {
+    type: "best" | "recurring" | "anomaly";
+    dates: string[];
+    title: string;
+    explanation: string;
+    icon: string;
+  }[];
+}
+
+const CALENDAR_AI_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: { type: SchemaType.STRING },
+    summaryFirstSentence: { type: SchemaType.STRING },
+    highlights: {
+      type: SchemaType.OBJECT,
+      properties: {
+        bestDay: {
+          type: SchemaType.OBJECT,
+          properties: {
+            date: { type: SchemaType.STRING },
+            emoji: { type: SchemaType.STRING },
+          },
+          required: ["date", "emoji"],
+        },
+        hardDay: {
+          type: SchemaType.OBJECT,
+          properties: {
+            date: { type: SchemaType.STRING },
+            emoji: { type: SchemaType.STRING },
+          },
+          required: ["date", "emoji"],
+        },
+        topTag: { type: SchemaType.STRING },
+      },
+    },
+    patterns: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          type: {
+            type: SchemaType.STRING,
+            enum: ["best", "recurring", "anomaly"],
+            format: "enum",
+          },
+          dates: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          title: { type: SchemaType.STRING },
+          explanation: { type: SchemaType.STRING },
+          icon: { type: SchemaType.STRING },
+        },
+        required: ["type", "dates", "title", "explanation", "icon"],
+      },
+    },
+  },
+  required: ["summary", "summaryFirstSentence", "highlights", "patterns"],
+};
+
+const CALENDAR_AI_PROMPT = `Monthly mood calendar analyzer. Input: JSON with user's mood data for one month.
+Output JSON in user's locale (th/en).
+
+summary: 2-3 warm observational sentences about the month. Use **double asterisks** to bold 1-2 key phrases. Never start with "สรุปว่า".
+summaryFirstSentence: exact first sentence of summary (keep **bold** as-is).
+highlights.bestDay: date (YYYY-MM-DD) with highest mood score + mood emoji. null if unclear.
+highlights.hardDay: date with lowest mood score + mood emoji. null if unclear.
+highlights.topTag: most correlated tag with high mood, or most frequent tag. null if no tags.
+patterns: ALWAYS return exactly 3 items:
+  1. type "best": the single best day of the month, dates=[that date], title=short warm label.
+  2. type "recurring": find a weekday pattern (e.g. "Mondays are tough") or a tag pattern (e.g. "coffee days are happier"). Look at day-of-week mood averages and tag correlations. dates=all matching days in the month.
+  3. type "recurring" or "anomaly": find a second pattern — could be another weekday trend, a tag correlation, or an outlier day. dates=matching days.
+  - title: ≤40 chars, human-friendly label in user's locale (not mood IDs like "anxious").
+  - explanation: 1 sentence referencing actual data (counts, dates, mood names in user's locale).
+  - icon: single emoji representing the pattern.
+Always return 3 patterns. Use dowCounts and topTags from the input to find recurring patterns.`;
+
+export async function generateCalendarAi(data: string): Promise<CalendarAiResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: CALENDAR_AI_SCHEMA,
+      temperature: 0.5,
+      maxOutputTokens: 600,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: CALENDAR_AI_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as CalendarAiResult;
+}
+
+// ── Ask AI: natural language search ──
+
+export interface AskAiResult {
+  answer: string;
+  matchingDates: string[];
+}
+
+const ASK_AI_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    answer: { type: SchemaType.STRING },
+    matchingDates: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+    },
+  },
+  required: ["answer", "matchingDates"],
+};
+
+const ASK_AI_PROMPT = `Mood calendar assistant. Input: user's monthly mood JSON + a question.
+Output JSON in user's locale (th/en).
+answer: 2-3 sentences directly answering the question, referencing actual dates and moods. Warm, non-clinical tone.
+matchingDates: YYYY-MM-DD dates specifically relevant to the answer. Empty array if none.`;
+
+export async function generateAskAi(data: string): Promise<AskAiResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: ASK_AI_SCHEMA,
+      temperature: 0.6,
+      maxOutputTokens: 300,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: ASK_AI_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as AskAiResult;
+}
+
 function uint8ToBase64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; // 32 KB — safe under spread/argv limits
   let binary = "";

@@ -6,7 +6,11 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { BottomSheet } from "./bottom-sheet";
 import { DaySheet } from "./day-sheet";
 import { SmartLogModal } from "./smart-log-modal";
+import { AiSummaryCard } from "./calendar-ai-summary";
+import { PatternsFeed } from "./calendar-patterns-feed";
+import { AskAiBar } from "./calendar-ask-ai";
 import type { Tier } from "@/lib/tier";
+import type { CalendarAiResult } from "@/db/schema";
 
 interface MonthEntry {
   date: string;
@@ -47,17 +51,21 @@ export function CalendarShell({
   const locale = useLocale();
   const t = useTranslations("calendar");
   const tSheet = useTranslations("daySheet");
+  const tAi = useTranslations("calendarAi");
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [entries, setEntries] = useState<MonthEntry[] | null>(null);
   const [stats, setStats] = useState<CalendarStats | null>(null);
-  const [yearEntries, setYearEntries] = useState<MonthEntry[] | null>(null);
   const [sheetDate, setSheetDate] = useState<string | null>(null);
   const [logDate, setLogDate] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const [aiData, setAiData] = useState<(CalendarAiResult & { tooFewEntries?: boolean; fallbackMonth?: string }) | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiPatternsVisible, setAiPatternsVisible] = useState(true);
 
   function handleDayPress(dateStr: string, isFuture: boolean) {
     if (isFuture) {
@@ -87,18 +95,22 @@ export function CalendarShell({
     return () => { alive = false; };
   }, [viewYear, viewMonth, refreshKey]);
 
-  // Fetch year data
+  // Fetch AI data (premium only)
   useEffect(() => {
+    if (tier !== "premium") return;
     let alive = true;
-    fetch(`/api/calendar?year=${viewYear}`)
+    setAiLoading(true);
+    setAiData(null);
+    const mm = viewMonth + 1;
+    fetch(`/api/calendar/ai?year=${viewYear}&month=${mm}&locale=${locale}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => data as { entries: MonthEntry[] } | null)
       .then((data) => {
-        if (!alive || !data) return;
-        setYearEntries(data.entries);
-      });
+        if (!alive) return;
+        if (data) setAiData(data as CalendarAiResult & { tooFewEntries?: boolean; fallbackMonth?: string });
+      })
+      .finally(() => { if (alive) setAiLoading(false); });
     return () => { alive = false; };
-  }, [viewYear]);
+  }, [viewYear, viewMonth, tier, locale]);
 
   function prevMonth() {
     if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
@@ -120,15 +132,23 @@ export function CalendarShell({
     return map;
   }, [entries]);
 
-  // Build date → moodTypeId map for year
-  const yearMap = useMemo(() => {
-    const map = new Map<string, string>();
-    if (!yearEntries) return map;
-    for (const e of yearEntries) {
-      if (!map.has(e.date)) map.set(e.date, e.moodTypeId);
+  const ringMap = useMemo(() => {
+    const map = new Map<string, "best" | "recurring" | "anomaly">();
+    if (!aiData?.patterns || !aiPatternsVisible || tier !== "premium" || aiData.tooFewEntries) return map;
+    for (const p of aiData.patterns) {
+      for (const d of p.dates) {
+        if (!map.has(d)) map.set(d, p.type);
+      }
     }
     return map;
-  }, [yearEntries]);
+  }, [aiData, aiPatternsVisible, tier]);
+
+  const ringLegend = useMemo(() => {
+    if (!aiData?.patterns || !aiPatternsVisible || tier !== "premium") return [];
+    return aiData.patterns
+      .filter((p) => p.type !== "best")
+      .map((p) => ({ type: p.type, title: p.title }));
+  }, [aiData, aiPatternsVisible, tier]);
 
   const totalDaysInMonth = daysInMonth(viewYear, viewMonth);
   const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
@@ -161,29 +181,72 @@ export function CalendarShell({
         </div>
       </div>
 
-      {/* ── Stats Row ── */}
-      <div className="flex gap-2.5 mb-5">
-        <StatCard
-          label={t("avgMood")}
-          value={stats?.avgMood?.toFixed(1) ?? "—"}
-          sub={stats?.avgMoodDelta != null
-            ? `${stats.avgMoodDelta >= 0 ? "↑" : "↓"} ${Math.abs(stats.avgMoodDelta).toFixed(1)}`
-            : undefined}
-          subColor={stats?.avgMoodDelta != null && stats.avgMoodDelta >= 0 ? "#34D399" : "#F87171"}
-          bg="#F0FDF4"
-        />
-        <StatCard
-          label={t("streak")}
-          value={`${stats?.streak ?? 0} ${locale === "th" ? "วัน" : "days"}`}
-          emoji="🔥"
-          bg="#FFF7ED"
-        />
-        <StatCard
-          label={t("logged")}
-          value={`${stats?.loggedDays ?? 0}/${stats?.totalDays ?? totalDaysInMonth}`}
-          bg="#F0FDF4"
-        />
-      </div>
+      {/* ── AI Summary Card ── */}
+      <AiSummaryCard
+        data={aiData?.tooFewEntries && !aiData?.summary ? null : aiData}
+        loading={tier === "premium" && aiLoading}
+        tier={tier}
+        monthLabel={monthNames[viewMonth]}
+        tooFewEntries={tier === "premium" && !!aiData?.tooFewEntries && !aiData?.summary}
+      />
+
+      {/* ── Patterns Feed ── */}
+      <PatternsFeed patterns={aiData?.tooFewEntries ? [] : (aiData?.patterns ?? [])} tier={tier} />
+
+      {/* ── AI Pattern Toggle ── */}
+      {tier === "premium" && aiData?.patterns && aiData.patterns.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2" style={{ marginBottom: 8 }}>
+          <button
+            onClick={() => setAiPatternsVisible((v) => !v)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "5px 10px",
+              borderRadius: 100,
+              background: aiPatternsVisible ? "var(--ink)" : "var(--surface-2)",
+              color: aiPatternsVisible ? "#fff" : "var(--ink-2)",
+              border: "none",
+              fontSize: 11,
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor" />
+            </svg>
+            {tAi("patternToggle")} · {aiPatternsVisible ? "ON" : "OFF"}
+          </button>
+          {aiPatternsVisible && (
+            <>
+              {aiData.patterns.some((p) => p.type === "best") && (
+                <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                  <span style={{
+                    width: 14, height: 14, borderRadius: 100, background: "#FDE8DA",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 8, color: "#FCA45B", flexShrink: 0,
+                  }}>★</span>
+                  {tAi("legendBest")}
+                </span>
+              )}
+              {ringLegend.map((l, i) => (
+                <span key={i} className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                  <span style={{
+                    width: 8, height: 8, borderRadius: 100,
+                    background: l.type === "recurring" ? "#A673F1" : "#D4BEE4",
+                    flexShrink: 0,
+                  }} />
+                  {l.title}
+                </span>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Spacer before grid ── */}
+      <div style={{ height: 8 }} />
 
       {/* ── Monthly Grid ── */}
       {entries === null ? (
@@ -218,6 +281,8 @@ export function CalendarShell({
             const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
             const isSelected = sheetDate === dateStr;
             const isFuture = new Date(viewYear, viewMonth, day) > new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const ring = ringMap.get(dateStr);
+            const ringColor = ring === "best" ? "#FCA45B" : ring === "recurring" ? "#A673F1" : ring === "anomaly" ? "#D4BEE4" : null;
             return (
               <div
                 key={day}
@@ -248,89 +313,52 @@ export function CalendarShell({
                   cursor: isFuture ? "default" : "pointer",
                   opacity: isFuture ? 0.4 : 1,
                   transition: "transform 120ms",
+                  position: "relative",
                 }}
               >
                 {day}
+                {ring === "best" && (
+                  <span style={{
+                    position: "absolute",
+                    top: -5,
+                    right: -5,
+                    width: 16,
+                    height: 16,
+                    borderRadius: 100,
+                    background: "#FDE8DA",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 9,
+                    lineHeight: 1,
+                    color: "#FCA45B",
+                  }}>★</span>
+                )}
+                {(ring === "recurring" || ring === "anomaly") && (
+                  <span style={{
+                    position: "absolute",
+                    bottom: 3,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 6,
+                    height: 6,
+                    borderRadius: 100,
+                    background: ring === "recurring" ? "#A673F1" : "#D4BEE4",
+                  }} />
+                )}
               </div>
             );
           })}
         </div>
       )}
 
-      {/* ── Year in Pixels ── */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>
-            {t("yearInPixels")}
-          </h2>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#A673F1" }}>
-            {viewYear}
-          </span>
-        </div>
-
-        {/* Month headers */}
-        <div style={{ display: "grid", gridTemplateColumns: "24px repeat(12, 1fr)", gap: 2 }}>
-          <div />
-          {MONTH_SHORT_EN.map((m) => (
-            <div key={m} style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "var(--ink-3)" }}>
-              {m}
-            </div>
-          ))}
-
-          {/* 31 rows × 12 columns */}
-          {Array.from({ length: 31 }).map((_, rowIdx) => {
-            const day = rowIdx + 1;
-            const showLabel = day === 1 || day % 7 === 1;
-            return [
-              <div
-                key={`l${day}`}
-                style={{
-                  fontSize: 9,
-                  fontWeight: 600,
-                  color: "var(--ink-3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  paddingRight: 3,
-                }}
-              >
-                {showLabel ? day : ""}
-              </div>,
-              ...Array.from({ length: 12 }).map((_, colIdx) => {
-                const month = colIdx + 1;
-                const maxDay = daysInMonth(viewYear, colIdx);
-                if (day > maxDay) {
-                  return <div key={`${day}-${month}`} style={{ aspectRatio: "1", borderRadius: 3, background: "transparent" }} />;
-                }
-                const dateKey = `${viewYear}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                const moodId = yearMap.get(dateKey) ?? null;
-                return (
-                  <div
-                    key={`${day}-${month}`}
-                    style={{
-                      aspectRatio: "1",
-                      borderRadius: 3,
-                      background: getMoodColor(moodId),
-                    }}
-                  />
-                );
-              }),
-            ];
-          }).flat()}
-        </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-3 mt-4">
-          {DEFAULT_MOODS.map((m) => (
-            <div key={m.id} className="flex items-center gap-1.5">
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: m.color }} />
-              <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-2)" }}>
-                {locale === "th" ? m.labelTh : m.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ── Ask AI ── */}
+      <AskAiBar
+        tier={tier}
+        year={viewYear}
+        month={viewMonth}
+        onDateSelect={(date) => setSheetDate(date)}
+      />
 
       {/* ── Day Sheet ── */}
       <BottomSheet

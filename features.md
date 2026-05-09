@@ -64,10 +64,16 @@
 - [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, three-dot menu → edit
 - [x] Edit Entry page (`/entry/[id]/edit`) — edit mood, note, tags (add/remove), re-analyze with AI, image replace/delete, date/time edit, delete entry. API: `PATCH /api/log/[id]`, `DELETE /api/log/[id]`
 
+#### Calendar AI (Premium)
+- [x] AI Monthly Summary card — replaces stat tiles for premium; Gemini-generated 2-3 sentence summary with **bold** key phrases + 3 highlight chips (Best day, Hardest day, Top trigger) + "Tell me more →" to Insights. Free users see 1st sentence + blurred chips + upgrade CTA. Cache: D1 `calendar_ai_cache` table, invalidate on ≥3 new entries. API: `GET /api/calendar/ai`
+- [x] Pattern rings on calendar grid — ★ best day (peach ring), ◌ recurring pattern (purple ring), ◌ anomaly (lavender ring). Toggle pill "✨ AI patterns" + legend. Premium only.
+- [x] Patterns Detected feed — 2-3 AI-detected pattern cards below grid (icon, title, explanation, "View →"). Premium only; free sees locked state.
+- [x] Ask AI search bar — NL search wired to Gemini. Dashed border bar with rotating placeholder queries. POST `/api/calendar/ask` with rate limit (10/hr). Returns answer + matching dates as clickable chips. Premium only.
+
 #### AI Features (Gemini) — Planned
 - [ ] AI Mood Analysis (trends)
 - [ ] AI Suggestions
-- [ ] AI Summary (weekly/monthly)
+- [ ] AI Summary (weekly)
 - [ ] AI Chatbot
 
 #### Social & Sharing
@@ -107,6 +113,8 @@
 | DELETE | `/api/log/[id]` | auth | Delete entry + R2 image cleanup |
 | POST | `/api/upload` | premium | Upload image to R2 (returns imageKey) |
 | GET | `/api/calendar` | auth | Calendar data: `?year=Y&month=MM` returns entries + stats; `?year=Y` returns year entries |
+| GET | `/api/calendar/ai` | premium | AI monthly summary + patterns: `?year=Y&month=MM&locale=th`. Cached per month in D1 |
+| POST | `/api/calendar/ask` | premium | Ask AI: `{ query, year, month, locale }`. Rate limited 10/hr |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
@@ -121,7 +129,9 @@
 - `ai_usage` — (userId, date) PK, nlpCount, visionCount
 - `rate_limits` — key PK (`<endpoint>:<ip>`), count, resetAt — fixed-window rate limit on D1
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+- `calendar_ai_cache` — (userId, yearMonth) PK, result JSON, entryCount, generatedAt — caches Gemini-generated calendar AI summaries + patterns per month
+
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Cloudflare)
 

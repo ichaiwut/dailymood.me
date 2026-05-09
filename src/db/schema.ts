@@ -89,11 +89,43 @@ export const aiUsage = sqliteTable("ai_usage", {
   pk: primaryKey({ columns: [t.userId, t.date] }),
 }));
 
+export const calendarAiCache = sqliteTable("calendar_ai_cache", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  yearMonth: text("year_month").notNull(), // "YYYY-MM"
+  result: text("result", { mode: "json" }).$type<CalendarAiResult>().notNull(),
+  entryCount: integer("entry_count").notNull().default(0),
+  generatedAt: integer("generated_at", { mode: "timestamp" }).notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.yearMonth] }),
+}));
+
 export const rateLimits = sqliteTable("rate_limits", {
   key: text("key").primaryKey(), // `${endpoint}:${ip}` (or `${endpoint}:${email}`)
   count: integer("count").notNull().default(0),
   resetAt: integer("reset_at", { mode: "timestamp" }).notNull(),
 });
+
+export interface CalendarAiResult {
+  summary: string;
+  summaryFirstSentence: string;
+  highlights: {
+    bestDay: { date: string; emoji: string } | null;
+    hardDay: { date: string; emoji: string } | null;
+    topTag: string | null;
+  };
+  patterns: {
+    type: "best" | "recurring" | "anomaly";
+    dates: string[];
+    title: string;
+    explanation: string;
+    icon: string;
+  }[];
+}
+
+export interface AskAiResult {
+  answer: string;
+  matchingDates: string[];
+}
 
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
