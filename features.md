@@ -60,7 +60,8 @@
 #### Pages
 - [x] AI Insights page (`/insights`) — Gemini-powered executive summary, correlation detection (tag-mood links, day-of-week patterns), actionable suggestions. API at `/api/insights` fetches 30-day mood data → Gemini analyzes → returns headline, summary, patterns (pattern/correlation/alert), suggestion. Bottom nav linked.
 - [x] History/Timeline page (`/history`) — fetches `/api/log`, groups entries by date, filter chips, card-based entries
-- [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, edit/compare actions
+- [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, three-dot menu → edit
+- [x] Edit Entry page (`/entry/[id]/edit`) — edit mood, note, tags (add/remove), re-analyze with AI, image replace/delete, date/time edit, delete entry. API: `PATCH /api/log/[id]`, `DELETE /api/log/[id]`
 
 #### AI Features (Gemini) — Planned
 - [ ] AI Mood Analysis (trends)
@@ -100,6 +101,10 @@
 | POST | `/api/log/smart` | auth | Multipart text/image → Gemini → suggestion (no DB write) |
 | POST | `/api/log/confirm` | auth | Save final entry to D1 |
 | GET | `/api/log` | auth | List user entries (date filter, signed image URLs) |
+| GET | `/api/log/[id]` | auth | Get single entry (ownership check, signed image URL) |
+| PATCH | `/api/log/[id]` | auth | Update entry (mood, note, tags, image, date/time) |
+| DELETE | `/api/log/[id]` | auth | Delete entry + R2 image cleanup |
+| POST | `/api/upload` | premium | Upload image to R2 (returns imageKey) |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |

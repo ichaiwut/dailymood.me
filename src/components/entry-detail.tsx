@@ -113,7 +113,7 @@ export function EntryDetail({ id }: { id: string }) {
                 className="pop"
               >
                 <button
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => { setMenuOpen(false); router.push(`/entry/${id}/edit` as "/"); }}
                   className="flex items-center gap-2.5 w-full"
                   style={{
                     padding: "10px 16px",

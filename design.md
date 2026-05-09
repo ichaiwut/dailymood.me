@@ -63,6 +63,7 @@
 | Stats | Mood line chart (purple #A673F1 gradient fill), mood mix donut, best day card, activity impact diverging bars; week/month/year segmented pill control | Done |
 | AI Insights | Hero gradient summary card (#A673F1→#C89BF5→#FCA45B) with Gemini executive summary, dynamic pattern/correlation/alert cards, green suggestion card (#FAFFF8). Loading skeleton, empty state, error state. | Done |
 | Entry Detail | Mood hero card (full-width, mood-colored bg, giant faded 200px emoji), note section, AI summary gradient card (#F4EBFE→#FDE8DA) with Gemini-generated Thai summary (`**bold**` → `<strong>`; teaser fallback when no summary), tags pills, edit/compare buttons | Done |
+| Edit Entry | Mood hero card with "Tap to change" badge + inline mood picker, editable note textarea with char count, "Re-analyze with AI" gradient button + mic, tags pills (removable × + add input), "SUGGESTED FROM YOUR NOTE" dashed-border AI tag pills, moment section with Replace/Delete overlay buttons, date/time inputs, red "Delete entry" button, delete confirm modal, fixed bottom bar (Cancel + "Save changes" black pill) | Done |
 | Settings | Custom mood manager (Premium), mood pack picker | Done (default style) |
 
 ## Components
