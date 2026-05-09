@@ -197,7 +197,12 @@
     "streak": "STREAK",
     "logged": "บันทึกแล้ว",
     "yearInPixels": "ปีในพิกเซล",
-    "noData": "ไม่มีข้อมูล"
+    "noData": "ไม่มีข้อมูล",
+    "tabCalendar": "ปฏิทิน",
+    "tabTimeline": "ไทม์ไลน์",
+    "filterAll": "ทั้งหมด",
+    "timelineEmpty": "เดือน{month}ยังไม่มีบันทึก",
+    "timelineFilterEmpty": "ไม่มีบันทึกที่ตรงกับอารมณ์นี้"
   },
   "daySheet": {
     "emptyTitle": "ยังไม่มีบันทึก",

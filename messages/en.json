@@ -197,7 +197,12 @@
     "streak": "STREAK",
     "logged": "LOGGED",
     "yearInPixels": "Year in pixels",
-    "noData": "No data"
+    "noData": "No data",
+    "tabCalendar": "Calendar",
+    "tabTimeline": "Timeline",
+    "filterAll": "All",
+    "timelineEmpty": "Nothing logged in {month} yet",
+    "timelineFilterEmpty": "No entries match this mood"
   },
   "daySheet": {
     "emptyTitle": "Nothing logged",

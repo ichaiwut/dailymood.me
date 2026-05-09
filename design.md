@@ -59,7 +59,7 @@
 | Login | Email-first flow with Google OAuth, purple/peach buttons | Done |
 | Smart Log | Full-screen modal: mood picker → note input → AI analysis → tag extraction → confirm | Done |
 | Calendar | Month grid with mood-colored days, mini stats row (avg/streak/logged), year-in-pixels heatmap, prev/next navigation | Done |
-| Timeline | Grouped entries by day, filter chips (All/Happy/Sad/Work/Friends/Rain), card-based entries with mood emoji square, fetches `/api/log` | Done |
+| Timeline | Integrated into Calendar tab via segmented toggle (Calendar/Timeline). Reverse-chronological feed grouped by day (TODAY/YESTERDAY/WEEKDAY), mood type filter chips, entry cards (48px mood swatch + title + time + 1-line note + tag emojis). Data: `/api/calendar/timeline`. `/history` redirects to `/calendar` | Done |
 | Stats | Mood line chart (purple #A673F1 gradient fill), mood mix donut, best day card, activity impact diverging bars; week/month/year segmented pill control | Done |
 | AI Insights | Hero gradient summary card (#A673F1→#C89BF5→#FCA45B) with Gemini executive summary, dynamic pattern/correlation/alert cards, green suggestion card (#FAFFF8). Loading skeleton, empty state, error state. | Done |
 | Entry Detail | Mood hero card (full-width, mood-colored bg, giant faded 200px emoji), note section, AI summary gradient card (#F4EBFE→#FDE8DA) with Gemini-generated Thai summary (`**bold**` → `<strong>`; teaser fallback when no summary), tags pills, edit/compare buttons | Done |
@@ -86,7 +86,8 @@
 | `VoiceButton` | Browser STT (Web Speech API), locale-aware (TH/EN) |
 | `StatsShell` | Stats page: header with period segmented control, average mood line chart card, mood mix donut + best day 2-col grid, activity impact list with diverging bars |
 | `InsightsShell` | AI Insights page: hero gradient summary card, pattern card with mini bar chart, suggestion card with routine button, streak nudge row |
-| `HistoryShell` | History/Timeline page: filter chips row, day-grouped entry cards with mood emoji squares, search/filter icon buttons |
+| `TimelineFeed` | Timeline view inside Calendar tab: mood type filter chips, day-grouped entry cards (mood swatch, title from aiSummary/note, time, tag emojis), tap → entry detail. Replaces `HistoryShell` |
+| `HistoryShell` | ~~History/Timeline page~~ (deprecated — redirects to Calendar tab) |
 | `EntryDetail` | Entry detail page: mood hero card with giant emoji + intensity bar, note section, AI summary gradient card, tag pills, edit/compare buttons |
 
 ## Smart Log Flow (UX)
@@ -114,3 +115,4 @@
 | 2026-05-07 | Implement all 10 design screens from Claude Design handoff | Calendar, Stats, AI Insights, History, Entry Detail — ทั้งหมดจาก Moodly design prototype |
 | 2026-05-09 | Calendar Day Sheet (bottom sheet) | Daylio-style bottom sheet on day tap — keeps calendar context vs. full-screen push. Generic `BottomSheet` base extracted for reuse |
 | 2026-05-09 | Calendar AI features (Summary + Patterns + Ask AI) | AI turns calendar from passive log to reflective surface. Single Gemini call per month for summary+patterns, cached in D1. Premium gating: free sees 1st sentence + blur + locked states. Pattern rings overlay on grid. Ask AI bar at bottom with NL search |
+| 2026-05-09 | Timeline view merged into Calendar tab | Two views of one dataset via segmented control. Reuses stats-shell segmented control pattern (#F4F2F7 track, white pill). Filter chips = mood types (not tags). Entry title = aiSummary ?? first line of note ?? mood label. Separate `/api/calendar/timeline` endpoint (no signed URLs = faster). `/history` redirects |

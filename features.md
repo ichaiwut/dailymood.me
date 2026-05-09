@@ -60,7 +60,8 @@
 
 #### Pages
 - [x] AI Insights page (`/insights`) — Gemini-powered executive summary, correlation detection (tag-mood links, day-of-week patterns), actionable suggestions. API at `/api/insights` fetches 30-day mood data → Gemini analyzes → returns headline, summary, patterns (pattern/correlation/alert), suggestion. Bottom nav linked.
-- [x] History/Timeline page (`/history`) — fetches `/api/log`, groups entries by date, filter chips, card-based entries
+- [x] Timeline view (Calendar tab) — segmented toggle Calendar/Timeline on the Calendar page; reverse-chronological feed of entries grouped by day (TODAY/YESTERDAY/WEEKDAY), mood filter chips, entry cards with mood swatch + title + time + note preview + tag emojis. Tap → entry detail. Data: `/api/calendar/timeline`. `/history` page redirects to `/calendar`.
+- [x] ~~History/Timeline page (`/history`)~~ — redirects to Calendar tab (Timeline view)
 - [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, three-dot menu → edit
 - [x] Edit Entry page (`/entry/[id]/edit`) — edit mood, note, tags (add/remove), re-analyze with AI, image replace/delete, date/time edit, delete entry. API: `PATCH /api/log/[id]`, `DELETE /api/log/[id]`
 
@@ -113,6 +114,7 @@
 | DELETE | `/api/log/[id]` | auth | Delete entry + R2 image cleanup |
 | POST | `/api/upload` | premium | Upload image to R2 (returns imageKey) |
 | GET | `/api/calendar` | auth | Calendar data: `?year=Y&month=MM` returns entries + stats; `?year=Y` returns year entries |
+| GET | `/api/calendar/timeline` | auth | Timeline entries: `?year=Y&month=MM` returns full entries (id, mood, note, aiSummary, tags, date, createdAt) for the month |
 | GET | `/api/calendar/ai` | premium | AI monthly summary + patterns: `?year=Y&month=MM&locale=th`. Cached per month in D1 |
 | POST | `/api/calendar/ask` | premium | Ask AI: `{ query, year, month, locale }`. Rate limited 10/hr |
 | GET | `/api/moods` | any | List system + user's custom moods |

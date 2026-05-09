@@ -9,8 +9,12 @@ import { SmartLogModal } from "./smart-log-modal";
 import { AiSummaryCard } from "./calendar-ai-summary";
 import { PatternsFeed } from "./calendar-patterns-feed";
 import { AskAiBar } from "./calendar-ask-ai";
+import { TimelineFeed } from "./timeline-feed";
+import type { TimelineEntry } from "./timeline-feed";
 import type { Tier } from "@/lib/tier";
 import type { CalendarAiResult } from "@/db/schema";
+
+type CalView = "calendar" | "timeline";
 
 interface MonthEntry {
   date: string;
@@ -63,6 +67,10 @@ export function CalendarShell({
   const [refreshKey, setRefreshKey] = useState(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  const [calView, setCalView] = useState<CalView>("calendar");
+  const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[] | null>(null);
+  const [timelineFilter, setTimelineFilter] = useState("all");
+
   const [aiData, setAiData] = useState<(CalendarAiResult & { tooFewEntries?: boolean; fallbackMonth?: string }) | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPatternsVisible, setAiPatternsVisible] = useState(true);
@@ -111,6 +119,19 @@ export function CalendarShell({
       .finally(() => { if (alive) setAiLoading(false); });
     return () => { alive = false; };
   }, [viewYear, viewMonth, tier, locale]);
+
+  // Fetch timeline data (only when timeline view is active)
+  useEffect(() => {
+    if (calView !== "timeline") { setTimelineEntries(null); return; }
+    let alive = true;
+    const mm = viewMonth + 1;
+    fetch(`/api/calendar/timeline?year=${viewYear}&month=${mm}`)
+      .then((r) => (r.ok ? r.json() : { entries: [] }))
+      .then((data) => {
+        if (alive) setTimelineEntries((data as { entries: TimelineEntry[] }).entries);
+      });
+    return () => { alive = false; };
+  }, [viewYear, viewMonth, refreshKey, calView]);
 
   function prevMonth() {
     if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
@@ -161,7 +182,9 @@ export function CalendarShell({
       <div className="flex items-center justify-between mb-4">
         <div>
           <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
-            {t("yourYear")}
+            {calView === "timeline" && timelineEntries
+              ? `${timelineEntries.length.toLocaleString()} ${locale === "th" ? "รายการ" : "entries"}`
+              : t("yourYear")}
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1 }}>
             {monthNames[viewMonth]} {viewYear}
@@ -181,6 +204,33 @@ export function CalendarShell({
         </div>
       </div>
 
+      {/* ── View Toggle ── */}
+      <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2, marginBottom: 16 }}>
+        {(["calendar", "timeline"] as CalView[]).map((v) => (
+          <button
+            key={v}
+            onClick={() => setCalView(v)}
+            style={{
+              flex: 1,
+              padding: "8px 0",
+              fontSize: 14,
+              fontWeight: 600,
+              borderRadius: 10,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.18s ease",
+              background: calView === v ? "#fff" : "transparent",
+              color: calView === v ? "var(--ink)" : "var(--ink-3)",
+              boxShadow: calView === v ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+            }}
+          >
+            {v === "calendar" ? t("tabCalendar") : t("tabTimeline")}
+          </button>
+        ))}
+      </div>
+
+      {calView === "calendar" ? (
+        <>
       {/* ── AI Summary Card ── */}
       <AiSummaryCard
         data={aiData?.tooFewEntries && !aiData?.summary ? null : aiData}
@@ -359,6 +409,16 @@ export function CalendarShell({
         month={viewMonth}
         onDateSelect={(date) => setSheetDate(date)}
       />
+        </>
+      ) : (
+        <TimelineFeed
+          entries={timelineEntries}
+          activeFilter={timelineFilter}
+          onFilterChange={setTimelineFilter}
+          locale={locale}
+          monthLabel={monthNames[viewMonth]}
+        />
+      )}
 
       {/* ── Day Sheet ── */}
       <BottomSheet
