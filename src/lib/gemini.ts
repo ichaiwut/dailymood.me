@@ -26,12 +26,11 @@ const NLP_SCHEMA: Schema = {
   required: ["suggestedMoodId", "sentiment", "tags", "summary"],
 };
 
-const NLP_PROMPT = `You analyze a short journal entry from a mood-tracking app and extract structured signals.
-- suggestedMoodId: pick the BEST match from the enum (default to "neutral" if unclear).
-- sentiment: number in [-1, 1]; -1 = very negative, 0 = neutral, 1 = very positive.
-- tags: 3 to 8 short lowercase keywords describing activities, people, places, or feelings (single words or 2-word phrases). No emojis. No duplicates.
-- summary: สรุปอารมณ์และเรื่องราวของวันนี้ 1-3 ประโยค ภาษาไทย โทนอบอุ่นเป็นกันเอง เหมือนเพื่อนที่เข้าใจ ใช้ **ตัวหนา** กับวลีสำคัญ 1-3 จุด ห้ามเริ่มด้วย "สรุปว่า" ห้ามพูดถึง AI หรือการวิเคราะห์
-Respond with JSON only. The journal text may be in Thai or English.`;
+const NLP_PROMPT = `Mood journal analyzer. Input: TH/EN text. Output JSON.
+suggestedMoodId: best enum match, default "neutral".
+sentiment: -1..1.
+tags: 3-8 lowercase keywords (activities/people/places/feelings).
+summary: 1-2 ประโยค ภาษาไทย อบอุ่น ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้นต้น"สรุปว่า"`;
 
 export async function analyzeText(text: string): Promise<NlpResult> {
   const model = genAI.getGenerativeModel({
@@ -40,10 +39,13 @@ export async function analyzeText(text: string): Promise<NlpResult> {
       responseMimeType: "application/json",
       responseSchema: NLP_SCHEMA,
       temperature: 0.4,
+      maxOutputTokens: 256,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
     },
     systemInstruction: NLP_PROMPT,
   });
-  const r = await model.generateContent(text);
+  const r = await model.generateContent(text.slice(0, 500));
   return JSON.parse(r.response.text()) as NlpResult;
 }
 
@@ -55,8 +57,7 @@ const VISION_SCHEMA: Schema = {
   required: ["tags"],
 };
 
-const VISION_PROMPT = `You analyze a photo from a mood journal entry. Extract 3 to 8 short lowercase context tags
-(activity, place, food, people-count, weather, object). No emojis. No duplicates. JSON only.`;
+const VISION_PROMPT = `Photo context tagger. Extract 3-6 lowercase tags (activity/place/food/weather/object). JSON only.`;
 
 export async function analyzeImage(imageBytes: Uint8Array, mimeType: string): Promise<{ tags: string[] }> {
   const model = genAI.getGenerativeModel({
@@ -65,6 +66,9 @@ export async function analyzeImage(imageBytes: Uint8Array, mimeType: string): Pr
       responseMimeType: "application/json",
       responseSchema: VISION_SCHEMA,
       temperature: 0.3,
+      maxOutputTokens: 128,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
     },
     systemInstruction: VISION_PROMPT,
   });
@@ -118,18 +122,11 @@ const INSIGHTS_SCHEMA: Schema = {
   required: ["headline", "summary", "patterns"],
 };
 
-const INSIGHTS_PROMPT = `You are an empathetic mood analyst for a mood-tracking app called DailyMood.
-You receive a JSON object with the user's mood data over the past 30 days and must produce insights.
-
-Rules:
-- "headline": a short punchy insight (max 60 chars). Example: "สัปดาห์นี้อารมณ์ดีขึ้น 20%"
-- "summary": 2-3 sentence executive summary of the week/month. Warm, encouraging tone.
-- "patterns": 1-3 findings. Each has a "title" (short), "description" (1-2 sentences explaining the pattern), and "tag" (one of: "pattern" for recurring behavior, "correlation" for tag-mood links, "alert" for concerning trends).
-  - Look for: which tags/activities correlate with positive or negative moods, day-of-week patterns, mood trends over time.
-- "suggestion": one actionable tip based on the data, or null if no strong signal.
-- Respond in the SAME language as the user's locale (provided in the data).
-- Be specific — reference actual tags, moods, and days from the data. Don't make up data.
-- If there's very little data, say so honestly and keep it short.`;
+const INSIGHTS_PROMPT = `Mood insight generator. Input: 30-day mood summary JSON. Output JSON in user's locale.
+headline: ≤60 chars punchy insight.
+summary: 1-2 sentences, warm tone.
+patterns: 1-2 findings (title+description+tag:pattern|correlation|alert). Reference actual data.
+suggestion: one tip or null.`;
 
 export async function generateInsights(data: string): Promise<InsightsResult> {
   const model = genAI.getGenerativeModel({
@@ -138,6 +135,9 @@ export async function generateInsights(data: string): Promise<InsightsResult> {
       responseMimeType: "application/json",
       responseSchema: INSIGHTS_SCHEMA,
       temperature: 0.6,
+      maxOutputTokens: 400,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
     },
     systemInstruction: INSIGHTS_PROMPT,
   });

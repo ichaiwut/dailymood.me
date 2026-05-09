@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
     .limit(1);
   if (!mt) return NextResponse.json({ error: "invalid_mood" }, { status: 400 });
 
+  if (body.imageKey && !body.imageKey.startsWith(`users/${userId}/`)) {
+    return NextResponse.json({ error: "invalid_image_key" }, { status: 400 });
+  }
+
   const id = ulid();
   await db.insert(moodEntries).values({
     id,

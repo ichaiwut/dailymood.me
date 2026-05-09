@@ -61,6 +61,10 @@ export async function PATCH(
 
   const body = (await req.json()) as PatchBody;
 
+  if ("imageKey" in body && body.imageKey && !body.imageKey.startsWith(`users/${userId}/`)) {
+    return NextResponse.json({ error: "invalid_image_key" }, { status: 400 });
+  }
+
   if (body.moodTypeId) {
     const [mt] = await db
       .select({ id: moodTypes.id })
@@ -70,7 +74,7 @@ export async function PATCH(
     if (!mt) return NextResponse.json({ error: "invalid_mood" }, { status: 400 });
   }
 
-  if ("imageKey" in body && body.imageKey !== row.imageKey && row.imageKey) {
+  if ("imageKey" in body && body.imageKey !== row.imageKey && row.imageKey && row.imageKey.startsWith(`users/${userId}/`)) {
     await deleteObject(row.imageKey);
   }
 
@@ -110,7 +114,9 @@ export async function DELETE(
     .limit(1);
   if (!row) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  if (row.imageKey) await deleteObject(row.imageKey);
+  if (row.imageKey && row.imageKey.startsWith(`users/${userId}/`)) {
+    await deleteObject(row.imageKey);
+  }
 
   await db.delete(moodEntries).where(and(eq(moodEntries.id, id), eq(moodEntries.userId, userId)));
   return NextResponse.json({ ok: true });

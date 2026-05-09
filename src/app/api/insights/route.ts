@@ -29,24 +29,46 @@ export async function GET(req: NextRequest) {
     .from(moodEntries)
     .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, start)))
     .orderBy(desc(moodEntries.createdAt))
-    .limit(200);
+    .limit(100);
 
   if (rows.length === 0) {
     return NextResponse.json({ empty: true });
   }
 
+  const moodCounts: Record<string, number> = {};
+  const tagCounts: Record<string, number> = {};
+  const dayCounts: Record<string, number> = {};
+  let sentSum = 0;
+  let sentN = 0;
+  for (const r of rows) {
+    moodCounts[r.moodTypeId] = (moodCounts[r.moodTypeId] ?? 0) + 1;
+    for (const t of (r.tags as string[] | null) ?? []) {
+      tagCounts[t] = (tagCounts[t] ?? 0) + 1;
+    }
+    const dow = r.createdAt.toLocaleDateString("en-US", { weekday: "short" });
+    dayCounts[dow] = (dayCounts[dow] ?? 0) + 1;
+    if (r.sentiment != null) { sentSum += r.sentiment; sentN++; }
+  }
+
+  const topTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([t, c]) => `${t}:${c}`);
+
+  const recent = rows.slice(0, 10).map((r) => ({
+    d: r.date,
+    m: r.moodTypeId,
+    n: r.note?.slice(0, 60) ?? null,
+  }));
+
   const payload = JSON.stringify({
     locale,
-    totalEntries: rows.length,
-    entries: rows.map((r) => ({
-      date: r.date,
-      mood: r.moodTypeId,
-      note: r.note?.slice(0, 120) ?? null,
-      tags: r.tags ?? [],
-      sentiment: r.sentiment,
-      hour: r.createdAt.getHours(),
-      dayOfWeek: r.createdAt.toLocaleDateString("en-US", { weekday: "short" }),
-    })),
+    n: rows.length,
+    avgSent: sentN ? +(sentSum / sentN).toFixed(2) : null,
+    moods: moodCounts,
+    days: dayCounts,
+    tags: topTags,
+    recent,
   });
 
   const result: InsightsResult = await generateInsights(payload);
