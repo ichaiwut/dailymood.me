@@ -12,6 +12,10 @@ export const users = sqliteTable("users", {
   // selected mood-icon pack (free: only DEFAULT_MOOD_PACK; premium: any from MOOD_PACKS)
   moodPack: text("mood_pack").notNull().default("set_486038"),
   stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
+  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" }).notNull().default(false),
+  planInterval: text("plan_interval"),
   bio: text("bio"),
   accentColor: text("accent_color"),
   hidePreview: integer("hide_preview", { mode: "boolean" }).notNull().default(false),

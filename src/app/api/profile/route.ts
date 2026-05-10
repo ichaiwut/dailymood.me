@@ -30,6 +30,9 @@ export async function GET() {
       reminderTime: users.reminderTime,
       reminderDays: users.reminderDays,
       createdAt: users.createdAt,
+      currentPeriodEnd: users.currentPeriodEnd,
+      cancelAtPeriodEnd: users.cancelAtPeriodEnd,
+      planInterval: users.planInterval,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -100,6 +103,9 @@ export async function GET() {
       reminderTime: user.reminderTime,
       reminderDays: user.reminderDays,
       createdAt: user.createdAt.toISOString(),
+      currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
+      cancelAtPeriodEnd: user.cancelAtPeriodEnd,
+      planInterval: user.planInterval ?? null,
     },
     stats: {
       streak,

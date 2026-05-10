@@ -23,6 +23,9 @@ interface ProfileData {
     reminderTime: string;
     reminderDays: string;
     createdAt: string;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    planInterval: string | null;
   };
   stats: {
     streak: number;
@@ -350,6 +353,28 @@ export function ProfileShell() {
       )}
 
       {/* ── Settings Sections ── */}
+
+      {/* Subscription */}
+      <Section label={t("subscriptionSection")} delay="150ms">
+        <SettingCard>
+          {data.user.isPremium ? (
+            <a href={`/${locale}/profile/subscription`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <NavRow
+                icon="✦"
+                iconBg="#A673F1"
+                title={t("subscription")}
+                value={data.user.cancelAtPeriodEnd
+                  ? t("subEndsOn", { date: data.user.currentPeriodEnd ? formatSubDate(data.user.currentPeriodEnd, locale) : "" })
+                  : t("subRenewsOn", { date: data.user.currentPeriodEnd ? formatSubDate(data.user.currentPeriodEnd, locale) : "" })}
+              />
+            </a>
+          ) : (
+            <a href={`/${locale}/pricing`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <NavRow icon="✦" iconBg="#A673F1" title={t("subscription")} value={t("freeTier")} />
+            </a>
+          )}
+        </SettingCard>
+      </Section>
 
       {/* Reminders */}
       <Section label={t("reminders")} delay="180ms">
@@ -923,6 +948,16 @@ function formatMemberDate(iso: string, locale: string): string {
   }
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatSubDate(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (locale === "th") {
+    const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+  }
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[d.getMonth()]} ${d.getDate()}`;
 }
 
 function buildSignatureHeadline(

@@ -28,18 +28,45 @@ export async function POST(req: NextRequest) {
     case "checkout.session.completed": {
       const session = event.data.object;
       const userId = session.metadata?.userId;
-      if (userId) {
-        await db.update(users).set({ isPremium: true }).where(eq(users.id, userId));
+      if (userId && session.subscription) {
+        const subId = typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription.id;
+        const sub = await stripe.subscriptions.retrieve(subId);
+        const item = sub.items.data[0];
+        const interval = item?.price?.recurring?.interval ?? null;
+        const periodEnd = item?.current_period_end;
+        const customerId = typeof session.customer === "string"
+          ? session.customer
+          : (session.customer?.id ?? null);
+        await db.update(users).set({
+          isPremium: true,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: subId,
+          currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+          planInterval: interval,
+        }).where(eq(users.id, userId));
       }
       break;
     }
 
     case "customer.subscription.updated": {
-      const sub = event.data.object;
-      const userId = sub.metadata?.userId;
+      const rawSub = event.data.object;
+      const userId = rawSub.metadata?.userId;
       if (userId) {
+        const sub = await stripe.subscriptions.retrieve(rawSub.id);
         const active = sub.status === "active" || sub.status === "trialing";
-        await db.update(users).set({ isPremium: active }).where(eq(users.id, userId));
+        const item = sub.items.data[0];
+        const interval = item?.price?.recurring?.interval ?? null;
+        const periodEnd = item?.current_period_end;
+        await db.update(users).set({
+          isPremium: active,
+          stripeSubscriptionId: sub.id,
+          currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+          planInterval: interval,
+        }).where(eq(users.id, userId));
       }
       break;
     }
@@ -48,7 +75,13 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object;
       const userId = sub.metadata?.userId;
       if (userId) {
-        await db.update(users).set({ isPremium: false }).where(eq(users.id, userId));
+        await db.update(users).set({
+          isPremium: false,
+          stripeSubscriptionId: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          planInterval: null,
+        }).where(eq(users.id, userId));
       }
       break;
     }

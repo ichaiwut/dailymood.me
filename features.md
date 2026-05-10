@@ -94,8 +94,9 @@
 - [x] Login wall — unauthenticated users redirect to `/login`
 - [x] Rate limiting on email-sending routes (5/hr register+forgot, 3/hr resend-verify) via D1
 - [ ] Guest Mode — disabled (app is login-only; `dailymood.me` landing TBD)
-- [ ] Stripe Checkout + Webhook
+- [x] Stripe Checkout + Webhook + Customer Portal
 - [x] Premium gating (via `users.isPremium`)
+- [x] Subscription Management (`/profile/subscription`) — hero card (plan name, status pill, renewal date, next charge, member-for stats), billing action rows (payment method, billing history — all via Stripe Customer Portal), switch nudge (monthly→yearly save 20%), cancel with BottomSheet confirmation → portal. Free users see upgrade CTA. DB: `stripeSubscriptionId`, `currentPeriodEnd`, `cancelAtPeriodEnd`, `planInterval` on `users` table, populated by webhook. API: `GET /api/subscription`
 - [x] User Menu — burger dropdown (avatar + ☰) → Settings, Logout
 - [x] Profile tab (You) — bottom nav tab → `/profile` (replaces old `/settings`); `/settings` redirects to `/profile/settings`
 
@@ -133,10 +134,14 @@
 | GET | `/api/profile` | auth | Profile data: user info, stats (streak, totalEntries, avgMood), mood signature (30-day mood distribution), tier |
 | PATCH | `/api/profile` | auth | Update profile: name, bio, accentColor, locale |
 | GET | `/api/profile/achievements` | auth | Achievements: badge progress, earned dates. Auto-earns newly completed badges |
+| GET | `/api/subscription` | auth | Subscription state: isPremium, currentPeriodEnd, cancelAtPeriodEnd, planInterval, memberSince |
+| POST | `/api/stripe/checkout` | auth | Create Stripe Checkout session (monthly/yearly) |
+| POST | `/api/stripe/portal` | auth | Create Stripe Customer Portal session (return_url: /profile/subscription) |
+| POST | `/api/stripe/webhook` | — | Stripe webhook: checkout.session.completed, customer.subscription.updated/deleted → sync isPremium + subscription columns |
 
 ## Database Schema (Drizzle on D1)
 
-- `users` — id, email, image, **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, locale, **bio**, **accentColor**, createdAt
+- `users` — id, email, image, **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, locale, **bio**, **accentColor**, createdAt
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
@@ -149,7 +154,7 @@
 - `suggestion_feedback` — id PK, userId, weekKey, suggestionTitle, reaction (up/down/routine), createdAt — persists user feedback on AI suggestions
 - `user_achievements` — (userId, badgeId) PK, earnedAt — tracks when user earned each badge
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Cloudflare)
 
