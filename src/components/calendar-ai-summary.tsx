@@ -228,7 +228,7 @@ function FreeTeaser({ monthLabel }: { monthLabel: string }) {
           fontWeight: 700,
         }}
       >
-        {t("unlockPremium")}
+        {t("unlockPro")}
       </button>
     </div>
   );

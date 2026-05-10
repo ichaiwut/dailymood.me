@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import type { Tier } from "@/lib/tier";
 
 type Plan = "monthly" | "yearly";
@@ -20,10 +21,66 @@ export function PricingShell({ tier }: { tier: Tier }) {
   const t = useTranslations("pricing");
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [plan, setPlan] = useState<Plan>("yearly");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("success") === "1") {
+      setSuccess(true);
+      globalThis.history.replaceState(null, "", "/pricing");
+    }
+    if (searchParams.get("cancelled") === "1") {
+      setCancelled(true);
+      globalThis.history.replaceState(null, "", "/pricing");
+    }
+  }, [searchParams]);
 
   const price = plan === "yearly" ? "฿949" : "฿99";
   const period = plan === "yearly" ? t("perYear") : t("perMonth");
+
+  const handleSubscribe = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const data = (await res.json()) as { url?: string };
+      if (data.url) globalThis.location.assign(data.url);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="fade-in" style={{ textAlign: "center", padding: "80px 0" }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
+          {locale === "th" ? "ยินดีต้อนรับสู่ Pro!" : "Welcome to Pro!"}
+        </h1>
+        <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 24 }}>
+          {locale === "th" ? "ปลดล็อกทุกฟีเจอร์เรียบร้อย เริ่มใช้งานได้เลย" : "All features unlocked. Enjoy the full experience."}
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push("/" as "/")}
+          style={{
+            padding: "14px 32px", borderRadius: 20,
+            border: "none", background: "var(--ink)", color: "#fff",
+            fontSize: 15, fontWeight: 700, cursor: "pointer",
+          }}
+        >
+          {locale === "th" ? "เริ่มใช้งาน →" : "Get started →"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="fade-in" style={{ paddingBottom: 40 }}>
@@ -31,7 +88,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0 16px" }}>
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push("/" as "/")}
           style={{
             width: 40, height: 40, borderRadius: "50%",
             background: "var(--surface)", border: "1.5px solid var(--hairline)",
@@ -45,6 +102,28 @@ export function PricingShell({ tier }: { tier: Tier }) {
         </button>
         <div style={{ width: 40 }} />
       </div>
+
+      {/* Cancelled banner */}
+      {cancelled && (
+        <div
+          className="fade-in"
+          style={{
+            padding: "14px 18px", borderRadius: 16, marginBottom: 16,
+            background: "#FEF6E8", border: "1.5px solid #F5DEB3",
+            display: "flex", alignItems: "center", gap: 10,
+          }}
+        >
+          <span style={{ fontSize: 20 }}>😕</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+              {locale === "th" ? "การชำระเงินไม่สำเร็จ" : "Payment was not completed"}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
+              {locale === "th" ? "ไม่มีการเรียกเก็บเงิน ลองใหม่ได้ทุกเมื่อ" : "You were not charged. Try again anytime."}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero */}
       <div style={{ textAlign: "center", marginBottom: 32 }}>
@@ -183,14 +262,18 @@ export function PricingShell({ tier }: { tier: Tier }) {
       {/* CTA */}
       <button
         type="button"
+        onClick={handleSubscribe}
+        disabled={loading}
         style={{
           width: "100%", padding: "18px 0", borderRadius: 28,
           border: "none", background: "var(--ink)", color: "#fff",
-          fontSize: 17, fontWeight: 800, cursor: "pointer",
+          fontSize: 17, fontWeight: 800,
+          cursor: loading ? "wait" : "pointer",
+          opacity: loading ? 0.7 : 1,
           marginBottom: 10,
         }}
       >
-        {t("cta")} →
+        {loading ? (locale === "th" ? "กำลังเตรียม..." : "Loading...") : `${t("cta")} →`}
       </button>
       <p style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "center", marginBottom: 8 }}>
         {t("ctaCaption", { price, period })}
