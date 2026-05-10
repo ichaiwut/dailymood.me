@@ -11,6 +11,7 @@ interface SubData {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   planInterval: string | null;
+  subscriptionStatus: string | null;
   memberSince: string;
 }
 
@@ -79,6 +80,7 @@ export function SubscriptionShell() {
   const memberMonths = computeMemberMonths(data.memberSince);
   const isYearly = data.planInterval === "year";
   const isCanceling = data.cancelAtPeriodEnd;
+  const isTrial = data.subscriptionStatus === "trialing";
 
   return (
     <div className="fade-in" style={{ paddingBottom: 32 }}>
@@ -106,14 +108,18 @@ export function SubscriptionShell() {
               <div
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
-                  background: isCanceling ? "rgba(252,164,91,0.25)" : "rgba(255,255,255,0.2)",
+                  background: isCanceling ? "rgba(252,164,91,0.25)" : isTrial ? "rgba(133,236,203,0.25)" : "rgba(255,255,255,0.2)",
                   borderRadius: 20, padding: "4px 12px",
-                  fontSize: 11, fontWeight: 700, letterSpacing: 0.3,
+                  fontSize: 14, fontWeight: 700, letterSpacing: 0.3,
                 }}
               >
-                {isCanceling ? `⏳ ${t("subStatusCanceling").toUpperCase()}` : `✨ ${t("subStatusActive").toUpperCase()}`}
+                {isCanceling
+                  ? `⏳ ${t("subStatusCanceling").toUpperCase()}`
+                  : isTrial
+                    ? `🎁 ${t("subStatusTrialing").toUpperCase()}`
+                    : `✨ ${t("subStatusActive").toUpperCase()}`}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, letterSpacing: 0.5 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.7, letterSpacing: 0.5 }}>
                 {t(isYearly ? "subIntervalYearly" : "subIntervalMonthly")}
               </div>
             </div>
@@ -125,7 +131,9 @@ export function SubscriptionShell() {
             <div style={{ fontSize: 14, opacity: 0.85, marginBottom: 20 }}>
               {isCanceling
                 ? t("subEndsOn", { date: renewDate ?? "" })
-                : t("subRenewsOn", { date: renewDate ?? "" })}
+                : isTrial
+                  ? t("subTrialEndsOn", { date: renewDate ?? "" })
+                  : t("subRenewsOn", { date: renewDate ?? "" })}
             </div>
 
             {/* Stats row */}
@@ -138,15 +146,25 @@ export function SubscriptionShell() {
               }}
             >
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.75, marginBottom: 4, letterSpacing: 0.3 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, marginBottom: 4, letterSpacing: 0.3 }}>
                   {t("subNextCharge")}
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 800 }}>
                   {isCanceling ? "—" : (isYearly ? "฿949" : "฿99")}
                 </div>
+                {!isCanceling && renewDate && (
+                  <div style={{ fontSize: 14, opacity: 0.85, marginTop: 4, fontWeight: 500 }}>
+                    {isTrial ? (
+                      <>
+                        <div>{t("subTrialNow")}</div>
+                        <div>{t("subTrialChargeDate", { date: renewDate })}</div>
+                      </>
+                    ) : renewDate}
+                  </div>
+                )}
               </div>
               <div style={{ borderLeft: "1px solid rgba(255,255,255,0.2)", paddingLeft: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.75, marginBottom: 4, letterSpacing: 0.3 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, marginBottom: 4, letterSpacing: 0.3 }}>
                   {t("subMemberFor")}
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 800 }}>
@@ -181,7 +199,7 @@ export function SubscriptionShell() {
                 style={{
                   padding: "8px 16px", borderRadius: 12,
                   border: "none", background: "var(--primary)",
-                  fontSize: 13, fontWeight: 700, color: "#fff",
+                  fontSize: 14, fontWeight: 700, color: "#fff",
                   cursor: portalLoading ? "wait" : "pointer",
                   flexShrink: 0,
                 }}
@@ -198,7 +216,7 @@ export function SubscriptionShell() {
               style={{
                 padding: "12px 18px", borderRadius: 14, marginBottom: 16,
                 background: "#FDECEC", border: "1.5px solid #F5CECE",
-                fontSize: 13, fontWeight: 600, color: "#D94444", textAlign: "center",
+                fontSize: 14, fontWeight: 600, color: "#D94444", textAlign: "center",
               }}
             >
               {locale === "th" ? "ไม่สามารถเปิดหน้าจัดการได้ ลองใหม่อีกครั้ง" : "Couldn't open billing. Please try again."}
@@ -241,7 +259,7 @@ export function SubscriptionShell() {
               >
                 {t("subCancelButton")}
               </button>
-              <div style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "center", marginTop: 8 }}>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", marginTop: 8 }}>
                 {t("subCancelFooter")}
               </div>
             </div>
@@ -365,7 +383,7 @@ function Section({ label, delay, children }: { label: string; delay: string; chi
   return (
     <div className="fade-in" style={{ marginBottom: 24, animationDelay: delay }}>
       <div style={{
-        fontSize: 11, fontWeight: 800, color: "var(--ink-3)",
+        fontSize: 14, fontWeight: 800, color: "var(--ink-3)",
         letterSpacing: 0.4, textTransform: "uppercase",
         marginBottom: 10, paddingLeft: 4,
       }}>
@@ -403,7 +421,7 @@ function NavRow({ icon, iconBg, title, subtitle }: { icon: string; iconBg: strin
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
-        {subtitle && <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>}
+        {subtitle && <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>}
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3, flexShrink: 0 }}>
         <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

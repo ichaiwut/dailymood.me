@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
           currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
           cancelAtPeriodEnd: sub.cancel_at_period_end,
           planInterval: interval,
+          subscriptionStatus: sub.status,
         }).where(eq(users.id, userId));
       }
       break;
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
           currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
           cancelAtPeriodEnd: sub.cancel_at_period_end,
           planInterval: interval,
+          subscriptionStatus: sub.status,
         }).where(eq(users.id, userId));
       }
       break;
@@ -81,6 +83,7 @@ export async function POST(req: NextRequest) {
           currentPeriodEnd: null,
           cancelAtPeriodEnd: false,
           planInterval: null,
+          subscriptionStatus: null,
         }).where(eq(users.id, userId));
       }
       break;

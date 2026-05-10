@@ -16,6 +16,7 @@ export const users = sqliteTable("users", {
   currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
   cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" }).notNull().default(false),
   planInterval: text("plan_interval"),
+  subscriptionStatus: text("subscription_status"),
   bio: text("bio"),
   accentColor: text("accent_color"),
   hidePreview: integer("hide_preview", { mode: "boolean" }).notNull().default(false),
