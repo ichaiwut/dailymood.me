@@ -51,8 +51,8 @@ export function BottomNav({
           <span>{t("navStats")}</span>
         </Link>
 
-        <Link href={"/settings" as "/"} className="nav-item" data-active={isActive("/settings") ? "true" : undefined}>
-          <UserIcon active={isActive("/settings")} />
+        <Link href={"/profile" as "/"} className="nav-item" data-active={isActive("/profile") ? "true" : undefined}>
+          <UserIcon active={isActive("/profile")} />
           <span>{t("navProfile")}</span>
         </Link>
       </nav>

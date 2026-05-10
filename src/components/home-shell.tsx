@@ -33,9 +33,11 @@ interface Stats {
 export function HomeShell({
   tier,
   pack = DEFAULT_MOOD_PACK,
+  hidePreview = false,
 }: {
   tier: Tier;
   pack?: string;
+  hidePreview?: boolean;
 }) {
   const t = useTranslations("home");
   const locale = useLocale();
@@ -675,7 +677,7 @@ export function HomeShell({
         ) : entries.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
             {entries.map((entry) => (
-              <EntryCard key={entry.id} entry={entry} locale={locale} />
+              <EntryCard key={entry.id} entry={entry} locale={locale} blur={hidePreview} />
             ))}
           </div>
         ) : (
@@ -725,7 +727,7 @@ export function HomeShell({
   );
 }
 
-function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
+function EntryCard({ entry, locale, blur }: { entry: Entry; locale: string; blur?: boolean }) {
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
   const date = new Date(entry.createdAt);
   const time = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
@@ -772,12 +774,12 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
         </div>
       </div>
       {entry.note && (
-        <p className="line-clamp-2" style={{ fontSize: 12, color: "#5A5A5A", lineHeight: 1.4 }}>
+        <p className="line-clamp-2" style={{ fontSize: 12, color: "#5A5A5A", lineHeight: 1.4, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
           {entry.note}
         </p>
       )}
       {entry.tags && entry.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
+        <div className="flex flex-wrap gap-1 mt-2" style={{ filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
           {entry.tags.slice(0, 3).map((tag, j) => (
             <span
               key={j}

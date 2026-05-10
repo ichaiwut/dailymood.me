@@ -58,6 +58,12 @@
 - [x] Stats Page (`/stats`) — functional period toggle (Week/Month/Year), average mood line chart (SVG, adapts to period), mood mix donut, highest mood day card, real activity impact from tag-mood correlation (min 5 entries/tag, cap 6 rows, diverging bars). Delta badge vs previous period. Premium: Year toggle + activity rows 4-6 unlocked. Free: rows 4-6 blurred. Link to AI Insights. Bottom nav linked (replaced Insights tab). API: `/api/stats?period=week|month|year`
 - [ ] Streak & Habits
 
+#### Profile & Account
+- [x] Profile Overview (`/profile`) — hero card (purple→peach gradient, avatar initials with accent color, name, email, member-since, premium badge), hero stats row (streak 🔥, entries 📓, avg mood 😄 — tappable deep-links), mood signature card (stacked bar of mood distribution over 30 days + headline + top 3 %s), achievements preview row (horizontal scroll, 6 visible), settings shortcut list (notifications, language, privacy, export, subscription — color-tinted icon tiles), footer (help/sign out/version). API: `GET /api/profile`, `PATCH /api/profile`
+- [x] Edit Profile (`/profile/edit`) — avatar with accent color picker (6 colors), display name (≤30 chars), email (read-only with verified badge), bio (≤160 chars), delete account button
+- [x] Settings (`/profile/settings`) — Reminders (daily check-in toggle, time, days), Appearance (theme Light/Dark/Auto, mood palette Neon/Tempered/Mono), Language (EN/TH radio), Privacy (hide previews, anonymous insights toggles), Custom moods (Premium), Data (export, clear all entries), About (help, feedback, terms)
+- [x] Achievements (`/profile/achievements`) — hero progress ring (% unlocked), filter pills (All/Earned/In progress/Locked with counts), 2-col badge grid (earned=colored border+date, in-progress=dashed+progress bar, locked=grayscale). 12 badges: streak 7/30/100/365, entries 50/100/500, early bird, night owl, tag master, zen 30, photo journal. DB: `user_achievements` table, auto-earn on check. API: `GET /api/profile/achievements`
+
 #### Pages
 - [x] AI Insights page (`/insights`) — Gemini-powered weekly insights feed. Hero summary card (lavender→peach gradient) with Read Full + Share (Web Share API / clipboard). Pattern cards with mini sparkline viz + tag badges (PATTERN/CORRELATION/ALERT). Suggestion card with thumbs up/down + "Add to routine" feedback (persisted in D1 `suggestion_feedback` table). Streak card. Cached per week in D1 `insights_ai_cache` table (delta-3 invalidation like calendar AI). Premium: full access. Free: hero preview (headline + first sentence) + locked state. Accessed via Stats page link (not in bottom nav). API: `GET /api/insights`, `POST /api/insights/feedback`.
 - [x] Timeline view (Calendar tab) — segmented toggle Calendar/Timeline on the Calendar page; reverse-chronological feed of entries grouped by day (TODAY/YESTERDAY/WEEKDAY), mood filter chips, entry cards with mood swatch + title + time + note preview + tag emojis. Tap → entry detail. Data: `/api/calendar/timeline`. `/history` page redirects to `/calendar`.
@@ -91,6 +97,7 @@
 - [ ] Stripe Checkout + Webhook
 - [x] Premium gating (via `users.isPremium`)
 - [x] User Menu — burger dropdown (avatar + ☰) → Settings, Logout
+- [x] Profile tab (You) — bottom nav tab → `/profile` (replaces old `/settings`); `/settings` redirects to `/profile/settings`
 
 #### Localization
 - [x] i18n — TH/EN (next-intl)
@@ -123,10 +130,13 @@
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
+| GET | `/api/profile` | auth | Profile data: user info, stats (streak, totalEntries, avgMood), mood signature (30-day mood distribution), tier |
+| PATCH | `/api/profile` | auth | Update profile: name, bio, accentColor, locale |
+| GET | `/api/profile/achievements` | auth | Achievements: badge progress, earned dates. Auto-earns newly completed badges |
 
 ## Database Schema (Drizzle on D1)
 
-- `users` — id, email, image, **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, locale, createdAt
+- `users` — id, email, image, **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, locale, **bio**, **accentColor**, createdAt
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
@@ -137,8 +147,9 @@
 - `calendar_ai_cache` — (userId, yearMonth) PK, result JSON, entryCount, generatedAt — caches Gemini-generated calendar AI summaries + patterns per month
 - `insights_ai_cache` — (userId, weekKey) PK, result JSON, entryCount, generatedAt — caches weekly AI insights (delta-3 invalidation)
 - `suggestion_feedback` — id PK, userId, weekKey, suggestionTitle, reaction (up/down/routine), createdAt — persists user feedback on AI suggestions
+- `user_achievements` — (userId, badgeId) PK, earnedAt — tracks when user earned each badge
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Cloudflare)
 

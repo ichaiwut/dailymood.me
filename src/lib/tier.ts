@@ -10,28 +10,28 @@ export interface SessionInfo {
   userId: string | null;
   tier: Tier;
   moodPack: string;
+  hidePreview: boolean;
 }
 
 export async function getSessionInfo(): Promise<SessionInfo> {
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId) return { userId: null, tier: "guest", moodPack: DEFAULT_MOOD_PACK };
+  if (!userId) return { userId: null, tier: "guest", moodPack: DEFAULT_MOOD_PACK, hidePreview: false };
 
   const db = getDb();
   const [row] = await db
-    .select({ isPremium: users.isPremium, moodPack: users.moodPack })
+    .select({ isPremium: users.isPremium, moodPack: users.moodPack, hidePreview: users.hidePreview })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
 
   const tier: Tier = row?.isPremium ? "premium" : "free";
-  // free users always render with the default pack regardless of stored value
   const pack =
     tier === "premium" && row?.moodPack && isValidPack(row.moodPack)
       ? row.moodPack
       : DEFAULT_MOOD_PACK;
 
-  return { userId, tier, moodPack: pack };
+  return { userId, tier, moodPack: pack, hidePreview: !!row?.hidePreview };
 }
 
 export class TierError extends Error {

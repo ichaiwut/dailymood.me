@@ -14,12 +14,12 @@ export default async function Home() {
     redirect({ href: "/login", locale });
   }
 
-  const { tier, moodPack } = await getSessionInfo();
+  const { tier, moodPack, hidePreview } = await getSessionInfo();
 
   return (
     <main className="flex-1 px-5 pb-16">
       <div className="mx-auto w-full max-w-[768px]">
-        <HomeShell tier={tier} pack={moodPack} />
+        <HomeShell tier={tier} pack={moodPack} hidePreview={hidePreview} />
       </div>
     </main>
   );

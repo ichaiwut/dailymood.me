@@ -12,6 +12,10 @@ export const users = sqliteTable("users", {
   // selected mood-icon pack (free: only DEFAULT_MOOD_PACK; premium: any from MOOD_PACKS)
   moodPack: text("mood_pack").notNull().default("set_486038"),
   stripeCustomerId: text("stripe_customer_id"),
+  bio: text("bio"),
+  accentColor: text("accent_color"),
+  hidePreview: integer("hide_preview", { mode: "boolean" }).notNull().default(false),
+  anonymousInsights: integer("anonymous_insights", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
@@ -118,6 +122,14 @@ export const suggestionFeedback = sqliteTable("suggestion_feedback", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (t) => ({
   userWeekIdx: index("suggestion_feedback_user_week_idx").on(t.userId, t.weekKey),
+}));
+
+export const userAchievements = sqliteTable("user_achievements", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  badgeId: text("badge_id").notNull(),
+  earnedAt: integer("earned_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.badgeId] }),
 }));
 
 export interface InsightsAiResult {
