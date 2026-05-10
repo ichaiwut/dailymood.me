@@ -9,11 +9,11 @@ type Plan = "monthly" | "yearly";
 
 const FEATURES = [
   { icon: "✨", iconBg: "#F4EEFB", key: "feat1" },
-  { icon: "📈", iconBg: "#FDE8DA", key: "feat2" },
-  { icon: "🗓", iconBg: "#E8F0FE", key: "feat3" },
-  { icon: "📸", iconBg: "#FDE8DA", key: "feat4" },
-  { icon: "☁️", iconBg: "#E8F0FE", key: "feat5" },
-  { icon: "🎨", iconBg: "#FDE8DA", key: "feat6" },
+  { icon: "📸", iconBg: "#FDE8DA", key: "feat2" },
+  { icon: "📈", iconBg: "#F4EEFB", key: "feat3" },
+  { icon: "🗓", iconBg: "#FDE8DA", key: "feat4" },
+  { icon: "🎨", iconBg: "#E8F0FE", key: "feat5" },
+  { icon: "📊", iconBg: "#FDE8DA", key: "feat6" },
 ];
 
 export function PricingShell({ tier }: { tier: Tier }) {
@@ -22,7 +22,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
   const router = useRouter();
   const [plan, setPlan] = useState<Plan>("yearly");
 
-  const price = plan === "yearly" ? "฿890" : "฿149";
+  const price = plan === "yearly" ? "฿949" : "฿99";
   const period = plan === "yearly" ? t("perYear") : t("perMonth");
 
   return (
@@ -43,15 +43,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
             <path d="M18 6L6 18M6 6l12 12" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-        <button
-          type="button"
-          style={{
-            background: "transparent", border: "none",
-            fontSize: 14, fontWeight: 600, color: "var(--ink-2)", cursor: "pointer",
-          }}
-        >
-          {t("restore")}
-        </button>
+        <div style={{ width: 40 }} />
       </div>
 
       {/* Hero */}
@@ -146,7 +138,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>{t("monthly")}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
-            ฿149<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>/{t("mo")}</span>
+            ฿99<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>/{t("mo")}</span>
           </div>
         </button>
 
@@ -180,10 +172,10 @@ export function PricingShell({ tier }: { tier: Tier }) {
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>{t("yearly")}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
-            ฿890<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>/{t("yr")}</span>
+            ฿949<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>/{t("yr")}</span>
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: "#A673F1", marginTop: 4 }}>
-            ฿74/{t("mo")} · {t("save50")}
+            ฿79/{t("mo")} · {t("save20")}
           </div>
         </button>
       </div>
@@ -200,41 +192,18 @@ export function PricingShell({ tier }: { tier: Tier }) {
       >
         {t("cta")} →
       </button>
-      <p style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "center", marginBottom: 28 }}>
+      <p style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "center", marginBottom: 8 }}>
         {t("ctaCaption", { price, period })}
       </p>
-
-      {/* Social Proof */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #FFF9F5 0%, #F8F2FD 100%)",
-          borderRadius: 22, padding: "20px",
-          marginBottom: 24,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <div style={{ display: "flex", gap: 2 }}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="#FCA45B">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            ))}
-          </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-2)" }}>4.8 · 12k {t("reviews")}</span>
-        </div>
-        <p style={{ fontSize: 15, fontWeight: 600, color: "#A673F1", lineHeight: 1.5, fontStyle: "italic", marginBottom: 8 }}>
-          &ldquo;{t("quote")}&rdquo;
-        </p>
-        <span style={{ fontSize: 12, color: "var(--ink-3)" }}>— {t("quoteAuthor")}</span>
-      </div>
+      <p style={{ fontSize: 12, color: "var(--primary)", textAlign: "center", fontWeight: 600, marginBottom: 28 }}>
+        {t("moreFeatures")}
+      </p>
 
       {/* Footer */}
       <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 12, color: "var(--ink-3)" }}>
         <span style={{ cursor: "pointer" }}>{t("terms")}</span>
         <span>·</span>
         <span style={{ cursor: "pointer" }}>{t("privacy")}</span>
-        <span>·</span>
-        <span style={{ cursor: "pointer" }}>{t("restorePurchase")}</span>
       </div>
     </div>
   );
