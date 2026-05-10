@@ -403,6 +403,8 @@
     "dailyCheckinSub": "เตือนเบา ๆ ตอน {time}",
     "reminderTime": "เวลาแจ้งเตือน",
     "reminderDays": "วันที่แจ้งเตือน",
+    "reminderSave": "บันทึกการแจ้งเตือน",
+    "reminderSaved": "บันทึกแล้ว ✓",
     "appearance": "การแสดงผล",
     "theme": "ธีม",
     "themeLight": "สว่าง",

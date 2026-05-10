@@ -16,6 +16,9 @@ export const users = sqliteTable("users", {
   accentColor: text("accent_color"),
   hidePreview: integer("hide_preview", { mode: "boolean" }).notNull().default(false),
   anonymousInsights: integer("anonymous_insights", { mode: "boolean" }).notNull().default(true),
+  reminderEnabled: integer("reminder_enabled", { mode: "boolean" }).notNull().default(false),
+  reminderTime: text("reminder_time").notNull().default("21:00"),
+  reminderDays: text("reminder_days").notNull().default("1,2,3,4,5"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 

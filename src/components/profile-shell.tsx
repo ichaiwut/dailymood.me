@@ -19,6 +19,9 @@ interface ProfileData {
     accentColor: string | null;
     hidePreview: boolean;
     anonymousInsights: boolean;
+    reminderEnabled: boolean;
+    reminderTime: string;
+    reminderDays: string;
     createdAt: string;
   };
   stats: {
@@ -53,6 +56,23 @@ const ACCENT_GRADIENTS: Record<string, string> = {
 
 const DEFAULT_ACCENT = "#A673F1";
 
+const DAY_CHIPS = [
+  { value: 1, en: "Mon", th: "จ." },
+  { value: 2, en: "Tue", th: "อ." },
+  { value: 3, en: "Wed", th: "พ." },
+  { value: 4, en: "Thu", th: "พฤ." },
+  { value: 5, en: "Fri", th: "ศ." },
+  { value: 6, en: "Sat", th: "ส." },
+  { value: 0, en: "Sun", th: "อา." },
+];
+
+function formatTime24to12(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
 export function ProfileShell() {
   const t = useTranslations("profile");
   const locale = useLocale();
@@ -72,9 +92,10 @@ export function ProfileShell() {
   } | null>(null);
 
   // settings state
-  const [checkinOn, setCheckinOn] = useState(true);
-  const [reminderTime] = useState("9:00 PM");
-  const [reminderDays] = useState("Mon · Tue · Wed · Thu · Fri");
+  const [checkinOn, setCheckinOn] = useState(false);
+  const [reminderTime, setReminderTime] = useState("21:00");
+  const [reminderDays, setReminderDays] = useState("1,2,3,4,5");
+  const [reminderSaved, setReminderSaved] = useState(false);
   const [hidePreview, setHidePreview] = useState(false);
   const [anonymousInsights, setAnonymousInsights] = useState(true);
 
@@ -105,6 +126,9 @@ export function ProfileShell() {
         setData(d);
         setHidePreview(d.user.hidePreview);
         setAnonymousInsights(d.user.anonymousInsights);
+        setCheckinOn(d.user.reminderEnabled);
+        setReminderTime(d.user.reminderTime);
+        setReminderDays(d.user.reminderDays);
       })
       .finally(() => { if (!cancel) setLoading(false); });
 
@@ -328,15 +352,83 @@ export function ProfileShell() {
           <ToggleRow
             icon="🔔" iconBg="#FCA45B"
             title={t("dailyCheckin")}
-            subtitle={t("dailyCheckinSub", { time: reminderTime })}
-            value={checkinOn} onChange={setCheckinOn}
+            subtitle={t("dailyCheckinSub", { time: formatTime24to12(reminderTime) })}
+            value={checkinOn}
+            onChange={(v) => { setCheckinOn(v); if (!v) patchSetting("reminderEnabled", false); }}
           />
           {checkinOn && (
             <>
               <Divider />
-              <NavRow icon="🕐" iconBg="#A673F1" title={t("reminderTime")} value={reminderTime} />
+              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 14, background: "#A673F118", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🕐</div>
+                <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{t("reminderTime")}</div>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  style={{
+                    border: "1.5px solid var(--hairline-2)", borderRadius: 12,
+                    padding: "6px 10px", fontSize: 14, fontWeight: 600,
+                    color: "var(--primary)", background: "var(--surface-2)",
+                    outline: "none", fontFamily: "inherit",
+                  }}
+                />
+              </div>
               <Divider />
-              <NavRow icon="📅" iconBg="#85ECCB" title={t("reminderDays")} value={reminderDays} />
+              <div style={{ padding: "14px 20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: 14, background: "#85ECCB18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>📅</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{t("reminderDays")}</div>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {DAY_CHIPS.map((day) => {
+                    const active = reminderDays.split(",").includes(String(day.value));
+                    return (
+                      <button
+                        key={day.value}
+                        type="button"
+                        onClick={() => {
+                          const current = reminderDays.split(",").filter(Boolean);
+                          const next = active
+                            ? current.filter((d) => d !== String(day.value))
+                            : [...current, String(day.value)];
+                          setReminderDays(next.sort((a, b) => Number(a) - Number(b)).join(","));
+                        }}
+                        style={{
+                          padding: "8px 14px", borderRadius: 12,
+                          border: active ? "none" : "1.5px solid var(--hairline-2)",
+                          background: active ? "var(--primary)" : "transparent",
+                          color: active ? "#fff" : "var(--ink-2)",
+                          fontSize: 13, fontWeight: 600, cursor: "pointer",
+                        }}
+                      >
+                        {locale === "th" ? day.th : day.en}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <Divider />
+              <div style={{ padding: "14px 20px" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    fetch("/api/profile", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ reminderEnabled: checkinOn, reminderTime, reminderDays }),
+                    }).then(() => setReminderSaved(true));
+                    setTimeout(() => setReminderSaved(false), 2000);
+                  }}
+                  style={{
+                    width: "100%", padding: "12px 0", borderRadius: 14,
+                    border: "none", background: "var(--primary)",
+                    fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer",
+                  }}
+                >
+                  {reminderSaved ? t("reminderSaved") : t("reminderSave")}
+                </button>
+              </div>
             </>
           )}
         </SettingCard>

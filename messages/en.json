@@ -403,6 +403,8 @@
     "dailyCheckinSub": "A gentle nudge at {time}",
     "reminderTime": "Reminder time",
     "reminderDays": "Reminder days",
+    "reminderSave": "Save reminder",
+    "reminderSaved": "Saved ✓",
     "appearance": "APPEARANCE",
     "theme": "Theme",
     "themeLight": "Light",

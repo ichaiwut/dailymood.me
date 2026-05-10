@@ -26,6 +26,9 @@ export async function GET() {
       accentColor: users.accentColor,
       hidePreview: users.hidePreview,
       anonymousInsights: users.anonymousInsights,
+      reminderEnabled: users.reminderEnabled,
+      reminderTime: users.reminderTime,
+      reminderDays: users.reminderDays,
       createdAt: users.createdAt,
     })
     .from(users)
@@ -93,6 +96,9 @@ export async function GET() {
       accentColor: user.accentColor,
       hidePreview: user.hidePreview,
       anonymousInsights: user.anonymousInsights,
+      reminderEnabled: user.reminderEnabled,
+      reminderTime: user.reminderTime,
+      reminderDays: user.reminderDays,
       createdAt: user.createdAt.toISOString(),
     },
     stats: {
@@ -135,6 +141,15 @@ export async function PATCH(req: NextRequest) {
   }
   if (typeof body.anonymousInsights === "boolean") {
     updates.anonymousInsights = body.anonymousInsights;
+  }
+  if (typeof body.reminderEnabled === "boolean") {
+    updates.reminderEnabled = body.reminderEnabled;
+  }
+  if (typeof body.reminderTime === "string" && /^\d{2}:\d{2}$/.test(body.reminderTime as string)) {
+    updates.reminderTime = body.reminderTime;
+  }
+  if (typeof body.reminderDays === "string") {
+    updates.reminderDays = body.reminderDays;
   }
 
   if (Object.keys(updates).length === 0) {
