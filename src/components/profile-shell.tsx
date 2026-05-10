@@ -278,37 +278,42 @@ export function ProfileShell() {
           background: "var(--surface)", borderRadius: 22,
           border: "1.5px solid var(--hairline)", padding: "20px 20px 18px",
           marginBottom: 16, animationDelay: "60ms",
+          position: "relative", overflow: "hidden",
         }}
       >
         <div style={{ fontSize: 11, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, marginBottom: 8, textTransform: "uppercase" }}>
           {t("moodSignature")}
         </div>
-        {data.moodSignature.hasSufficientData ? (
-          <>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", lineHeight: 1.3, marginBottom: 14 }}>
-              {buildSignatureHeadline(data.moodSignature.distribution, locale, t)}
+        {data.user.isPremium ? (
+          data.moodSignature.hasSufficientData ? (
+            <>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", lineHeight: 1.3, marginBottom: 14 }}>
+                {buildSignatureHeadline(data.moodSignature.distribution, locale, t)}
+              </div>
+              <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 14, marginBottom: 10 }}>
+                {data.moodSignature.distribution.map((m) => (
+                  <div key={m.moodId} style={{ width: `${m.percent}%`, background: m.color, minWidth: m.percent > 0 ? 4 : 0 }} />
+                ))}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--ink-2)" }}>
+                {data.moodSignature.distribution.slice(0, 3).map((m) => {
+                  const label = locale === "th" && m.labelTh ? m.labelTh : m.label;
+                  return `${label} ${m.percent}%`;
+                }).join(" · ")}
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 14, color: "var(--ink-3)", padding: "12px 0" }}>
+              {t("signatureNoData")}
             </div>
-            <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 14, marginBottom: 10 }}>
-              {data.moodSignature.distribution.map((m) => (
-                <div key={m.moodId} style={{ width: `${m.percent}%`, background: m.color, minWidth: m.percent > 0 ? 4 : 0 }} />
-              ))}
-            </div>
-            <div style={{ fontSize: 13, color: "var(--ink-2)" }}>
-              {data.moodSignature.distribution.slice(0, 3).map((m) => {
-                const label = locale === "th" && m.labelTh ? m.labelTh : m.label;
-                return `${label} ${m.percent}%`;
-              }).join(" · ")}
-            </div>
-          </>
+          )
         ) : (
-          <div style={{ fontSize: 14, color: "var(--ink-3)", padding: "12px 0" }}>
-            {t("signatureNoData")}
-          </div>
+          <PremiumTeaser text={t("premiumMoodSignature")} />
         )}
       </div>
 
       {/* Achievements Row */}
-      {achievements && achievements.badges.length > 0 && (
+      {achievements && achievements.earned > 0 && (
         <div className="fade-in" style={{ marginBottom: 20, animationDelay: "120ms" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{t("achievements")}</div>
@@ -320,7 +325,7 @@ export function ProfileShell() {
             </Link>
           </div>
           <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
-            {achievements.badges.slice(0, 6).map((badge) => (
+            {achievements.badges.filter((b) => b.status === "earned").slice(0, 6).map((badge) => (
               <div
                 key={badge.id}
                 style={{
@@ -474,25 +479,33 @@ export function ProfileShell() {
       {/* Privacy */}
       <Section label={t("privacySecurity")} delay="270ms">
         <SettingCard>
-          <ToggleRow
-            icon="👁️" iconBg="#9ACDE2"
-            title={t("hidePreview")}
-            subtitle={t("hidePreviewSub")}
-            value={hidePreview} onChange={(v) => { setHidePreview(v); patchSetting("hidePreview", v); }}
-          />
+          {data.user.isPremium ? (
+            <ToggleRow
+              icon="👁️" iconBg="#9ACDE2"
+              title={t("hidePreview")}
+              subtitle={t("hidePreviewSub")}
+              value={hidePreview} onChange={(v) => { setHidePreview(v); patchSetting("hidePreview", v); }}
+            />
+          ) : (
+            <div style={{ padding: "16px 20px" }}>
+              <PremiumTeaser text={t("premiumPrivacy")} />
+            </div>
+          )}
         </SettingCard>
       </Section>
 
-      {/* Custom Moods (Premium) */}
-      {data.user.isPremium && (
-        <Section label={t("customMoods")} delay="300ms">
-          <SettingCard>
-            <div style={{ padding: "16px 20px" }}>
+      {/* Custom Moods */}
+      <Section label={t("customMoods")} delay="300ms">
+        <SettingCard>
+          <div style={{ padding: "16px 20px" }}>
+            {data.user.isPremium ? (
               <CustomMoodManager />
-            </div>
-          </SettingCard>
-        </Section>
-      )}
+            ) : (
+              <PremiumTeaser text={t("premiumCustomMoods")} />
+            )}
+          </div>
+        </SettingCard>
+      </Section>
 
       {/* Data */}
       <Section label={t("data")} delay="330ms">
@@ -764,6 +777,32 @@ export function ProfileShell() {
 }
 
 /* ── Helper components ── */
+
+function PremiumTeaser({ icon, label, text }: { icon?: string; label?: string; text: string }) {
+  return (
+    <div style={{
+      background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+      borderRadius: 20, padding: "20px",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 12,
+          background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, color: "#fff",
+        }}>
+          {icon ?? "✦"}
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>
+          {label ?? "PREMIUM"}
+        </div>
+      </div>
+      <div style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.5, marginBottom: 12 }}>{text}</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+        อัปเกรด →
+      </div>
+    </div>
+  );
+}
 
 function Section({ label, delay, children }: { label: string; delay: string; children: React.ReactNode }) {
   return (

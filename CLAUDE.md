@@ -35,6 +35,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **UX Copy** — ข้อความทุกจุดที่ user เห็น (placeholder, label, button, error, toast) ต้องเขียนเป็นภาษามนุษย์ที่อ่านเข้าใจง่าย ห้ามใช้คำเทคนิค (เช่น tags, sentiment, NLP, Gemini, rate_limited) ตรงๆ ใน UI
 - **Tone** — แอปนี้เป็นเครื่องมือบันทึกอารมณ์ ไม่ใช่ chatbot ห้ามเขียน copy ที่ขอให้ user "เล่า" หรือ "บอก" อะไร ใช้โทนเบาๆ เปิดกว้าง ไม่กดดัน (เช่น "วันนี้เป็นยังไงบ้าง..." ดีกว่า "เล่าให้ฟังหน่อย")
+- **Premium gating** — ห้ามซ่อน feature ที่เป็น Premium ออกจาก UI ต้องแสดงให้ user เห็นเสมอพร้อมข้อความอธิบายว่า feature ทำอะไร + badge "PREMIUM" เพื่อให้ user รู้ว่ามี feature นี้อยู่และอยากอัปเกรด ห้ามใช้ `{isPremium && <Component />}` เด็ดขาด ให้ใช้ ternary แสดง teaser แทน
 - **features.md** — ทุกครั้งที่เพิ่ม feature ใหม่ หรือแก้ไข feature ต้องอัปเดตไฟล์ `features.md` ด้วยเสมอ
 - **design.md** — ทุกครั้งที่เพิ่มหรือแก้ไขเรื่อง design ต้องอัปเดตไฟล์ `design.md` ด้วยเสมอ
 - **Images** — ทุกครั้งที่ต้องใส่รูปต้องทำตามนี้:
