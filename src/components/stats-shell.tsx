@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { moodScore, scoreToEmoji } from "@/lib/mood-scores";
+import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import type { Tier } from "@/lib/tier";
 
 /* ── Types ─────────────────────────────────────────────── */
@@ -57,15 +58,18 @@ function MoodLineChart({
   trend,
   period,
   locale,
+  moodPack = DEFAULT_MOOD_PACK,
 }: {
   trend: { date: string; moodId: string | null }[];
   period: Period;
   locale: string;
+  moodPack?: string;
 }) {
-  const W = 320;
+  const W = 340;
   const H = 150;
-  const PX = 24;
+  const PX = 36;
   const PY = 16;
+  const SCORE_MOODS: Record<number, string> = { 5: "amazing", 4: "happy", 3: "neutral", 2: "sad", 1: "angry" };
   const chartW = W - PX * 2;
   const chartH = H - PY * 2;
 
@@ -114,7 +118,16 @@ function MoodLineChart({
       </defs>
 
       {[1, 2, 3, 4, 5].map((s) => (
-        <line key={s} x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
+        <g key={s}>
+          <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
+          <image
+            href={moodIconUrl(SCORE_MOODS[s], moodPack)}
+            x={PX - 28}
+            y={toY(s) - 10}
+            width={20}
+            height={20}
+          />
+        </g>
       ))}
 
       {areaPath && <path d={areaPath} fill="url(#lineGrad)" />}
@@ -225,7 +238,7 @@ function ActivityBar({ impact }: { impact: number }) {
 
 /* ── Main Component ────────────────────────────────────── */
 
-export function StatsShell({ tier = "free" }: { tier?: Tier }) {
+export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK }: { tier?: Tier; moodPack?: string }) {
   const locale = useLocale();
   const t = useTranslations("stats");
 
@@ -463,7 +476,7 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
                   </div>
                 )}
               </div>
-              <MoodLineChart trend={trend} period={period} locale={locale} />
+              <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} />
             </div>
           </section>
 
@@ -495,7 +508,7 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
                         margin: "8px 0 12px",
                       }}
                     >
-                      <span style={{ fontSize: 36 }}>{moodById(bestDay.moodId)?.emoji ?? "😐"}</span>
+                      <img src={moodIconUrl(bestDay.moodId, moodPack)} alt="" width={44} height={44} style={{ width: 44, height: 44 }} />
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{bestDayName}</div>
                     <div style={{ fontSize: 12, color: "var(--ink-3)" }}>

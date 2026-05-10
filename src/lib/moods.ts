@@ -12,7 +12,8 @@ export interface MoodPack {
   premium: boolean;
 }
 
-// Free users get DEFAULT_MOOD_PACK only. Premium can switch.
+// Hardcoded fallback — used when DB is not available (e.g. build time).
+// At runtime, the pack picker reads from the mood_packs DB table via /api/moods/packs.
 export const MOOD_PACKS: readonly MoodPack[] = [
   { id: "set_486038", label: "Vecteezy Classic", premium: false },
 ];
@@ -20,10 +21,11 @@ export const MOOD_PACKS: readonly MoodPack[] = [
 export function moodIconUrl(
   moodId: string,
   packId: string = DEFAULT_MOOD_PACK,
+  format: string = "svg",
 ): string {
-  return `${R2_PUBLIC_URL}/${packId}/${moodId}.svg`;
+  return `${R2_PUBLIC_URL}/${packId}/${moodId}.${format}`;
 }
 
 export function isValidPack(packId: string): boolean {
-  return MOOD_PACKS.some((p) => p.id === packId);
+  return !!packId && packId.length > 0;
 }

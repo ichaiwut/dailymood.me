@@ -136,7 +136,7 @@ const INSIGHTS_SCHEMA: Schema = {
 const INSIGHTS_PROMPT = `Weekly mood insight generator. Input: user's recent mood data JSON. This is a WEEKLY summary — always frame observations as "this week" or "the past week", never "this month".
 headline: ≤60 chars punchy weekly insight.
 previewHeadline: ≤30 chars teaser version of headline.
-summary: 1-2 sentences, warm observational tone about this week. Never judgmental. Say "สัปดาห์นี้" (TH) or "this week" (EN), never "เดือนนี้" or "this month".
+summary: 4-6 sentences, warm observational tone about this week. Cover overall mood trend, notable highs/lows, what influenced them, and a closing reflection. Use **bold** for key phrases. Never judgmental. Say "สัปดาห์นี้" (TH) or "this week" (EN), never "เดือนนี้" or "this month".
 patterns: 1-3 findings (title+description+tag:pattern|correlation|alert). Reference actual data. miniVizData: optional array of up to 7 numbers (1-5 scale) representing a mini trend relevant to the pattern.
 suggestion: one actionable tip or null. Frame as gentle invitation, not instruction.
 Use "highest/lowest" not "best/worst". Use "correlates with" not "causes".`;
@@ -148,7 +148,7 @@ export async function generateInsights(data: string): Promise<InsightsResult> {
       responseMimeType: "application/json",
       responseSchema: INSIGHTS_SCHEMA,
       temperature: 0.6,
-      maxOutputTokens: 400,
+      maxOutputTokens: 1200,
       // @ts-expect-error -- thinkingConfig not yet in SDK types
       thinkingConfig: { thinkingBudget: 0 },
     },

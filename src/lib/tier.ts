@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/cf";
-import { users } from "@/db/schema";
+import { users, moodPacks } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { DEFAULT_MOOD_PACK, isValidPack } from "@/lib/moods";
 
@@ -10,13 +10,14 @@ export interface SessionInfo {
   userId: string | null;
   tier: Tier;
   moodPack: string;
+  iconFormat: string;
   hidePreview: boolean;
 }
 
 export async function getSessionInfo(): Promise<SessionInfo> {
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId) return { userId: null, tier: "guest", moodPack: DEFAULT_MOOD_PACK, hidePreview: false };
+  if (!userId) return { userId: null, tier: "guest", moodPack: DEFAULT_MOOD_PACK, iconFormat: "svg", hidePreview: false };
 
   const db = getDb();
   const [row] = await db
@@ -31,7 +32,17 @@ export async function getSessionInfo(): Promise<SessionInfo> {
       ? row.moodPack
       : DEFAULT_MOOD_PACK;
 
-  return { userId, tier, moodPack: pack, hidePreview: !!row?.hidePreview };
+  let iconFormat = "svg";
+  if (pack !== DEFAULT_MOOD_PACK) {
+    const [packRow] = await db
+      .select({ iconFormat: moodPacks.iconFormat })
+      .from(moodPacks)
+      .where(eq(moodPacks.id, pack))
+      .limit(1);
+    if (packRow?.iconFormat) iconFormat = packRow.iconFormat;
+  }
+
+  return { userId, tier, moodPack: pack, iconFormat, hidePreview: !!row?.hidePreview };
 }
 
 export class TierError extends Error {

@@ -6,17 +6,17 @@ interface Props {
   emoji?: string | null;
   size?: number;
   pack?: string;
+  iconFormat?: string;
   className?: string;
   style?: React.CSSProperties;
 }
 
-// Renders the pack SVG for default moods; falls back to the unicode emoji
-// for custom (premium-created) moods or when an icon fails to load.
 export function MoodIcon({
   moodId,
   emoji,
   size = 28,
   pack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
   className,
   style,
 }: Props) {
@@ -37,7 +37,7 @@ export function MoodIcon({
   // eslint-disable-next-line @next/next/no-img-element
   return (
     <img
-      src={moodIconUrl(moodId, pack)}
+      src={moodIconUrl(moodId, pack, iconFormat)}
       alt=""
       width={size}
       height={size}

@@ -146,6 +146,14 @@ export const userAchievements = sqliteTable("user_achievements", {
   pk: primaryKey({ columns: [t.userId, t.badgeId] }),
 }));
 
+export const moodPacks = sqliteTable("mood_packs", {
+  id: text("id").primaryKey(),
+  label: text("label").notNull(),
+  premium: integer("premium", { mode: "boolean" }).notNull().default(false),
+  iconFormat: text("icon_format").notNull().default("svg"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
 export interface InsightsAiResult {
   headline: string;
   previewHeadline: string;

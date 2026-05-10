@@ -100,6 +100,14 @@
 - [x] User Menu — burger dropdown (avatar + ☰) → Settings, Logout
 - [x] Profile tab (You) — bottom nav tab → `/profile` (replaces old `/settings`); `/settings` redirects to `/profile/settings`
 
+#### Admin Panel
+- [x] Admin Dashboard (`/admin`) — sidebar layout (240px fixed), auth via `ADMIN_EMAILS` env var (email hardcode), TH-only UI. Dashboard overview with stat cards (total users, premium count, total entries, 7d entries, new users 30d, AI calls today/30d, feedback count) + recent feedback list.
+- [x] User Management (`/admin/users`) — searchable user table with filter pills (All/Premium/Free), pagination (50/page). Toggle premium status, delete user (cascade + R2 cleanup). User detail page (`/admin/users/[id]`) with full profile info, Stripe data, auth providers, recent entries, AI usage stats.
+- [x] Entry Browser (`/admin/entries`) — all entries table with user email, mood emoji+label, AI source badge, image indicator. Privacy-first: note/tags/AI summary never sent to admin. Filter by userId. Delete entry (+ R2 cleanup). Pagination.
+- [x] AI Usage Dashboard (`/admin/ai`) — stat cards (NLP/Vision 7d + 30d, calendar/insights cache row counts). Stacked bar chart of daily AI calls (30 days). Top 10 AI users leaderboard.
+- [x] Feedback Hub (`/admin/feedback`) — two-panel layout: user feedback messages (paginated, deletable, linked to user detail) + AI suggestion feedback aggregation (title, thumbs up/down/routine counts).
+- [x] Mood Pack Manager (`/admin/packs`) — CRUD for mood icon packs. Create pack (ID + label + premium flag), edit label/premium, delete (resets users to default). Upload 7 SVG icons per pack to R2 (`{packId}/{moodId}.svg`). Icon preview grid. DB: `mood_packs` table (id, label, premium, createdAt). API: `GET/POST /api/admin/packs`, `GET/PATCH/DELETE /api/admin/packs/[id]`, `POST /api/admin/packs/[id]/upload`. User-facing: `GET /api/moods/packs` returns dynamic pack list.
+
 #### Localization
 - [x] i18n — TH/EN (next-intl)
 
@@ -153,8 +161,9 @@
 - `insights_ai_cache` — (userId, weekKey) PK, result JSON, entryCount, generatedAt — caches weekly AI insights (delta-3 invalidation)
 - `suggestion_feedback` — id PK, userId, weekKey, suggestionTitle, reaction (up/down/routine), createdAt — persists user feedback on AI suggestions
 - `user_achievements` — (userId, badgeId) PK, earnedAt — tracks when user earned each badge
+- `mood_packs` — id PK, label, premium (boolean), createdAt — mood icon pack registry (icons stored on R2 at `{packId}/{moodId}.svg`)
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Cloudflare)
 

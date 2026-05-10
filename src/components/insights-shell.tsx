@@ -281,7 +281,11 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 /* ── Mood Bar Chart ─────────────────────────────────────── */
 
 function MoodBarChart({ data }: { data: number[] }) {
+  const locale = useLocale();
   const H = 56;
+  const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const DAYS_TH = ["จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส.", "อา."];
+  const days = locale === "th" ? DAYS_TH : DAYS_EN;
 
   function barColor(score: number): string {
     if (score >= 4) return "#85ECCB";
@@ -290,22 +294,45 @@ function MoodBarChart({ data }: { data: number[] }) {
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 5, height: H, overflow: "hidden" }}>
-      {data.map((v, i) => {
-        const clamped = Math.min(5, Math.max(1, v));
-        const h = Math.max(6, (clamped / 5) * H);
-        return (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: h,
-              borderRadius: 5,
-              background: barColor(clamped),
-            }}
-          />
-        );
-      })}
+    <div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 5, height: H, overflow: "hidden" }}>
+        {data.map((v, i) => {
+          const clamped = Math.min(5, Math.max(1, v));
+          const h = Math.max(6, (clamped / 5) * H);
+          return (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: h,
+                borderRadius: 5,
+                background: barColor(clamped),
+              }}
+            />
+          );
+        })}
+      </div>
+      {data.length <= 7 && (
+        <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
+          {data.map((_, i) => (
+            <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, fontWeight: 600, color: "var(--ink-3)" }}>
+              {days[i] ?? ""}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 12, marginTop: 8, justifyContent: "center" }}>
+        {[
+          { color: "#85ECCB", label: locale === "th" ? "ดี" : "Good" },
+          { color: "#FDCB56", label: locale === "th" ? "กลางๆ" : "Okay" },
+          { color: "#FEAD8D", label: locale === "th" ? "ไม่ค่อยดี" : "Low" },
+        ].map((l) => (
+          <div key={l.color} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: l.color }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink-3)" }}>{l.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
