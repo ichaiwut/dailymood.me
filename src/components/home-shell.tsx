@@ -452,12 +452,14 @@ export function HomeShell({
 
           {/* Upgrade nudge for free users */}
           {tier !== "premium" && (
-            <div
+            <a
+              href="/pricing"
               className="flex items-center gap-2.5 mt-3"
               style={{
                 padding: "10px 14px",
                 borderRadius: 12,
                 background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)",
+                textDecoration: "none",
               }}
             >
               <div style={{
@@ -478,10 +480,10 @@ export function HomeShell({
               </div>
               <p style={{ fontSize: 12, lineHeight: 1.4, color: "#7A4DD0", fontWeight: 600 }}>
                 {locale === "th"
-                  ? "ใช้ AI ได้วันละครั้ง — อัปเกรด Premium เพื่อใช้ได้ไม่จำกัด"
-                  : "1 free AI analysis per day — upgrade to Premium for unlimited"}
+                  ? "ใช้ AI ได้วันละครั้ง — อัปเกรด Pro เพื่อใช้ได้ไม่จำกัด"
+                  : "1 free AI analysis per day — upgrade to Pro for unlimited"}
               </p>
-            </div>
+            </a>
           )}
         </div>
       </section>

@@ -325,6 +325,36 @@ export function SmartLogModal({
             </div>
           )}
 
+          {/* ── Pro teaser ── */}
+          {!suggestion && tier !== "premium" && (
+            <a
+              href="/pricing"
+              style={{
+                display: "block", textDecoration: "none", marginBottom: 16,
+                background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+                borderRadius: 18, padding: "16px 18px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>PRO</span>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 6 }}>
+                {locale === "th"
+                  ? "AI อ่านสิ่งที่คุณเขียน แล้วสรุปอารมณ์ แท็ก และ insight ให้อัตโนมัติ"
+                  : "AI reads what you write and extracts mood, tags, and insights automatically"}
+              </p>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#A673F1" }}>
+                {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
+              </span>
+            </a>
+          )}
+
           {/* ── Info / Error ── */}
           {error && (
             <div

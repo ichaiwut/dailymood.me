@@ -332,10 +332,11 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
           </div>
         </div>
         {yearBlocked && (
-          <div
+          <a
+            href="/pricing"
             className="fade-in"
             style={{
-              marginTop: 8,
+              display: "block", marginTop: 8,
               padding: "8px 14px",
               background: "#F0EAFF",
               color: "#A673F1",
@@ -343,10 +344,11 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
               fontWeight: 600,
               borderRadius: 10,
               textAlign: "center",
+              textDecoration: "none",
             }}
           >
             {t("unlockYear")}
-          </div>
+          </a>
         )}
       </section>
 
@@ -389,9 +391,14 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
                 <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
                   {t("viewInsights").toUpperCase()} · {t("week").toUpperCase()}
                 </span>
+                {tier !== "premium" && (
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
+                    PRO
+                  </span>
+                )}
               </div>
 
-              {insight ? (
+              {insight && tier === "premium" ? (
                 <p
                   style={{
                     fontSize: 15,
@@ -514,27 +521,26 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
               <span style={{ background: "#F0EAFF", color: "#A673F1", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>
                 ✨ AI
               </span>
+              {tier !== "premium" && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
+                  PRO
+                </span>
+              )}
             </div>
 
+            {tier === "premium" ? (
             <div style={CARD}>
               {activityImpact.length === 0 ? (
                 <div style={{ fontSize: 13, color: "var(--ink-3)", textAlign: "center", padding: "16px 0" }}>
                   {t("noActivity")}
                 </div>
               ) : (
-                <div className="flex flex-col gap-3" style={{ position: "relative" }}>
-                  {activityImpact.map((act, i) => {
-                    const blurred = i >= 3 && tier !== "premium";
-                    return (
+                <div className="flex flex-col gap-3">
+                  {activityImpact.map((act) => (
                       <div
                         key={act.tag}
                         className="flex items-center gap-3"
-                        style={{
-                          minHeight: 32,
-                          filter: blurred ? "blur(4px)" : undefined,
-                          pointerEvents: blurred ? "none" : undefined,
-                          userSelect: blurred ? "none" : undefined,
-                        }}
+                        style={{ minHeight: 32 }}
                       >
                         <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>
                           {tagEmoji(act.tag)}
@@ -552,31 +558,25 @@ export function StatsShell({ tier = "free" }: { tier?: Tier }) {
                           ×{act.freq}
                         </div>
                       </div>
-                    );
-                  })}
-                  {activityImpact.length > 3 && tier !== "premium" && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 80,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "linear-gradient(transparent, rgba(255,255,255,0.9))",
-                        borderRadius: "0 0 20px 20px",
-                      }}
-                    >
-                      <span style={{ background: "#A673F1", color: "#fff", fontSize: 12, fontWeight: 700, padding: "6px 16px", borderRadius: 20 }}>
-                        {t("unlockActivity")}
-                      </span>
-                    </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
+            ) : (
+            <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
+              <div style={{
+                borderRadius: 22, padding: "22px 20px 20px",
+                background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+              }}>
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", marginBottom: 12 }}>
+                  {locale === "th" ? "ดูว่ากิจกรรมไหนทำให้อารมณ์ดีขึ้นหรือแย่ลง วิเคราะห์จากบันทึกของคุณ" : "See which activities lift or lower your mood, analyzed from your entries"}
+                </p>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+                  {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
+                </span>
+              </div>
+            </a>
+            )}
           </section>
 
         </>

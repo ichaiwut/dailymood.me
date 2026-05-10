@@ -235,7 +235,7 @@ export function ProfileShell() {
                   padding: "3px 10px", letterSpacing: 0.3,
                 }}
               >
-                ● PLUS
+                ● PRO
               </div>
             )}
           </div>
@@ -778,29 +778,30 @@ export function ProfileShell() {
 
 /* ── Helper components ── */
 
-function PremiumTeaser({ icon, label, text }: { icon?: string; label?: string; text: string }) {
+function PremiumTeaser({ text }: { text: string }) {
+  const loc = useLocale();
   return (
-    <div style={{
-      background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
-      borderRadius: 20, padding: "20px",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 12,
-          background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 16, color: "#fff",
-        }}>
-          {icon ?? "✦"}
+    <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
+      <div style={{
+        background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+        borderRadius: 20, padding: "20px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 12,
+            background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 16, color: "#fff",
+          }}>
+            ✦
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>PRO</div>
         </div>
-        <div style={{ fontSize: 11, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>
-          {label ?? "PREMIUM"}
+        <div style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.5, marginBottom: 12 }}>{text}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+          {loc === "th" ? "อัปเกรด →" : "Upgrade →"}
         </div>
       </div>
-      <div style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.5, marginBottom: 12 }}>{text}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
-        อัปเกรด →
-      </div>
-    </div>
+    </a>
   );
 }
 

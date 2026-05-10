@@ -176,67 +176,78 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           )}
 
           {isLocked && (
-            <div
+            <a
+              href="/pricing"
               style={{
-                marginTop: 16,
+                display: "block", marginTop: 16,
                 padding: "10px 16px",
                 background: "rgba(255,255,255,0.2)",
                 borderRadius: 14,
                 backdropFilter: "blur(4px)",
                 textAlign: "center",
+                textDecoration: "none", color: "#fff",
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 700 }}>{t("locked")}</div>
               <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{t("lockedBody")}</div>
-            </div>
+            </a>
           )}
         </div>
       </section>
 
       {/* ── PATTERN CARDS ─── */}
-      {!isLocked &&
-        data.patterns.map((p, i) => {
-          const style = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
-          return (
-            <section key={i} className="mb-4 fade-in" style={{ animationDelay: `${80 + i * 40}ms` }}>
-              <div style={CARD}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span style={{ background: style.bg, color: style.color, fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
-                    {t(p.tag as "pattern" | "correlation" | "alert")}
-                  </span>
+      {isLocked ? (
+        <>
+          <LockedCard icon="🔍" title={locale === "th" ? "แพทเทิร์นอารมณ์" : "Mood patterns"} description={locale === "th" ? "AI จับแพทเทิร์นจากบันทึกของคุณ เช่น อารมณ์ดีขึ้นหลังออกกำลังกาย" : "AI detects patterns like mood improving after exercise"} delay="80ms" />
+          <LockedCard icon="🔗" title={locale === "th" ? "ความสัมพันธ์" : "Correlations"} description={locale === "th" ? "ดูว่ากิจกรรมไหนส่งผลต่ออารมณ์คุณจริง ๆ" : "See which activities actually affect your mood"} delay="120ms" />
+          <LockedCard icon="💡" title={locale === "th" ? "คำแนะนำประจำสัปดาห์" : "Weekly suggestion"} description={locale === "th" ? "AI แนะนำสิ่งที่น่าลองจากข้อมูลของคุณ" : "AI suggests things to try based on your data"} delay="160ms" />
+        </>
+      ) : (
+        <>
+          {data.patterns.map((p, i) => {
+            const style = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
+            return (
+              <section key={i} className="mb-4 fade-in" style={{ animationDelay: `${80 + i * 40}ms` }}>
+                <div style={CARD}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span style={{ background: style.bg, color: style.color, fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
+                      {t(p.tag as "pattern" | "correlation" | "alert")}
+                    </span>
+                  </div>
+                  <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{p.title}</h3>
+                  <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: p.miniVizData && p.miniVizData.length > 1 ? 16 : 0 }}>{p.description}</p>
+                  {p.miniVizData && p.miniVizData.length > 1 && <MoodBarChart data={p.miniVizData} />}
                 </div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{p.title}</h3>
-                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: p.miniVizData && p.miniVizData.length > 1 ? 16 : 0 }}>{p.description}</p>
-                {p.miniVizData && p.miniVizData.length > 1 && <MoodBarChart data={p.miniVizData} />}
+              </section>
+            );
+          })}
+
+          {/* ── SUGGESTION CARD ─── */}
+          {data.suggestion && (
+            <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
+              <div style={{ background: "#FAFFF8", border: "1.5px solid #DEF1D5", borderRadius: 22, padding: 18 }}>
+                <span style={{ background: "#5CBF5C", color: "#fff", fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
+                  {t("tryThis")}
+                </span>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{data.suggestion.title}</h3>
+                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 12 }}>{data.suggestion.description}</p>
+
+                <div className="flex items-center gap-2">
+                  <FeedbackPill
+                    label={`👍 ${t("thumbUp")}`}
+                    active={feedbackSent.has(`${data.weekKey}:up`)}
+                    onClick={() => handleFeedback("up")}
+                  />
+                  <FeedbackPill
+                    label={`👎 ${t("thumbDown")}`}
+                    active={feedbackSent.has(`${data.weekKey}:down`)}
+                    onClick={() => handleFeedback("down")}
+                  />
+                </div>
               </div>
             </section>
-          );
-        })}
-
-      {/* ── SUGGESTION CARD ─── */}
-      {!isLocked && data.suggestion && (
-        <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
-          <div style={{ background: "#FAFFF8", border: "1.5px solid #DEF1D5", borderRadius: 22, padding: 18 }}>
-            <span style={{ background: "#5CBF5C", color: "#fff", fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
-              {t("tryThis")}
-            </span>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{data.suggestion.title}</h3>
-            <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 12 }}>{data.suggestion.description}</p>
-
-            <div className="flex items-center gap-2">
-              <FeedbackPill
-                label={`👍 ${t("thumbUp")}`}
-                active={feedbackSent.has(`${data.weekKey}:up`)}
-                onClick={() => handleFeedback("up")}
-              />
-              <FeedbackPill
-                label={`👎 ${t("thumbDown")}`}
-                active={feedbackSent.has(`${data.weekKey}:down`)}
-                onClick={() => handleFeedback("down")}
-              />
-            </div>
-          </div>
-        </section>
+          )}
+        </>
       )}
 
       {/* ── STREAK CARD ─── */}
@@ -300,6 +311,30 @@ function MoodBarChart({ data }: { data: number[] }) {
 }
 
 /* ── Feedback Pill ─────────────────────────────────────── */
+
+function LockedCard({ icon, title, description, delay }: { icon: string; title: string; description: string; delay: string }) {
+  const locale = useLocale();
+  return (
+    <section className="mb-4 fade-in" style={{ animationDelay: delay }}>
+      <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
+        <div style={{
+          background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+          borderRadius: 22, padding: 18,
+        }}>
+          <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: 20 }}>{icon}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
+          </div>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{title}</h3>
+          <p style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 8 }}>{description}</p>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+            {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
+          </span>
+        </div>
+      </a>
+    </section>
+  );
+}
 
 function FeedbackPill({ label, active, accent, onClick }: { label: string; active: boolean; accent?: boolean; onClick: () => void }) {
   return (

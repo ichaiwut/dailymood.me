@@ -224,9 +224,14 @@ export function EntryDetail({ id }: { id: string }) {
               <BoldMarkdown text={entry.aiSummary} />
             </p>
           ) : (
-            <p style={{ fontSize: 13, lineHeight: 1.55, color: "#B89AE8" }}>
-              {t("aiSummaryTeaser")}
-            </p>
+            <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
+              <p style={{ fontSize: 13, lineHeight: 1.55, color: "#B89AE8", marginBottom: 6 }}>
+                {t("aiSummaryTeaser")}
+              </p>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#A673F1" }}>
+                {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
+              </span>
+            </a>
           )}
         </div>
       </div>}
