@@ -124,6 +124,13 @@ export const suggestionFeedback = sqliteTable("suggestion_feedback", {
   userWeekIdx: index("suggestion_feedback_user_week_idx").on(t.userId, t.weekKey),
 }));
 
+export const feedbacks = sqliteTable("feedbacks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  message: text("message").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
 export const userAchievements = sqliteTable("user_achievements", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   badgeId: text("badge_id").notNull(),

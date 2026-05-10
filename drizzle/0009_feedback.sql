@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS feedbacks (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);

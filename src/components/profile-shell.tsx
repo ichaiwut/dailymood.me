@@ -60,6 +60,11 @@ export function ProfileShell() {
   const [loading, setLoading] = useState(true);
   const [showSignOut, setShowSignOut] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackCooldown, setFeedbackCooldown] = useState(0);
   const [achievements, setAchievements] = useState<{
     total: number;
     earned: number;
@@ -72,6 +77,16 @@ export function ProfileShell() {
   const [reminderDays] = useState("Mon · Tue · Wed · Thu · Fri");
   const [hidePreview, setHidePreview] = useState(false);
   const [anonymousInsights, setAnonymousInsights] = useState(true);
+
+  const openFeedback = () => {
+    setFeedbackCooldown(0);
+    setFeedbackSent(false);
+    setFeedbackText("");
+    setShowFeedback(true);
+    fetch("/api/feedback")
+      .then((r) => r.json() as Promise<{ cooldown: boolean; remainMin: number }>)
+      .then((d) => { if (d.cooldown) setFeedbackCooldown(d.remainMin); });
+  };
 
   const patchSetting = (key: string, value: boolean) => {
     fetch("/api/profile", {
@@ -424,9 +439,9 @@ export function ProfileShell() {
       {/* About */}
       <Section label={t("about")} delay="360ms">
         <SettingCard>
-          <NavRow icon="❓" iconBg="#F4F2F7" title={t("helpCenter")} />
-          <Divider />
-          <NavRow icon="💬" iconBg="#F4F2F7" title={t("sendFeedback")} />
+          <div role="button" tabIndex={0} onClick={() => openFeedback()} onKeyDown={(e) => { if (e.key === "Enter") openFeedback(); }} style={{ cursor: "pointer" }}>
+            <NavRow icon="💬" iconBg="#F4F2F7" title={t("sendFeedback")} />
+          </div>
           <Divider />
           <NavRow icon="📄" iconBg="#F4F2F7" title={t("termsPrivacy")} />
         </SettingCard>
@@ -555,6 +570,100 @@ export function ProfileShell() {
                 {t("clearConfirm")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Sheet */}
+      {showFeedback && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 100,
+            background: "rgba(10,10,10,0.32)",
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+          }}
+          onClick={() => { if (!feedbackSending) { setShowFeedback(false); setFeedbackText(""); setFeedbackSent(false); } }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 480,
+              background: "var(--surface)", borderRadius: "24px 24px 0 0",
+              padding: "28px 24px 36px",
+            }}
+          >
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--hairline-2)", margin: "0 auto 20px" }} />
+            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+              {t("sendFeedback")}
+            </div>
+            <div style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 16 }}>
+              {t("feedbackHint")}
+            </div>
+            {feedbackSent ? (
+              <div style={{ textAlign: "center", padding: "24px 0" }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>💜</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 20 }}>{t("feedbackThanks")}</div>
+                <button
+                  type="button"
+                  onClick={() => { setShowFeedback(false); setFeedbackSent(false); }}
+                  style={{
+                    padding: "12px 32px", borderRadius: 16,
+                    border: "none", background: "var(--ink)",
+                    fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer",
+                  }}
+                >
+                  {t("feedbackClose")}
+                </button>
+              </div>
+            ) : (
+              <>
+                <textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value.slice(0, 1000))}
+                  placeholder={t("feedbackPlaceholder")}
+                  rows={4}
+                  style={{
+                    width: "100%", padding: "14px 16px", borderRadius: 16,
+                    border: "1.5px solid var(--hairline-2)", background: "var(--surface-2)",
+                    fontSize: 15, color: "var(--ink)", outline: "none",
+                    fontFamily: "inherit", resize: "none",
+                  }}
+                />
+                <div style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "right", marginTop: 4, marginBottom: 16 }}>
+                  {feedbackText.length}/1000
+                </div>
+                <button
+                  type="button"
+                  disabled={!feedbackText.trim() || feedbackSending || feedbackCooldown > 0}
+                  onClick={async () => {
+                    setFeedbackSending(true);
+                    const res = await fetch("/api/feedback", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ message: feedbackText.trim() }),
+                    });
+                    setFeedbackSending(false);
+                    if (res.status === 429) {
+                      const { remainMin } = (await res.json()) as { remainMin: number };
+                      setFeedbackCooldown(remainMin);
+                      return;
+                    }
+                    setFeedbackSent(true);
+                    setFeedbackText("");
+                  }}
+                  style={{
+                    width: "100%", padding: "14px 0", borderRadius: 16,
+                    border: "none",
+                    background: feedbackText.trim() && !feedbackCooldown ? "var(--ink)" : "var(--hairline)",
+                    fontSize: 14, fontWeight: 700,
+                    color: feedbackText.trim() && !feedbackCooldown ? "#fff" : "var(--ink-3)",
+                    cursor: feedbackText.trim() && !feedbackCooldown ? "pointer" : "default",
+                  }}
+                >
+                  {feedbackSending ? t("feedbackSending") : feedbackCooldown > 0 ? t("feedbackCooldown", { min: String(feedbackCooldown) }) : t("feedbackSend")}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
