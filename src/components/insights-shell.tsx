@@ -1,195 +1,333 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import type { Tier } from "@/lib/tier";
+
+/* ── Types ─────────────────────────────────────────────── */
 
 interface Pattern {
   title: string;
   description: string;
   tag: "pattern" | "correlation" | "alert";
+  miniVizData?: number[];
 }
 
 interface InsightsData {
   headline: string;
+  previewHeadline?: string;
   summary: string;
   patterns: Pattern[];
   suggestion: { title: string; description: string } | null;
+  streak: number;
+  weekKey: string;
+  locked?: boolean;
+  tier?: string;
+  tooFewEntries?: boolean;
+  empty?: boolean;
 }
 
-const TAG_STYLES: Record<string, { bg: string; color: string; label: { th: string; en: string } }> = {
-  pattern:     { bg: "#FCA45B", color: "#fff", label: { th: "แพทเทิร์น", en: "PATTERN" } },
-  correlation: { bg: "#A673F1", color: "#fff", label: { th: "ความสัมพันธ์", en: "CORRELATION" } },
-  alert:       { bg: "#F26B6B", color: "#fff", label: { th: "แจ้งเตือน", en: "ALERT" } },
+/* ── Constants ─────────────────────────────────────────── */
+
+const CARD: React.CSSProperties = {
+  background: "#fff",
+  border: "1.5px solid #F2F0F5",
+  borderRadius: 22,
+  padding: 18,
 };
 
-export function InsightsShell() {
+const TAG_STYLES: Record<string, { bg: string; color: string }> = {
+  pattern: { bg: "#FCA45B", color: "#fff" },
+  correlation: { bg: "#A673F1", color: "#fff" },
+  alert: { bg: "#F26B6B", color: "#fff" },
+};
+
+function truncateSummary(text: string): string {
+  const m = text.match(/^[^.!?]+[.!?]/);
+  return m ? m[0] : text.slice(0, 100);
+}
+
+/* ── Main Component ────────────────────────────────────── */
+
+export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
   const locale = useLocale();
   const t = useTranslations("insights");
+
   const [data, setData] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    let alive = true;
     fetch(`/api/insights?locale=${locale}`)
       .then((r) => {
         if (!r.ok) throw new Error();
         return r.json();
       })
       .then((json) => {
-        if (json.empty) {
-          setData(null);
-        } else {
-          setData(json as InsightsData);
-        }
+        if (!alive) return;
+        setData(json as InsightsData);
       })
       .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, [locale]);
+
+  const handleFeedback = useCallback(
+    async (reaction: "up" | "down" | "routine") => {
+      if (!data?.weekKey || !data.suggestion) return;
+      const key = `${data.weekKey}:${reaction}`;
+      if (feedbackSent.has(key)) return;
+
+      setFeedbackSent((prev) => new Set(prev).add(key));
+
+      await fetch("/api/insights/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weekKey: data.weekKey,
+          suggestionTitle: data.suggestion.title,
+          reaction,
+        }),
+      }).catch(() => {});
+    },
+    [data, feedbackSent],
+  );
+
+  const handleShare = useCallback(async () => {
+    if (!data) return;
+    const text = `${data.headline}\n\n${data.summary}`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        // user cancelled or unsupported
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [data]);
+
+  if (loading) return <LoadingSkeleton />;
+  if (error) return <ErrorState locale={locale} onRetry={() => window.location.reload()} />;
+  if (!data || data.empty) return <EmptyState locale={locale} />;
+  if (data.tooFewEntries) return <TooFewState locale={locale} t={t} />;
+
+  const isLocked = data.locked;
 
   return (
     <>
       {/* ── HEADER ─── */}
       <header className="flex items-center justify-between pt-4 pb-5 fade-in">
         <div>
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 800,
-              color: "#A673F1",
-              letterSpacing: "0.4px",
-            }}
-          >
-            DAILYMOOD AI
-          </span>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>
-            {t("title")}
-          </h1>
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#A673F1", letterSpacing: "0.4px" }}>DAILYMOOD AI</span>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>{t("title")}</h1>
         </div>
+        <Link href={"/stats" as "/"} style={{ fontSize: 13, fontWeight: 600, color: "#A673F1", textDecoration: "none" }}>
+          {t("backToStats")}
+        </Link>
       </header>
 
-      {loading ? (
-        <LoadingSkeleton />
-      ) : error ? (
-        <ErrorState locale={locale} onRetry={() => window.location.reload()} />
-      ) : !data ? (
-        <EmptyState locale={locale} />
-      ) : (
-        <>
-          {/* ── HERO CARD — Executive Summary ─── */}
-          <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
+      {/* ── HERO SUMMARY CARD ─── */}
+      <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 50%, #FCA45B 100%)",
+            borderRadius: 28,
+            padding: "24px 22px",
+            color: "#fff",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.85, letterSpacing: "0.5px", marginBottom: 10 }}>
+            {t("weeklySummary")}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.25, marginBottom: 8 }}>{data.headline}</div>
+          <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5 }}>
+            {expanded ? data.summary : truncateSummary(data.summary)}
+          </p>
+
+          {!isLocked && (
+            <div className="flex items-center gap-3 mt-4">
+              {!expanded ? (
+                <button
+                  onClick={() => setExpanded(true)}
+                  style={{ background: "rgba(255,255,255,0.25)", color: "#fff", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                >
+                  {t("readFull")} ↗
+                </button>
+              ) : null}
+              <button
+                onClick={handleShare}
+                style={{ background: "rgba(255,255,255,0.25)", color: "#fff", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+              >
+                {copied ? t("copied") : t("share")}
+              </button>
+            </div>
+          )}
+
+          {isLocked && (
             <div
               style={{
-                background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 50%, #FCA45B 100%)",
-                borderRadius: 28,
-                padding: "24px 22px",
-                color: "#fff",
-                position: "relative",
-                overflow: "hidden",
+                marginTop: 16,
+                padding: "10px 16px",
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: 14,
+                backdropFilter: "blur(4px)",
+                textAlign: "center",
               }}
             >
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  opacity: 0.85,
-                  letterSpacing: "0.5px",
-                  marginBottom: 10,
-                }}
-              >
-                {t("weeklySummary")}
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.25, marginBottom: 8 }}>
-                {data.headline}
-              </div>
-              <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5 }}>
-                {data.summary}
-              </p>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{t("locked")}</div>
+              <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{t("lockedBody")}</div>
             </div>
-          </section>
+          )}
+        </div>
+      </section>
 
-          {/* ── PATTERN / CORRELATION CARDS ─── */}
-          {data.patterns.map((p, i) => {
-            const style = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
-            return (
-              <section key={i} className="mb-4 fade-in" style={{ animationDelay: `${80 + i * 40}ms` }}>
-                <div
-                  style={{
-                    background: "#fff",
-                    border: "1.5px solid #F2F0F5",
-                    borderRadius: 22,
-                    padding: 18,
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      style={{
-                        background: style.bg,
-                        color: style.color,
-                        fontSize: 11,
-                        fontWeight: 800,
-                        padding: "3px 8px",
-                        borderRadius: 6,
-                        letterSpacing: "0.3px",
-                      }}
-                    >
-                      {locale === "th" ? style.label.th : style.label.en}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>
-                    {p.title}
-                  </h3>
-                  <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5 }}>
-                    {p.description}
-                  </p>
-                </div>
-              </section>
-            );
-          })}
-
-          {/* ── SUGGESTION CARD ─── */}
-          {data.suggestion && (
-            <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
-              <div
-                style={{
-                  background: "#FAFFF8",
-                  border: "1.5px solid #DEF1D5",
-                  borderRadius: 22,
-                  padding: 18,
-                }}
-              >
+      {/* ── PATTERN CARDS ─── */}
+      {!isLocked &&
+        data.patterns.map((p, i) => {
+          const style = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
+          return (
+            <section key={i} className="mb-4 fade-in" style={{ animationDelay: `${80 + i * 40}ms` }}>
+              <div style={CARD}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span
-                    style={{
-                      background: "#5CBF5C",
-                      color: "#fff",
-                      fontSize: 11,
-                      fontWeight: 800,
-                      padding: "3px 8px",
-                      borderRadius: 6,
-                      letterSpacing: "0.3px",
-                    }}
-                  >
-                    {t("tryThis")}
+                  <span style={{ background: style.bg, color: style.color, fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
+                    {t(p.tag as "pattern" | "correlation" | "alert")}
                   </span>
                 </div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>
-                  {data.suggestion.title}
-                </h3>
-                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5 }}>
-                  {data.suggestion.description}
-                </p>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{p.title}</h3>
+                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: p.miniVizData && p.miniVizData.length > 1 ? 16 : 0 }}>{p.description}</p>
+                {p.miniVizData && p.miniVizData.length > 1 && <MoodBarChart data={p.miniVizData} />}
               </div>
             </section>
-          )}
-        </>
+          );
+        })}
+
+      {/* ── SUGGESTION CARD ─── */}
+      {!isLocked && data.suggestion && (
+        <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
+          <div style={{ background: "#FAFFF8", border: "1.5px solid #DEF1D5", borderRadius: 22, padding: 18 }}>
+            <span style={{ background: "#5CBF5C", color: "#fff", fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
+              {t("tryThis")}
+            </span>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{data.suggestion.title}</h3>
+            <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 12 }}>{data.suggestion.description}</p>
+
+            <div className="flex items-center gap-2">
+              <FeedbackPill
+                label={`👍 ${t("thumbUp")}`}
+                active={feedbackSent.has(`${data.weekKey}:up`)}
+                onClick={() => handleFeedback("up")}
+              />
+              <FeedbackPill
+                label={`👎 ${t("thumbDown")}`}
+                active={feedbackSent.has(`${data.weekKey}:down`)}
+                onClick={() => handleFeedback("down")}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── STREAK CARD ─── */}
+      {data.streak > 0 && (
+        <section className="mb-5 fade-in" style={{ animationDelay: "240ms" }}>
+          <div
+            style={{
+              background: "#FAF7FE",
+              border: "1.5px solid #E6DBF7",
+              borderRadius: 22,
+              padding: "16px 18px",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <span style={{ fontSize: 28 }}>🔥</span>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>
+                {data.streak} {t("streak")}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{t("streakTitle")}</div>
+            </div>
+          </div>
+        </section>
       )}
     </>
   );
 }
 
+/* ── Mood Bar Chart ─────────────────────────────────────── */
+
+function MoodBarChart({ data }: { data: number[] }) {
+  const H = 56;
+
+  function barColor(score: number): string {
+    if (score >= 4) return "#85ECCB";
+    if (score >= 3) return "#FDCB56";
+    return "#FEAD8D";
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 5, height: H, overflow: "hidden" }}>
+      {data.map((v, i) => {
+        const clamped = Math.min(5, Math.max(1, v));
+        const h = Math.max(6, (clamped / 5) * H);
+        return (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              height: h,
+              borderRadius: 5,
+              background: barColor(clamped),
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Feedback Pill ─────────────────────────────────────── */
+
+function FeedbackPill({ label, active, accent, onClick }: { label: string; active: boolean; accent?: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={active}
+      style={{
+        background: active ? (accent ? "#5CBF5C" : "#F0EAFF") : "#fff",
+        color: active ? (accent ? "#fff" : "#A673F1") : "var(--ink-2, #666)",
+        border: `1.5px solid ${active ? (accent ? "#5CBF5C" : "#A673F1") : "#F2F0F5"}`,
+        borderRadius: 20,
+        padding: "5px 12px",
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: active ? "default" : "pointer",
+        transition: "all 0.2s",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ── States ────────────────────────────────────────────── */
+
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 fade-in">
+    <div className="space-y-4 fade-in" style={{ paddingTop: 60 }}>
       <div style={{ height: 180, borderRadius: 28, background: "linear-gradient(135deg, #E8DDF5, #F4EEFB)", opacity: 0.6 }} />
       <div style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.5 }} />
       <div style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.4 }} />
@@ -205,9 +343,21 @@ function EmptyState({ locale }: { locale: string }) {
         {locale === "th" ? "ยังไม่มีข้อมูลเพียงพอ" : "Not enough data yet"}
       </h2>
       <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5 }}>
-        {locale === "th"
-          ? "บันทึกอารมณ์สักไม่กี่วัน แล้ว AI จะวิเคราะห์ให้"
-          : "Log moods for a few days and AI will analyze your patterns."}
+        {locale === "th" ? "บันทึกอารมณ์สักไม่กี่วัน แล้ว AI จะวิเคราะห์ให้" : "Log moods for a few days and AI will analyze your patterns."}
+      </p>
+    </div>
+  );
+}
+
+function TooFewState({ locale, t }: { locale: string; t: (key: string) => string }) {
+  return (
+    <div className="text-center py-16 fade-in">
+      <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
+      <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
+        {locale === "th" ? "เกือบถึงแล้ว!" : "Almost there!"}
+      </h2>
+      <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5 }}>
+        {t("tooFewEntries")}
       </p>
     </div>
   );
@@ -222,16 +372,7 @@ function ErrorState({ locale, onRetry }: { locale: string; onRetry: () => void }
       </h2>
       <button
         onClick={onRetry}
-        style={{
-          marginTop: 12,
-          background: "#A673F1",
-          color: "#fff",
-          border: "none",
-          borderRadius: 100,
-          padding: "10px 24px",
-          fontSize: 14,
-          fontWeight: 700,
-        }}
+        style={{ marginTop: 12, background: "#A673F1", color: "#fff", border: "none", borderRadius: 100, padding: "10px 24px", fontSize: 14, fontWeight: 700 }}
       >
         {locale === "th" ? "ลองใหม่" : "Try again"}
       </button>

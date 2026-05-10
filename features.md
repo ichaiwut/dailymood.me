@@ -55,11 +55,11 @@
 - [x] Today's Timeline — entry grid (1/2/3 cols) with horizontal day-axis above (spine + mood-colored dots positioned by time-of-day, pulsing "Now" cap on the right)
 - [x] Mood Calendar — monthly mood grid (colored day cells by dominant mood), year-in-pixels (12×31 grid), stat cards (AVG MOOD with delta, STREAK, LOGGED), month navigation. API: `/api/calendar?year=Y&month=MM`
 - [x] Calendar Day Sheet — tap a day cell → bottom sheet slides up showing that day's entries. Drag handle, date header with prev/next day arrows, mood card(s), note preview, tag chips, Edit + "Open full entry" CTA. Empty day shows "+ Log mood" button (opens SmartLogModal with preset date). Future dates disabled + toast. Multi-entry days show stacked cards. Dismiss via scrim tap, swipe, or Escape key.
-- [x] Stats Page (`/stats`) — average mood line chart, mood mix donut, best day, activity impact (mock AI data); week/month/year segmented control; fetches `/api/stats`
+- [x] Stats Page (`/stats`) — functional period toggle (Week/Month/Year), average mood line chart (SVG, adapts to period), mood mix donut, highest mood day card, real activity impact from tag-mood correlation (min 5 entries/tag, cap 6 rows, diverging bars). Delta badge vs previous period. Premium: Year toggle + activity rows 4-6 unlocked. Free: rows 4-6 blurred. Link to AI Insights. Bottom nav linked (replaced Insights tab). API: `/api/stats?period=week|month|year`
 - [ ] Streak & Habits
 
 #### Pages
-- [x] AI Insights page (`/insights`) — Gemini-powered executive summary, correlation detection (tag-mood links, day-of-week patterns), actionable suggestions. API at `/api/insights` fetches 30-day mood data → Gemini analyzes → returns headline, summary, patterns (pattern/correlation/alert), suggestion. Bottom nav linked.
+- [x] AI Insights page (`/insights`) — Gemini-powered weekly insights feed. Hero summary card (lavender→peach gradient) with Read Full + Share (Web Share API / clipboard). Pattern cards with mini sparkline viz + tag badges (PATTERN/CORRELATION/ALERT). Suggestion card with thumbs up/down + "Add to routine" feedback (persisted in D1 `suggestion_feedback` table). Streak card. Cached per week in D1 `insights_ai_cache` table (delta-3 invalidation like calendar AI). Premium: full access. Free: hero preview (headline + first sentence) + locked state. Accessed via Stats page link (not in bottom nav). API: `GET /api/insights`, `POST /api/insights/feedback`.
 - [x] Timeline view (Calendar tab) — segmented toggle Calendar/Timeline on the Calendar page; reverse-chronological feed of entries grouped by day (TODAY/YESTERDAY/WEEKDAY), mood filter chips, entry cards with mood swatch + title + time + note preview + tag emojis. Tap → entry detail. Data: `/api/calendar/timeline`. `/history` page redirects to `/calendar`.
 - [x] ~~History/Timeline page (`/history`)~~ — redirects to Calendar tab (Timeline view)
 - [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, three-dot menu → edit
@@ -117,6 +117,9 @@
 | GET | `/api/calendar/timeline` | auth | Timeline entries: `?year=Y&month=MM` returns full entries (id, mood, note, aiSummary, tags, date, createdAt) for the month |
 | GET | `/api/calendar/ai` | premium | AI monthly summary + patterns: `?year=Y&month=MM&locale=th`. Cached per month in D1 |
 | POST | `/api/calendar/ask` | premium | Ask AI: `{ query, year, month, locale }`. Rate limited 10/hr |
+| GET | `/api/stats` | auth | Stats data: `?period=week|month|year`. Returns moodTrend, distribution, avgScore, avgScoreDelta, bestDay, activityImpact (real tag-mood correlation), streak. Year period requires premium |
+| GET | `/api/insights` | auth | Weekly AI insights (cached per week in D1 `insights_ai_cache`). Free: preview headline + first sentence only. Premium: full patterns + suggestion |
+| POST | `/api/insights/feedback` | premium | Suggestion feedback: `{ weekKey, suggestionTitle, reaction: "up"|"down"|"routine" }` |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
@@ -132,8 +135,10 @@
 - `rate_limits` — key PK (`<endpoint>:<ip>`), count, resetAt — fixed-window rate limit on D1
 
 - `calendar_ai_cache` — (userId, yearMonth) PK, result JSON, entryCount, generatedAt — caches Gemini-generated calendar AI summaries + patterns per month
+- `insights_ai_cache` — (userId, weekKey) PK, result JSON, entryCount, generatedAt — caches weekly AI insights (delta-3 invalidation)
+- `suggestion_feedback` — id PK, userId, weekKey, suggestionTitle, reaction (up/down/routine), createdAt — persists user feedback on AI suggestions
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Cloudflare)
 

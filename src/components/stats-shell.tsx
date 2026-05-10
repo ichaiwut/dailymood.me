@@ -1,58 +1,49 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { moodScore, scoreToEmoji } from "@/lib/mood-scores";
+import type { Tier } from "@/lib/tier";
 
 /* ── Types ─────────────────────────────────────────────── */
 
-interface Stats {
-  streak: number;
-  todayMood: { moodId: string; createdAt: number } | null;
-  last7: { date: string; moodId: string | null }[];
-  distribution: Record<string, number>;
-  total30d: number;
-}
-
 type Period = "week" | "month" | "year";
 
-interface ActivityItem {
-  emoji: string;
-  label: string;
-  impact: number; // -100..+100
-  freq: number;
+interface StatsData {
+  streak: number;
+  todayMood: { moodId: string; createdAt: number } | null;
+  moodTrend: { date: string; moodId: string | null }[];
+  distribution: Record<string, number>;
+  total: number;
+  avgScore: number | null;
+  avgScoreDelta: number | null;
+  bestDay: { date: string; moodId: string; score: number; entries: number } | null;
+  activityImpact: { tag: string; impact: number; freq: number }[];
+  premiumRequired?: boolean;
 }
 
 /* ── Constants ─────────────────────────────────────────── */
 
-const MOOD_SCORE: Record<string, number> = {
-  amazing: 5,
-  happy: 4,
-  neutral: 3,
-  sad: 2,
-  angry: 1,
-  anxious: 2,
-  tired: 2,
-};
-
-const WEEKDAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const WEEKDAYS_TH = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
-
-const MOCK_ACTIVITIES: ActivityItem[] = [
-  { emoji: "☕", label: "Coffee with friends", impact: 92, freq: 4 },
-  { emoji: "🏃", label: "Exercise", impact: 78, freq: 5 },
-  { emoji: "📖", label: "Reading", impact: 64, freq: 3 },
-  { emoji: "☀️", label: "Sunny weather", impact: 58, freq: 6 },
-  { emoji: "💼", label: "Late meetings", impact: -34, freq: 3 },
-  { emoji: "🌧️", label: "Rainy commute", impact: -12, freq: 2 },
-];
-
-const CARD_STYLE: React.CSSProperties = {
+const CARD: React.CSSProperties = {
   background: "#fff",
   border: "1.5px solid #F2F0F5",
   borderRadius: 24,
   padding: 20,
 };
+
+const LABEL: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  color: "var(--ink-3, #999)",
+  letterSpacing: 0.5,
+  textTransform: "uppercase" as const,
+  marginBottom: 4,
+};
+
+const WEEKDAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS_TH = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
 /* ── Helpers ───────────────────────────────────────────── */
 
@@ -60,26 +51,15 @@ function moodById(id: string) {
   return DEFAULT_MOODS.find((m) => m.id === id);
 }
 
-function moodEmoji(id: string) {
-  return moodById(id)?.emoji ?? "😐";
-}
-
-function periodLabel(period: Period, locale: string) {
-  const map: Record<Period, [string, string]> = {
-    week: ["Last 7 days", "7 วันที่ผ่านมา"],
-    month: ["Last 30 days", "30 วันที่ผ่านมา"],
-    year: ["Last 365 days", "365 วันที่ผ่านมา"],
-  };
-  return locale === "th" ? map[period][1] : map[period][0];
-}
-
 /* ── Line Chart ────────────────────────────────────────── */
 
 function MoodLineChart({
-  last7,
+  trend,
+  period,
   locale,
 }: {
-  last7: Stats["last7"];
+  trend: { date: string; moodId: string | null }[];
+  period: Period;
   locale: string;
 }) {
   const W = 320;
@@ -89,15 +69,10 @@ function MoodLineChart({
   const chartW = W - PX * 2;
   const chartH = H - PY * 2;
 
-  const scores = last7.map((d) =>
-    d.moodId ? (MOOD_SCORE[d.moodId] ?? 3) : null,
-  );
-
-  // Y: score 1..5 mapped to chartH..0
+  const scores = trend.map((d) => (d.moodId ? moodScore(d.moodId) : null));
   const toY = (s: number) => PY + chartH - ((s - 1) / 4) * chartH;
-  const toX = (i: number) => PX + (i / 6) * chartW;
+  const toX = (i: number) => PX + (i / Math.max(trend.length - 1, 1)) * chartW;
 
-  // build path from non-null points
   const points: { x: number; y: number; idx: number }[] = [];
   scores.forEach((s, i) => {
     if (s !== null) points.push({ x: toX(i), y: toY(s), idx: i });
@@ -110,18 +85,27 @@ function MoodLineChart({
 
   const areaPath =
     points.length > 1
-      ? linePath +
-        ` L${points[points.length - 1].x},${PY + chartH} L${points[0].x},${PY + chartH} Z`
+      ? linePath + ` L${points[points.length - 1].x},${PY + chartH} L${points[0].x},${PY + chartH} Z`
       : "";
 
-  const weekdays = locale === "th" ? WEEKDAYS_TH : WEEKDAYS_EN;
+  const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONTHS_TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
+  let labels: string[] = [];
+  if (period === "week") {
+    labels = locale === "th" ? WEEKDAYS_TH : WEEKDAYS_EN;
+  } else if (period === "month") {
+    labels = trend.map((d, i) => (i % 5 === 0 ? d.date.slice(8) : ""));
+  } else {
+    const months = locale === "th" ? MONTHS_TH : MONTHS_EN;
+    labels = trend.map((d) => {
+      const m = parseInt(d.date.slice(5, 7), 10) - 1;
+      return months[m] ?? "";
+    });
+  }
 
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H + 24}`}
-      width="100%"
-      style={{ display: "block" }}
-    >
+    <svg viewBox={`0 0 ${W} ${H + 24}`} width="100%" style={{ display: "block" }}>
       <defs>
         <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#A673F1" stopOpacity={0.25} />
@@ -129,83 +113,43 @@ function MoodLineChart({
         </linearGradient>
       </defs>
 
-      {/* grid lines */}
       {[1, 2, 3, 4, 5].map((s) => (
-        <line
-          key={s}
-          x1={PX}
-          x2={W - PX}
-          y1={toY(s)}
-          y2={toY(s)}
-          stroke="#F2F0F5"
-          strokeWidth={1}
-          strokeDasharray="4 3"
-        />
+        <line key={s} x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
       ))}
 
-      {/* area fill */}
       {areaPath && <path d={areaPath} fill="url(#lineGrad)" />}
 
-      {/* line */}
       {linePath && (
-        <path
-          d={linePath}
-          fill="none"
-          stroke="#A673F1"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <path d={linePath} fill="none" stroke="#A673F1" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
       )}
 
-      {/* dots */}
       {points.map((p, i) => {
         const isLast = i === points.length - 1;
         return (
-          <g key={p.idx}>
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r={5}
-              fill={isLast ? "#A673F1" : "#fff"}
-              stroke="#A673F1"
-              strokeWidth={2.5}
-            />
-          </g>
+          <circle key={p.idx} cx={p.x} cy={p.y} r={isLast ? 6 : 4} fill={isLast ? "#A673F1" : "#fff"} stroke="#A673F1" strokeWidth={2.5} />
         );
       })}
 
-      {/* weekday labels */}
-      {last7.map((_, i) => (
-        <text
-          key={i}
-          x={toX(i)}
-          y={H + 16}
-          textAnchor="middle"
-          fontSize={11}
-          fill="var(--ink-3, #999)"
-        >
-          {weekdays[i % 7]}
-        </text>
-      ))}
+      {labels.map((label, i) =>
+        label ? (
+          <text key={i} x={toX(i)} y={H + 16} textAnchor="middle" fontSize={period === "year" ? 9 : 11} fill="var(--ink-3, #999)">
+            {label}
+          </text>
+        ) : null,
+      )}
     </svg>
   );
 }
 
 /* ── Donut Chart ───────────────────────────────────────── */
 
-function MoodDonut({
-  distribution,
-  locale,
-}: {
-  distribution: Record<string, number>;
-  locale: string;
-}) {
+function MoodDonut({ distribution, period, locale }: { distribution: Record<string, number>; period: Period; locale: string }) {
   const size = 120;
   const cx = size / 2;
   const cy = size / 2;
   const R = 44;
   const stroke = 14;
+  const periodLabels: Record<Period, string> = { week: "7d", month: "30d", year: "1y" };
 
   const entries = Object.entries(distribution).filter(([, v]) => v > 0);
   const total = entries.reduce((s, [, v]) => s + v, 0);
@@ -214,71 +158,54 @@ function MoodDonut({
     return (
       <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: "block" }}>
         <circle cx={cx} cy={cy} r={R} fill="none" stroke="#F2F0F5" strokeWidth={stroke} />
-        <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3, #999)">
-          7d
-        </text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3, #999)">
-          MOODS
-        </text>
+        <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3)">{periodLabels[period]}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3)">MOODS</text>
       </svg>
     );
   }
 
   const segments: React.ReactElement[] = [];
   let angle = -90;
+  const sorted = [...entries].sort((a, b) => b[1] - a[1]);
 
-  entries.forEach(([moodId, count]) => {
+  sorted.forEach(([moodId, count]) => {
     const mood = moodById(moodId);
     const pct = count / total;
     const sweep = pct * 360;
     const startRad = (angle * Math.PI) / 180;
     const endRad = ((angle + sweep) * Math.PI) / 180;
-
     const x1 = cx + R * Math.cos(startRad);
     const y1 = cy + R * Math.sin(startRad);
     const x2 = cx + R * Math.cos(endRad);
     const y2 = cy + R * Math.sin(endRad);
     const largeArc = sweep > 180 ? 1 : 0;
-
     segments.push(
-      <path
-        key={moodId}
-        d={`M ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2}`}
-        fill="none"
-        stroke={mood?.color ?? "#ccc"}
-        strokeWidth={stroke}
-        strokeLinecap="round"
-      />,
+      <path key={moodId} d={`M ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2}`} fill="none" stroke={mood?.color ?? "#ccc"} strokeWidth={stroke} strokeLinecap="round" />,
     );
     angle += sweep;
   });
 
-  // find top mood
-  const topMoodId = entries.sort((a, b) => b[1] - a[1])[0]?.[0];
+  const topMoodId = sorted[0]?.[0];
   const topMood = moodById(topMoodId ?? "neutral");
+  const topPct = total > 0 && sorted[0] ? Math.round((sorted[0][1] / total) * 100) : 0;
 
   return (
     <div className="flex flex-col items-center gap-2">
       <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: "block", maxWidth: 120 }}>
         {segments}
-        <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3, #999)">
-          7d
-        </text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3, #999)">
-          MOODS
-        </text>
+        <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3)">{periodLabels[period]}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3)">MOODS</text>
       </svg>
       {topMood && (
         <div style={{ fontSize: 12, color: "var(--ink-2, #666)", textAlign: "center" }}>
-          Top: {topMood.emoji}{" "}
-          {locale === "th" ? topMood.labelTh : topMood.label}
+          {topMood.emoji} {locale === "th" ? topMood.labelTh : topMood.label} {topPct}%
         </div>
       )}
     </div>
   );
 }
 
-/* ── Activity Impact Bar ───────────────────────────────── */
+/* ── Activity Bar ──────────────────────────────────────── */
 
 function ActivityBar({ impact }: { impact: number }) {
   const barW = 100;
@@ -291,78 +218,78 @@ function ActivityBar({ impact }: { impact: number }) {
     <svg viewBox={`0 0 ${barW} 10`} width={barW} height={10} style={{ flexShrink: 0 }}>
       <rect x={0} y={3} width={barW} height={4} rx={2} fill="#F2F0F5" />
       <line x1={mid} y1={0} x2={mid} y2={10} stroke="#E0DDE5" strokeWidth={1} />
-      <rect
-        x={x}
-        y={2}
-        width={len}
-        height={6}
-        rx={3}
-        fill={isPositive ? "#A673F1" : "#FEAD8D"}
-      />
+      <rect x={x} y={2} width={len} height={6} rx={3} fill={isPositive ? "#A673F1" : "#FEAD8D"} />
     </svg>
   );
 }
 
 /* ── Main Component ────────────────────────────────────── */
 
-export function StatsShell() {
+export function StatsShell({ tier = "free" }: { tier?: Tier }) {
   const locale = useLocale();
+  const t = useTranslations("stats");
 
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [period, setPeriod] = useState<Period>("week");
+  const [loading, setLoading] = useState(true);
+  const [yearBlocked, setYearBlocked] = useState(false);
+  const [insight, setInsight] = useState<{ headline: string; summary: string; locked?: boolean } | null>(null);
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/stats")
-      .then((r) =>
-        r.ok
-          ? r.json()
-          : { streak: 0, todayMood: null, last7: [], distribution: {}, total30d: 0 },
-      )
+    setLoading(true);
+    setYearBlocked(false);
+    fetch(`/api/stats?period=${period}`)
+      .then((r) => r.json() as Promise<StatsData>)
       .then((data) => {
-        if (alive) setStats(data as Stats);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const last7 = stats?.last7 ?? [];
-  const distribution = stats?.distribution ?? {};
-
-  // compute average mood
-  const scored = last7
-    .filter((d) => d.moodId)
-    .map((d) => MOOD_SCORE[d.moodId!] ?? 3);
-  const avg = scored.length > 0 ? scored.reduce((a, b) => a + b, 0) / scored.length : 0;
-  const avgRounded = Math.round(avg * 10) / 10;
-
-  // emoji for average
-  const avgEmoji =
-    avg >= 4.5 ? "😄" : avg >= 3.5 ? "🙂" : avg >= 2.5 ? "😐" : avg >= 1.5 ? "😔" : "😢";
-
-  // best day
-  const bestEntry = last7.reduce<{ date: string; moodId: string; score: number } | null>(
-    (best, d) => {
-      if (!d.moodId) return best;
-      const s = MOOD_SCORE[d.moodId] ?? 3;
-      if (!best || s > best.score) return { date: d.date, moodId: d.moodId, score: s };
-      return best;
-    },
-    null,
-  );
-
-  const bestDayName = bestEntry
-    ? new Date(bestEntry.date).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
-        weekday: "long",
+        if (!alive) return;
+        if (data.premiumRequired) {
+          setYearBlocked(true);
+          setPeriod("month");
+        } else {
+          setStats(data as StatsData);
+        }
       })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [period]);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/insights?locale=${locale}&cacheOnly=1`)
+      .then((r) => r.ok ? r.json() as Promise<Record<string, unknown>> : null)
+      .then((json) => {
+        if (!alive || !json || json.empty || json.tooFewEntries) return;
+        setInsight({ headline: json.headline as string, summary: json.summary as string, locked: json.locked as boolean | undefined });
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [locale]);
+
+  const trend = stats?.moodTrend ?? [];
+  const distribution = stats?.distribution ?? {};
+  const avgScore = stats?.avgScore;
+  const avgDelta = stats?.avgScoreDelta;
+  const bestDay = stats?.bestDay;
+  const activityImpact = stats?.activityImpact ?? [];
+
+  const avgEmoji = avgScore != null ? scoreToEmoji(avgScore) : "";
+  const bestDayName = bestDay
+    ? new Date(bestDay.date).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long" })
     : "---";
+  const bestDayEntryCount = bestDay?.entries ?? 0;
 
   const PERIODS: Period[] = ["week", "month", "year"];
-  const periodLabels: Record<Period, string> = {
-    week: locale === "th" ? "สัปดาห์" : "Week",
-    month: locale === "th" ? "เดือน" : "Month",
-    year: locale === "th" ? "ปี" : "Year",
+  const periodScopeLabel: Record<Period, string> = {
+    week: t("last7"),
+    month: t("last30"),
+    year: t("last365"),
+  };
+  const deltaLabel: Record<Period, string> = {
+    week: t("vsLastWeek"),
+    month: t("vsLastMonth"),
+    year: t("vsLastYear"),
   };
 
   return (
@@ -371,28 +298,20 @@ export function StatsShell() {
       <section className="mb-5 fade-in" style={{ paddingTop: 8 }}>
         <div className="flex items-center justify-between">
           <div>
-            <div style={{ fontSize: 13, color: "var(--ink-3, #999)" }}>
-              {periodLabel(period, locale)}
-            </div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink, #1a1a1a)", margin: 0 }}>
-              {locale === "th" ? "สถิติ" : "Stats"}
-            </h1>
+            <div style={{ fontSize: 13, color: "var(--ink-3, #999)" }}>{periodScopeLabel[period]}</div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink, #1a1a1a)", margin: 0 }}>{t("title")}</h1>
           </div>
-
-          {/* segmented control */}
-          <div
-            style={{
-              display: "flex",
-              background: "#F8F6FB",
-              borderRadius: 12,
-              padding: 3,
-              gap: 2,
-            }}
-          >
+          <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2 }}>
             {PERIODS.map((p) => (
               <button
                 key={p}
-                onClick={() => setPeriod(p)}
+                onClick={() => {
+                  if (p === "year" && tier !== "premium") {
+                    setYearBlocked(true);
+                    return;
+                  }
+                  setPeriod(p);
+                }}
                 style={{
                   padding: "6px 14px",
                   fontSize: 13,
@@ -404,212 +323,296 @@ export function StatsShell() {
                   background: period === p ? "#fff" : "transparent",
                   color: period === p ? "var(--ink, #1a1a1a)" : "var(--ink-3, #999)",
                   boxShadow: period === p ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                  opacity: p === "year" && tier !== "premium" ? 0.5 : 1,
                 }}
               >
-                {periodLabels[p]}
+                {t(p)}
               </button>
             ))}
           </div>
         </div>
+        {yearBlocked && (
+          <div
+            className="fade-in"
+            style={{
+              marginTop: 8,
+              padding: "8px 14px",
+              background: "#F0EAFF",
+              color: "#A673F1",
+              fontSize: 12,
+              fontWeight: 600,
+              borderRadius: 10,
+              textAlign: "center",
+            }}
+          >
+            {t("unlockYear")}
+          </div>
+        )}
       </section>
 
-      {/* ── MOOD LINE CHART CARD ─── */}
-      <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
-        <div style={CARD_STYLE}>
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "var(--ink-3, #999)",
-                  letterSpacing: 0.5,
-                  textTransform: "uppercase",
-                  marginBottom: 4,
-                }}
-              >
-                {locale === "th" ? "อารมณ์เฉลี่ย" : "Average Mood"}
-              </div>
-              <div className="flex items-center gap-2">
-                <span style={{ fontSize: 28, fontWeight: 800, color: "var(--ink, #1a1a1a)" }}>
-                  {avgRounded > 0 ? avgRounded.toFixed(1) : "---"}
-                </span>
-                {avgRounded > 0 && <span style={{ fontSize: 24 }}>{avgEmoji}</span>}
-              </div>
-            </div>
-            {avgRounded > 0 && (
-              <div
-                style={{
-                  background: "#E8F8EE",
-                  color: "#2DA963",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: "4px 10px",
-                  borderRadius: 20,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
-                ↑ 0.6 {locale === "th" ? "จากสัปดาห์ก่อน" : "vs last week"}
-              </div>
-            )}
-          </div>
-          <MoodLineChart last7={last7} locale={locale} />
+      {loading ? (
+        <LoadingSkeleton />
+      ) : !stats ? (
+        <div className="text-center py-16 fade-in">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📊</div>
+          <p style={{ fontSize: 14, color: "var(--ink-3)" }}>{t("noData")}</p>
         </div>
-      </section>
-
-      {/* ── 2-COLUMN GRID ─── */}
-      <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
-        <div className="grid grid-cols-2 gap-4">
-          {/* Mood Mix */}
-          <div style={CARD_STYLE}>
+      ) : (
+        <>
+          {/* ── AI INSIGHTS SUMMARY ─── */}
+          <section className="mb-5 fade-in">
             <div
               style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--ink-3, #999)",
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
-                marginBottom: 12,
+                borderRadius: 22,
+                padding: "22px 20px 20px",
+                background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 60%, #FFF4EB 100%)",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              {locale === "th" ? "สัดส่วนอารมณ์" : "Mood Mix"}
-            </div>
-            <MoodDonut distribution={distribution} locale={locale} />
-          </div>
+              <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    background: "#A673F1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+                  {t("viewInsights").toUpperCase()} · {t("week").toUpperCase()}
+                </span>
+              </div>
 
-          {/* Best Day */}
-          <div style={CARD_STYLE}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--ink-3, #999)",
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
-                marginBottom: 12,
-              }}
-            >
-              {locale === "th" ? "วันที่ดีที่สุด" : "Best Day"}
+              {insight ? (
+                <p
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.65,
+                    color: "var(--ink)",
+                    marginBottom: 16,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                  }}
+                >
+                  {insight.summary}
+                </p>
+              ) : (
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", marginBottom: 16 }}>
+                  {t("viewInsightsBody")}
+                </p>
+              )}
+
+              <Link
+                href={"/insights" as "/"}
+                className="flex items-center gap-1.5"
+                style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", textDecoration: "none" }}
+              >
+                {locale === "th" ? "ดูเพิ่มเติม" : "Tell me more"}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
             </div>
-            <div className="flex flex-col items-center justify-center" style={{ minHeight: 120 }}>
-              {bestEntry ? (
-                <>
+          </section>
+
+          {/* ── MOOD LINE CHART CARD ─── */}
+          <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
+            <div style={CARD}>
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div style={LABEL}>{t("avgMood")}</div>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
+                      {avgScore != null ? avgScore.toFixed(1) : "---"}
+                    </span>
+                    {avgScore != null && <span style={{ fontSize: 24 }}>{avgEmoji}</span>}
+                  </div>
+                </div>
+                {avgDelta != null && avgDelta !== 0 && (
                   <div
                     style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: 18,
-                      background: moodById(bestEntry.moodId)?.color ?? "#F2F0F5",
+                      background: avgDelta > 0 ? "#E8F8EE" : "#FDECEC",
+                      color: avgDelta > 0 ? "#2DA963" : "#E05A5A",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      padding: "4px 10px",
+                      borderRadius: 20,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 36,
-                      marginBottom: 8,
+                      gap: 3,
                     }}
                   >
-                    {moodEmoji(bestEntry.moodId)}
+                    {avgDelta > 0 ? "↑" : "↓"} {Math.abs(avgDelta).toFixed(1)} {deltaLabel[period]}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "var(--ink, #1a1a1a)",
-                    }}
-                  >
-                    {bestDayName}
+                )}
+              </div>
+              <MoodLineChart trend={trend} period={period} locale={locale} />
+            </div>
+          </section>
+
+          {/* ── 2-COLUMN GRID ─── */}
+          <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
+            <div className="grid grid-cols-2 gap-4" style={{ maxWidth: 480 }}>
+              {/* Mood Mix */}
+              <div style={{ ...CARD, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ ...LABEL, marginBottom: 8, alignSelf: "flex-start" }}>{t("moodMix")}</div>
+                <div style={{ width: 110, height: 110, margin: "4px 0 10px" }}>
+                  <MoodDonut distribution={distribution} period={period} locale={locale} />
+                </div>
+              </div>
+
+              {/* Highest Mood Day */}
+              <div style={CARD}>
+                <div style={{ ...LABEL, marginBottom: 8 }}>{t("highestMoodDay")}</div>
+                {bestDay ? (
+                  <div className="flex flex-col items-center">
+                    <div
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 20,
+                        background: moodById(bestDay.moodId)?.color ?? "#F2F0F5",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        margin: "8px 0 12px",
+                      }}
+                    >
+                      <span style={{ fontSize: 36 }}>{moodById(bestDay.moodId)?.emoji ?? "😐"}</span>
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{bestDayName}</div>
+                    <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                      Mood {bestDay.score}/5 · {bestDayEntryCount} {t("entries")}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--ink-3, #999)" }}>
-                    {locale === "th" ? "คะแนน" : "Score"}: {bestEntry.score}/5
+                ) : (
+                  <div className="flex items-center justify-center" style={{ minHeight: 100 }}>
+                    <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{t("noData")}</div>
                   </div>
-                </>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* ── ACTIVITY IMPACT ─── */}
+          <section className="mb-5 fade-in" style={{ animationDelay: "120ms" }}>
+            <div className="flex items-center gap-2 mb-1">
+              <div style={LABEL}>{t("whatLifts")}</div>
+            </div>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
+              <span style={{ background: "#F0EAFF", color: "#A673F1", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>
+                ✨ AI
+              </span>
+            </div>
+
+            <div style={CARD}>
+              {activityImpact.length === 0 ? (
+                <div style={{ fontSize: 13, color: "var(--ink-3)", textAlign: "center", padding: "16px 0" }}>
+                  {t("noActivity")}
+                </div>
               ) : (
-                <div style={{ fontSize: 13, color: "var(--ink-3, #999)" }}>
-                  {locale === "th" ? "ยังไม่มีข้อมูล" : "No data yet"}
+                <div className="flex flex-col gap-3" style={{ position: "relative" }}>
+                  {activityImpact.map((act, i) => {
+                    const blurred = i >= 3 && tier !== "premium";
+                    return (
+                      <div
+                        key={act.tag}
+                        className="flex items-center gap-3"
+                        style={{
+                          minHeight: 32,
+                          filter: blurred ? "blur(4px)" : undefined,
+                          pointerEvents: blurred ? "none" : undefined,
+                          userSelect: blurred ? "none" : undefined,
+                        }}
+                      >
+                        <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>
+                          {tagEmoji(act.tag)}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {act.tag}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: act.impact >= 0 ? "#2DA963" : "#E05A5A", width: 48, textAlign: "right", flexShrink: 0 }}>
+                          {act.impact >= 0 ? "+" : ""}{act.impact}%
+                        </div>
+                        <ActivityBar impact={act.impact} />
+                        <div style={{ fontSize: 11, color: "var(--ink-3)", flexShrink: 0, width: 24, textAlign: "right" }}>
+                          ×{act.freq}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {activityImpact.length > 3 && tier !== "premium" && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 80,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "linear-gradient(transparent, rgba(255,255,255,0.9))",
+                        borderRadius: "0 0 20px 20px",
+                      }}
+                    >
+                      <span style={{ background: "#A673F1", color: "#fff", fontSize: 12, fontWeight: 700, padding: "6px 16px", borderRadius: 20 }}>
+                        {t("unlockActivity")}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      {/* ── ACTIVITY IMPACT ─── */}
-      <section className="fade-in" style={{ animationDelay: "120ms" }}>
-        <div className="flex items-center gap-2 mb-1">
-          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-3, #999)", letterSpacing: 0.5, textTransform: "uppercase" }}>
-            {locale === "th" ? "อะไรทำให้อารมณ์ดี" : "What lifts your mood"}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mb-4">
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink, #1a1a1a)", margin: 0 }}>
-            {locale === "th" ? "ผลกระทบกิจกรรม" : "Activity impact"}
-          </h2>
-          <span
-            style={{
-              background: "#F0EAFF",
-              color: "#A673F1",
-              fontSize: 11,
-              fontWeight: 700,
-              padding: "2px 8px",
-              borderRadius: 6,
-            }}
-          >
-            ✨ AI
-          </span>
-        </div>
-
-        <div style={CARD_STYLE}>
-          <div className="flex flex-col gap-3">
-            {MOCK_ACTIVITIES.map((act) => (
-              <div key={act.label} className="flex items-center gap-3" style={{ minHeight: 32 }}>
-                <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>
-                  {act.emoji}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "var(--ink, #1a1a1a)",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {act.label}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: act.impact >= 0 ? "#2DA963" : "#E05A5A",
-                    width: 48,
-                    textAlign: "right",
-                    flexShrink: 0,
-                  }}
-                >
-                  {act.impact >= 0 ? "+" : ""}
-                  {act.impact}%
-                </div>
-                <ActivityBar impact={act.impact} />
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "var(--ink-3, #999)",
-                    flexShrink: 0,
-                    width: 24,
-                    textAlign: "right",
-                  }}
-                >
-                  ×{act.freq}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </>
+      )}
     </>
   );
+}
+
+/* ── Skeleton ──────────────────────────────────────────── */
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4 fade-in">
+      <div style={{ height: 120, borderRadius: 22, background: "linear-gradient(135deg, #F0EAF8, #F4EEFB)", opacity: 0.5 }} />
+      <div style={{ height: 220, borderRadius: 24, background: "var(--surface-2, #F8F6FB)", opacity: 0.5 }} />
+      <div className="grid grid-cols-2 gap-4" style={{ maxWidth: 480 }}>
+        <div style={{ height: 180, borderRadius: 24, background: "var(--surface-2)", opacity: 0.4 }} />
+        <div style={{ height: 180, borderRadius: 24, background: "var(--surface-2)", opacity: 0.4 }} />
+      </div>
+      <div style={{ height: 200, borderRadius: 24, background: "var(--surface-2)", opacity: 0.3 }} />
+    </div>
+  );
+}
+
+/* ── Tag emoji heuristic ───────────────────────────────── */
+
+function tagEmoji(tag: string): string {
+  const map: Record<string, string> = {
+    work: "💼", exercise: "🏃", coffee: "☕", friends: "👫", family: "👨‍👩‍👧",
+    reading: "📖", music: "🎵", cooking: "🍳", shopping: "🛍️", travel: "✈️",
+    meditation: "🧘", sleep: "😴", food: "🍔", rain: "🌧️", sunny: "☀️",
+    meeting: "📋", study: "📚", game: "🎮", movie: "🎬", walk: "🚶",
+  };
+  const lower = tag.toLowerCase();
+  for (const [k, v] of Object.entries(map)) {
+    if (lower.includes(k)) return v;
+  }
+  return "🏷️";
 }

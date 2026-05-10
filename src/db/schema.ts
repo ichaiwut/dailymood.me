@@ -99,6 +99,40 @@ export const calendarAiCache = sqliteTable("calendar_ai_cache", {
   pk: primaryKey({ columns: [t.userId, t.yearMonth] }),
 }));
 
+export const insightsAiCache = sqliteTable("insights_ai_cache", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  weekKey: text("week_key").notNull(),
+  result: text("result", { mode: "json" }).$type<InsightsAiResult>().notNull(),
+  entryCount: integer("entry_count").notNull().default(0),
+  generatedAt: integer("generated_at", { mode: "timestamp" }).notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.weekKey] }),
+}));
+
+export const suggestionFeedback = sqliteTable("suggestion_feedback", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  weekKey: text("week_key").notNull(),
+  suggestionTitle: text("suggestion_title").notNull(),
+  reaction: text("reaction", { enum: ["up", "down", "routine"] }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  userWeekIdx: index("suggestion_feedback_user_week_idx").on(t.userId, t.weekKey),
+}));
+
+export interface InsightsAiResult {
+  headline: string;
+  previewHeadline: string;
+  summary: string;
+  patterns: {
+    title: string;
+    description: string;
+    tag: "pattern" | "correlation" | "alert";
+    miniVizData?: number[];
+  }[];
+  suggestion: { title: string; description: string } | null;
+}
+
 export const rateLimits = sqliteTable("rate_limits", {
   key: text("key").primaryKey(), // `${endpoint}:${ip}` (or `${endpoint}:${email}`)
   count: integer("count").notNull().default(0),

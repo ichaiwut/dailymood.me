@@ -85,7 +85,13 @@ export async function analyzeImage(imageBytes: Uint8Array, mimeType: string): Pr
 export interface InsightsResult {
   summary: string;
   headline: string;
-  patterns: { title: string; description: string; tag: string }[];
+  previewHeadline: string;
+  patterns: {
+    title: string;
+    description: string;
+    tag: string;
+    miniVizData?: number[];
+  }[];
   suggestion: { title: string; description: string } | null;
 }
 
@@ -93,6 +99,7 @@ const INSIGHTS_SCHEMA: Schema = {
   type: SchemaType.OBJECT,
   properties: {
     headline: { type: SchemaType.STRING },
+    previewHeadline: { type: SchemaType.STRING },
     summary: { type: SchemaType.STRING },
     patterns: {
       type: SchemaType.ARRAY,
@@ -105,6 +112,10 @@ const INSIGHTS_SCHEMA: Schema = {
             type: SchemaType.STRING,
             enum: ["pattern", "correlation", "alert"],
             format: "enum",
+          },
+          miniVizData: {
+            type: SchemaType.ARRAY,
+            items: { type: SchemaType.NUMBER },
           },
         },
         required: ["title", "description", "tag"],
@@ -119,14 +130,16 @@ const INSIGHTS_SCHEMA: Schema = {
       required: ["title", "description"],
     },
   },
-  required: ["headline", "summary", "patterns"],
+  required: ["headline", "previewHeadline", "summary", "patterns"],
 };
 
-const INSIGHTS_PROMPT = `Mood insight generator. Input: 30-day mood summary JSON. Output JSON in user's locale.
-headline: ≤60 chars punchy insight.
-summary: 1-2 sentences, warm tone.
-patterns: 1-2 findings (title+description+tag:pattern|correlation|alert). Reference actual data.
-suggestion: one tip or null.`;
+const INSIGHTS_PROMPT = `Weekly mood insight generator. Input: user's recent mood data JSON. This is a WEEKLY summary — always frame observations as "this week" or "the past week", never "this month".
+headline: ≤60 chars punchy weekly insight.
+previewHeadline: ≤30 chars teaser version of headline.
+summary: 1-2 sentences, warm observational tone about this week. Never judgmental. Say "สัปดาห์นี้" (TH) or "this week" (EN), never "เดือนนี้" or "this month".
+patterns: 1-3 findings (title+description+tag:pattern|correlation|alert). Reference actual data. miniVizData: optional array of up to 7 numbers (1-5 scale) representing a mini trend relevant to the pattern.
+suggestion: one actionable tip or null. Frame as gentle invitation, not instruction.
+Use "highest/lowest" not "best/worst". Use "correlates with" not "causes".`;
 
 export async function generateInsights(data: string): Promise<InsightsResult> {
   const model = genAI.getGenerativeModel({
