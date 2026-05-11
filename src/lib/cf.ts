@@ -1,18 +1,6 @@
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import * as schema from "@/db/schema";
 
-interface D1Result {
-  results: Record<string, unknown>[];
-  success: boolean;
-  meta: { changes: number; last_row_id: number };
-}
-
-interface D1Response {
-  result: D1Result[];
-  success: boolean;
-  errors: { message: string }[];
-}
-
 async function d1Query(sql: string, params: unknown[], method: string) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID!;
   const databaseId = process.env.CLOUDFLARE_D1_DATABASE_ID!;
@@ -26,21 +14,38 @@ async function d1Query(sql: string, params: unknown[], method: string) {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sql, params }),
+      body: JSON.stringify({ sql, params: params.map((p) => (p === undefined ? null : p)) }),
     },
   );
 
-  const json = (await res.json()) as D1Response;
-
-  if (!json.success) {
-    throw new Error(`D1 query failed: ${json.errors?.[0]?.message ?? res.statusText}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`D1 HTTP ${res.status}: ${text}`);
   }
 
-  const result = json.result[0];
-  const rows = result.results.map((row) => Object.values(row));
+  const json = await res.json() as {
+    success: boolean;
+    errors?: { message: string }[];
+    result?: {
+      results?: Record<string, unknown>[];
+      success?: boolean;
+      meta?: { changes: number; last_row_id: number; rows_read: number; rows_written: number };
+    }[];
+  };
+
+  if (!json.success || !json.result?.length) {
+    throw new Error(`D1 error: ${json.errors?.[0]?.message ?? JSON.stringify(json)}`);
+  }
+
+  const d1result = json.result[0];
+  const rows = (d1result.results ?? []).map((row) => Object.values(row));
 
   if (method === "run") {
-    return { rows, lastInsertRowid: result.meta.last_row_id, changes: result.meta.changes };
+    return {
+      rows,
+      lastInsertRowid: d1result.meta?.last_row_id ?? 0,
+      changes: d1result.meta?.changes ?? 0,
+    };
   }
 
   return { rows };
