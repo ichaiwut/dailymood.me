@@ -12,7 +12,7 @@ export async function GET() {
 
   const db = getDb();
   const rows = await db
-    .select({ id: moodPacks.id, label: moodPacks.label, premium: moodPacks.premium })
+    .select({ id: moodPacks.id, label: moodPacks.label, premium: moodPacks.premium, iconFormat: moodPacks.iconFormat })
     .from(moodPacks)
     .orderBy(asc(moodPacks.createdAt));
 

@@ -27,19 +27,19 @@ export async function getSessionInfo(): Promise<SessionInfo> {
     .limit(1);
 
   const tier: Tier = row?.isPremium ? "premium" : "free";
-  const pack =
-    tier === "premium" && row?.moodPack && isValidPack(row.moodPack)
-      ? row.moodPack
-      : DEFAULT_MOOD_PACK;
-
+  let pack = DEFAULT_MOOD_PACK;
   let iconFormat = "svg";
-  if (pack !== DEFAULT_MOOD_PACK) {
+
+  if (row?.moodPack && isValidPack(row.moodPack) && row.moodPack !== DEFAULT_MOOD_PACK) {
     const [packRow] = await db
-      .select({ iconFormat: moodPacks.iconFormat })
+      .select({ iconFormat: moodPacks.iconFormat, premium: moodPacks.premium })
       .from(moodPacks)
-      .where(eq(moodPacks.id, pack))
+      .where(eq(moodPacks.id, row.moodPack))
       .limit(1);
-    if (packRow?.iconFormat) iconFormat = packRow.iconFormat;
+    if (packRow && (!packRow.premium || tier === "premium")) {
+      pack = row.moodPack;
+      if (packRow.iconFormat) iconFormat = packRow.iconFormat;
+    }
   }
 
   return { userId, tier, moodPack: pack, iconFormat, hidePreview: !!row?.hidePreview };

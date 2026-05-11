@@ -48,9 +48,11 @@ function daysInMonth(year: number, month: number): number {
 export function CalendarShell({
   tier = "free",
   pack,
+  iconFormat = "svg",
 }: {
   tier?: Tier;
   pack?: string;
+  iconFormat?: string;
 }) {
   const locale = useLocale();
   const t = useTranslations("calendar");
@@ -446,6 +448,7 @@ export function CalendarShell({
         <SmartLogModal
           tier={tier}
           pack={pack}
+          iconFormat={iconFormat}
           presetDate={logDate}
           onClose={() => setLogDate(null)}
           onSaved={() => {

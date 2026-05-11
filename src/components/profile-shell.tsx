@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { signOut } from "next-auth/react";
 import { CustomMoodManager } from "./custom-mood-manager";
+import { R2_PUBLIC_URL, DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { DEFAULT_MOOD_IDS } from "@/lib/default-moods";
 
 interface ProfileData {
   user: {
@@ -17,6 +19,7 @@ interface ProfileData {
     isPremium: boolean;
     bio: string | null;
     accentColor: string | null;
+    moodPack: string;
     hidePreview: boolean;
     anonymousInsights: boolean;
     reminderEnabled: boolean;
@@ -94,6 +97,12 @@ export function ProfileShell() {
     badges: { id: string; icon: string; color: string; status: string; earnedAt: string | null; progress: number }[];
   } | null>(null);
 
+  // mood pack state
+  const [packs, setPacks] = useState<{ id: string; label: string; premium: boolean; iconFormat: string }[]>([]);
+  const [selectedPack, setSelectedPack] = useState(DEFAULT_MOOD_PACK);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   // settings state
   const [checkinOn, setCheckinOn] = useState(false);
   const [reminderTime, setReminderTime] = useState("21:00");
@@ -127,6 +136,7 @@ export function ProfileShell() {
       .then((d) => {
         if (cancel) return;
         setData(d);
+        setSelectedPack(d.user.moodPack);
         setHidePreview(d.user.hidePreview);
         setAnonymousInsights(d.user.anonymousInsights);
         setCheckinOn(d.user.reminderEnabled);
@@ -138,6 +148,10 @@ export function ProfileShell() {
     fetch("/api/profile/achievements")
       .then((r) => r.json() as Promise<NonNullable<typeof achievements>>)
       .then((d) => { if (!cancel) setAchievements(d); });
+
+    fetch("/api/moods/packs")
+      .then((r) => r.json() as Promise<{ packs: typeof packs }>)
+      .then((d) => { if (!cancel) setPacks(d.packs); });
 
     return () => { cancel = true; };
   }, []);
@@ -532,8 +546,135 @@ export function ProfileShell() {
         </SettingCard>
       </Section>
 
+      {/* Mood Pack */}
+      {packs.length > 1 && (
+        <Section label={t("moodPackSection")} delay="330ms">
+          <SettingCard>
+            <div style={{ padding: "16px 20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {packs.map((pack) => {
+                  const isSelected = selectedPack === pack.id;
+                  const locked = pack.premium && !data.user.isPremium;
+                  return (
+                    <button
+                      key={pack.id}
+                      type="button"
+                      onClick={() => {
+                        if (locked) {
+                          globalThis.location.assign(`/${locale}/pricing`);
+                          return;
+                        }
+                        if (isSelected) return;
+                        const prev = selectedPack;
+                        setSelectedPack(pack.id);
+                        fetch("/api/profile", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ moodPack: pack.id }),
+                        }).then((r) => {
+                          if (!r.ok) { setSelectedPack(prev); return; }
+                          clearTimeout(toastTimer.current);
+                          setToast(locale === "th" ? `เปลี่ยนเป็น ${pack.label} แล้ว ✓` : `Switched to ${pack.label} ✓`);
+                          toastTimer.current = setTimeout(() => setToast(null), 3000);
+                        });
+                      }}
+                      style={{
+                        position: "relative",
+                        padding: "16px 12px 12px",
+                        borderRadius: 18,
+                        border: isSelected
+                          ? "2.5px solid var(--primary)"
+                          : "1.5px solid var(--hairline)",
+                        background: locked ? "var(--surface-2)" : "var(--surface)",
+                        cursor: "pointer",
+                        textAlign: "center",
+                        opacity: locked ? 0.75 : 1,
+                      }}
+                    >
+                      {/* Selected checkmark */}
+                      {isSelected && (
+                        <div style={{
+                          position: "absolute", top: -8, right: -8,
+                          width: 22, height: 22, borderRadius: "50%",
+                          background: "var(--primary)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 11, color: "#fff", fontWeight: 700,
+                        }}>
+                          ✓
+                        </div>
+                      )}
+                      {/* PRO badge for premium packs */}
+                      {pack.premium && (
+                        <div style={{
+                          position: "absolute", top: 8, left: 10,
+                          fontSize: 11, fontWeight: 800, color: "#A673F1",
+                          background: "#F0EDFA", borderRadius: 6,
+                          padding: "2px 6px", letterSpacing: 0.3,
+                        }}>
+                          PRO
+                        </div>
+                      )}
+                      {/* Lock icon for locked premium packs */}
+                      {locked && (
+                        <div style={{
+                          position: "absolute", top: 8, right: 10,
+                          fontSize: 14, opacity: 0.5,
+                        }}>
+                          🔒
+                        </div>
+                      )}
+                      {/* Icon preview row */}
+                      <div style={{
+                        display: "flex", justifyContent: "center", gap: 4,
+                        marginBottom: 10, marginTop: pack.premium ? 8 : 0,
+                      }}>
+                        {DEFAULT_MOOD_IDS.slice(0, 4).map((moodId) => (
+                          <div
+                            key={moodId}
+                            style={{
+                              width: 32, height: 32, borderRadius: 8,
+                              background: "var(--surface-2)",
+                              display: "grid", placeItems: "center",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`${R2_PUBLIC_URL}/${pack.id}/${moodId}.${pack.iconFormat}`}
+                              alt={moodId}
+                              width={24}
+                              height={24}
+                              style={{ objectFit: "contain" }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {/* Pack label */}
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+                        {pack.label}
+                      </div>
+                      {isSelected && (
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--primary)", marginTop: 2 }}>
+                          {t("moodPackCurrent")}
+                        </div>
+                      )}
+                      {locked && (
+                        <div style={{ fontSize: 12, color: "#A673F1", fontWeight: 600, marginTop: 2 }}>
+                          {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </SettingCard>
+        </Section>
+      )}
+
       {/* Data */}
-      <Section label={t("data")} delay="330ms">
+      <Section label={t("data")} delay="360ms">
         <SettingCard>
           <div
             role="button"
@@ -567,7 +708,7 @@ export function ProfileShell() {
       </Section>
 
       {/* About */}
-      <Section label={t("about")} delay="360ms">
+      <Section label={t("about")} delay="390ms">
         <SettingCard>
           <div role="button" tabIndex={0} onClick={() => openFeedback()} onKeyDown={(e) => { if (e.key === "Enter") openFeedback(); }} style={{ cursor: "pointer" }}>
             <NavRow icon="💬" iconBg="#F4F2F7" title={t("sendFeedback")} />
@@ -578,7 +719,7 @@ export function ProfileShell() {
       </Section>
 
       {/* Footer Actions */}
-      <div className="fade-in" style={{ display: "flex", gap: 12, marginBottom: 16, animationDelay: "390ms" }}>
+      <div className="fade-in" style={{ display: "flex", gap: 12, marginBottom: 16, animationDelay: "420ms" }}>
         <button
           type="button"
           onClick={() => setShowSignOut(true)}
@@ -593,9 +734,25 @@ export function ProfileShell() {
       </div>
 
       {/* Version */}
-      <div className="fade-in" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-3)", animationDelay: "420ms" }}>
+      <div className="fade-in" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-3)", animationDelay: "450ms" }}>
         {t("version")} · {t("madeWith")}
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fade-in"
+          style={{
+            position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)",
+            zIndex: 60, background: "var(--ink)", color: "#fff",
+            padding: "10px 20px", borderRadius: 100,
+            fontSize: 14, fontWeight: 700,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)", whiteSpace: "nowrap",
+          }}
+        >
+          {toast}
+        </div>
+      )}
 
       {/* Sign Out Confirmation */}
       {showSignOut && (

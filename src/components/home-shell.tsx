@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { SmartLogModal } from "./smart-log-modal";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
@@ -33,14 +33,17 @@ interface Stats {
 export function HomeShell({
   tier,
   pack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
   hidePreview = false,
 }: {
   tier: Tier;
   pack?: string;
+  iconFormat?: string;
   hidePreview?: boolean;
 }) {
   const t = useTranslations("home");
   const locale = useLocale();
+  const icon = (moodId: string) => moodIconUrl(moodId, pack, iconFormat);
 
   const [logMoodId, setLogMoodId] = useState<string | null>(null);
   const [entries, setEntries] = useState<Entry[] | null>(null);
@@ -332,7 +335,7 @@ export function HomeShell({
                       border: active ? "none" : "1.5px solid #F0EAF7",
                     }}
                   >
-                    <img src={m.iconUrl} alt="" width={16} height={16} />
+                    <img src={icon(m.id)} alt="" width={16} height={16} />
                     {locale === "th" ? m.labelTh : m.label}
                   </button>
                 );
@@ -517,7 +520,7 @@ export function HomeShell({
                 boxShadow: "0 6px 14px rgba(0,0,0,0.06)",
               }}
             >
-              <img src={m.iconUrl} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
+              <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
               <span>{locale === "th" ? m.labelTh : m.label}</span>
             </button>
           ))}
@@ -627,7 +630,7 @@ export function HomeShell({
                   }}
                 >
                   {mood ? (
-                    <img src={mood.iconUrl} alt="" width={24} height={24} />
+                    <img src={icon(mood.id)} alt="" width={24} height={24} />
                   ) : (
                     <span style={{ fontSize: 11, color: "var(--ink-3)" }}>—</span>
                   )}
@@ -679,7 +682,7 @@ export function HomeShell({
         ) : entries.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
             {entries.map((entry) => (
-              <EntryCard key={entry.id} entry={entry} locale={locale} blur={hidePreview} />
+              <EntryCard key={entry.id} entry={entry} locale={locale} blur={hidePreview} pack={pack} iconFormat={iconFormat} />
             ))}
           </div>
         ) : (
@@ -697,6 +700,7 @@ export function HomeShell({
         <SmartLogModal
           tier={tier}
           pack={pack}
+          iconFormat={iconFormat}
           preSelectedMoodId={logMoodId}
           onClose={() => setLogMoodId(null)}
           onSaved={() => {
@@ -729,7 +733,7 @@ export function HomeShell({
   );
 }
 
-function EntryCard({ entry, locale, blur }: { entry: Entry; locale: string; blur?: boolean }) {
+function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { entry: Entry; locale: string; blur?: boolean; pack?: string; iconFormat?: string }) {
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
   const date = new Date(entry.createdAt);
   const time = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
@@ -764,7 +768,7 @@ function EntryCard({ entry, locale, blur }: { entry: Entry; locale: string; blur
             background: mood?.color ?? "#F4F2F7",
           }}
         >
-          {mood ? <img src={mood.iconUrl} alt="" width={24} height={24} /> : null}
+          {mood ? <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={24} height={24} /> : null}
         </div>
         <div className="min-w-0">
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>

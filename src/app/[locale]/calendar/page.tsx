@@ -7,7 +7,7 @@ export const runtime = "edge";
 
 export default async function CalendarPage() {
   const locale = await getLocale();
-  const { userId, tier, moodPack } = await getSessionInfo();
+  const { userId, tier, moodPack, iconFormat } = await getSessionInfo();
 
   if (!userId) {
     redirect({ href: "/login", locale });
@@ -16,7 +16,7 @@ export default async function CalendarPage() {
   return (
     <main className="flex-1 px-5 pb-28">
       <div className="mx-auto w-full max-w-[768px]">
-        <CalendarShell tier={tier} pack={moodPack} />
+        <CalendarShell tier={tier} pack={moodPack} iconFormat={iconFormat} />
       </div>
     </main>
   );

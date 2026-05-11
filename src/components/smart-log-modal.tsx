@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 
@@ -23,6 +23,7 @@ interface Props {
   onClose: () => void;
   onSaved: () => void;
   pack?: string;
+  iconFormat?: string;
   preSelectedMoodId?: string;
   presetDate?: string;
 }
@@ -32,6 +33,7 @@ export function SmartLogModal({
   onClose,
   onSaved,
   pack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
   preSelectedMoodId,
   presetDate,
 }: Props) {
@@ -396,7 +398,7 @@ export function SmartLogModal({
                         border: "none",
                       }}
                     >
-                      <img src={m.iconUrl} alt="" width={16} height={16} />
+                      <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={16} height={16} />
                       {locale === "th" ? m.labelTh : m.label}
                     </button>
                   );
@@ -492,7 +494,7 @@ export function SmartLogModal({
                         fontWeight: 700,
                       }}
                     >
-                      <img src={m.iconUrl} alt="" width={18} height={18} />
+                      <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={18} height={18} />
                       {locale === "th" ? m.labelTh : m.label}
                       {suggestion.sentiment !== null && (
                         <span style={{ opacity: 0.85, fontSize: 12 }}>
@@ -518,7 +520,7 @@ export function SmartLogModal({
                           color: "var(--ink-2)",
                         }}
                       >
-                        <img src={m.iconUrl} alt="" width={16} height={16} />
+                        <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={16} height={16} />
                         {locale === "th" ? m.labelTh : m.label}
                       </button>
                     ))}

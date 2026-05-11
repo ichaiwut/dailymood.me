@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { users, moodEntries, moodTypes } from "@/db/schema";
+import { users, moodEntries, moodTypes, moodPacks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { moodScore, addDays, computeStreak, scoreToEmoji, ymd } from "@/lib/mood-scores";
 
@@ -29,6 +29,7 @@ export async function GET() {
       reminderEnabled: users.reminderEnabled,
       reminderTime: users.reminderTime,
       reminderDays: users.reminderDays,
+      moodPack: users.moodPack,
       createdAt: users.createdAt,
       currentPeriodEnd: users.currentPeriodEnd,
       cancelAtPeriodEnd: users.cancelAtPeriodEnd,
@@ -102,6 +103,7 @@ export async function GET() {
       reminderEnabled: user.reminderEnabled,
       reminderTime: user.reminderTime,
       reminderDays: user.reminderDays,
+      moodPack: user.moodPack,
       createdAt: user.createdAt.toISOString(),
       currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd,
@@ -122,9 +124,10 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { userId } = await getSessionInfo();
+  const { userId, tier } = await getSessionInfo();
   if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
+  const db = getDb();
   const body = (await req.json()) as Record<string, unknown>;
   const updates: Record<string, unknown> = {};
 
@@ -157,12 +160,24 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.reminderDays === "string") {
     updates.reminderDays = body.reminderDays;
   }
+  if (typeof body.moodPack === "string") {
+    const packId = body.moodPack as string;
+    const [pack] = await db
+      .select({ id: moodPacks.id, premium: moodPacks.premium })
+      .from(moodPacks)
+      .where(eq(moodPacks.id, packId))
+      .limit(1);
+    if (!pack) return NextResponse.json({ error: "invalid_pack" }, { status: 400 });
+    if (pack.premium && tier !== "premium") {
+      return NextResponse.json({ error: "premium_required" }, { status: 403 });
+    }
+    updates.moodPack = packId;
+  }
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "no_changes" }, { status: 400 });
   }
 
-  const db = getDb();
   await db.update(users).set(updates).where(eq(users.id, userId));
 
   return NextResponse.json({ ok: true });

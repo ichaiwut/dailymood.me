@@ -40,7 +40,7 @@
 - [x] Mini Journal — note สั้นๆ
 - [x] Custom Mood Types (Premium)
 - [x] Multi-entry per day (timeline)
-- [x] Mood Icon Packs — SVG icons hosted on R2 at `{packId}/{moodId}.svg`; default pack `set_486038`. `users.mood_pack` stores selection (Premium will be able to switch; Free locked to default).
+- [x] Mood Icon Packs — SVG/WebP/PNG icons hosted on R2 at `{packId}/{moodId}.{format}`; default pack `set_486038`. `users.mood_pack` stores selection. Free users can switch between free packs; premium packs require Pro. Profile page has "Mood Icons" section with grid cards showing preview of all packs.
 
 #### Smart Logging (AI)
 - [x] Smart Log Modal — text + voice + image
