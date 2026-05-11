@@ -59,11 +59,13 @@ function MoodLineChart({
   period,
   locale,
   moodPack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
 }: {
   trend: { date: string; moodId: string | null }[];
   period: Period;
   locale: string;
   moodPack?: string;
+  iconFormat?: string;
 }) {
   const W = 340;
   const H = 150;
@@ -121,7 +123,7 @@ function MoodLineChart({
         <g key={s}>
           <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
           <image
-            href={moodIconUrl(SCORE_MOODS[s], moodPack)}
+            href={moodIconUrl(SCORE_MOODS[s], moodPack, iconFormat)}
             x={PX - 28}
             y={toY(s) - 10}
             width={20}
@@ -238,7 +240,7 @@ function ActivityBar({ impact }: { impact: number }) {
 
 /* ── Main Component ────────────────────────────────────── */
 
-export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK }: { tier?: Tier; moodPack?: string }) {
+export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { tier?: Tier; moodPack?: string; iconFormat?: string }) {
   const locale = useLocale();
   const t = useTranslations("stats");
 
@@ -476,7 +478,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK }: { ti
                   </div>
                 )}
               </div>
-              <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} />
+              <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} />
             </div>
           </section>
 
@@ -508,7 +510,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK }: { ti
                         margin: "8px 0 12px",
                       }}
                     >
-                      <img src={moodIconUrl(bestDay.moodId, moodPack)} alt="" width={44} height={44} style={{ width: 44, height: 44 }} />
+                      <img src={moodIconUrl(bestDay.moodId, moodPack, iconFormat)} alt="" width={44} height={44} style={{ width: 44, height: 44 }} />
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{bestDayName}</div>
                     <div style={{ fontSize: 12, color: "var(--ink-3)" }}>

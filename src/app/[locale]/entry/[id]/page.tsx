@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
+import { getSessionInfo } from "@/lib/tier";
 import { EntryDetail } from "@/components/entry-detail";
 
 export const runtime = "edge";
@@ -10,10 +10,10 @@ export default async function EntryPage({
 }: {
   params: Promise<{ id: string; locale: string }>;
 }) {
-  const session = await auth();
   const locale = await getLocale();
+  const { userId, moodPack, iconFormat } = await getSessionInfo();
 
-  if (!session?.user) {
+  if (!userId) {
     redirect({ href: "/login", locale });
   }
 
@@ -22,7 +22,7 @@ export default async function EntryPage({
   return (
     <main className="flex-1 px-5 pb-28">
       <div className="mx-auto w-full max-w-[768px]">
-        <EntryDetail id={id} />
+        <EntryDetail id={id} pack={moodPack} iconFormat={iconFormat} />
       </div>
     </main>
   );

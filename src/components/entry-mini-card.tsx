@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 
 interface SheetEntry {
   id: string;
@@ -15,7 +16,7 @@ interface SheetEntry {
 
 export type { SheetEntry };
 
-export function EntryMiniCard({ entry }: { entry: SheetEntry }) {
+export function EntryMiniCard({ entry, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { entry: SheetEntry; pack?: string; iconFormat?: string }) {
   const locale = useLocale();
   const t = useTranslations("daySheet");
   const router = useRouter();
@@ -44,7 +45,7 @@ export function EntryMiniCard({ entry }: { entry: SheetEntry }) {
       >
         {mood && (
           <img
-            src={mood.iconUrl}
+            src={moodIconUrl(mood.id, pack, iconFormat)}
             alt=""
             width={80}
             height={80}

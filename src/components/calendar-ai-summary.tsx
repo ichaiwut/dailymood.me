@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import type { CalendarAiResult } from "@/db/schema";
 import type { Tier } from "@/lib/tier";
 
@@ -12,14 +13,16 @@ interface Props {
   tier: Tier;
   monthLabel: string;
   tooFewEntries: boolean;
+  pack?: string;
+  iconFormat?: string;
 }
 
-function emojiToIconUrl(emoji: string): string | null {
+function emojiToIconUrl(emoji: string, pack: string, iconFormat: string): string | null {
   const mood = DEFAULT_MOODS.find((m) => m.emoji === emoji);
-  return mood?.iconUrl ?? null;
+  return mood ? moodIconUrl(mood.id, pack, iconFormat) : null;
 }
 
-export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries }: Props) {
+export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: Props) {
   const t = useTranslations("calendarAi");
   const isPremium = tier === "premium";
 
@@ -108,14 +111,14 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries }
       <div className="flex flex-wrap gap-2" style={{ marginBottom: 16 }}>
         {data.highlights.bestDay && (
           <Chip
-            iconUrl={emojiToIconUrl(data.highlights.bestDay.emoji)}
+            iconUrl={emojiToIconUrl(data.highlights.bestDay.emoji, pack, iconFormat)}
             emoji={data.highlights.bestDay.emoji}
             label={`${t("bestDay")} · ${formatChipDate(data.highlights.bestDay.date)}`}
           />
         )}
         {data.highlights.hardDay && (
           <Chip
-            iconUrl={emojiToIconUrl(data.highlights.hardDay.emoji)}
+            iconUrl={emojiToIconUrl(data.highlights.hardDay.emoji, pack, iconFormat)}
             emoji={data.highlights.hardDay.emoji}
             label={`${t("hardestDay")} · ${formatChipDate(data.highlights.hardDay.date)}`}
           />

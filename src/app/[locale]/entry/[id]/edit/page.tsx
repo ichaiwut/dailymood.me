@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
+import { getSessionInfo } from "@/lib/tier";
 import { EditEntryShell } from "@/components/edit-entry-shell";
 
 export const runtime = "edge";
@@ -10,10 +10,10 @@ export default async function EditEntryPage({
 }: {
   params: Promise<{ id: string; locale: string }>;
 }) {
-  const session = await auth();
   const locale = await getLocale();
+  const { userId, moodPack, iconFormat } = await getSessionInfo();
 
-  if (!session?.user) {
+  if (!userId) {
     redirect({ href: "/login", locale });
   }
 
@@ -22,7 +22,7 @@ export default async function EditEntryPage({
   return (
     <main className="flex-1 px-5 pb-28">
       <div className="mx-auto w-full max-w-[768px]">
-        <EditEntryShell id={id} />
+        <EditEntryShell id={id} pack={moodPack} iconFormat={iconFormat} />
       </div>
     </main>
   );

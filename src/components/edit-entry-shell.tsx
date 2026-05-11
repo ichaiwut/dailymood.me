@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 
@@ -31,7 +32,7 @@ interface AiSuggestion {
   aiSummary: string | null;
 }
 
-export function EditEntryShell({ id }: { id: string }) {
+export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { id: string; pack?: string; iconFormat?: string }) {
   const locale = useLocale();
   const t = useTranslations("editEntry");
   const router = useRouter();
@@ -268,7 +269,7 @@ export function EditEntryShell({ id }: { id: string }) {
       >
         {mood && (
           <img
-            src={mood.iconUrl}
+            src={moodIconUrl(mood.id, pack, iconFormat)}
             alt=""
             width={120}
             height={120}
@@ -323,7 +324,7 @@ export function EditEntryShell({ id }: { id: string }) {
                     color: "var(--ink)",
                   }}
                 >
-                  <img src={m.iconUrl} alt="" width={28} height={28} />
+                  <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={28} height={28} />
                   <span style={{ fontSize: 11, fontWeight: active ? 800 : 600 }}>
                     {locale === "th" ? m.labelTh : m.label}
                   </span>

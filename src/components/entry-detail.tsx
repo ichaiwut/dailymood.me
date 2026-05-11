@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 
 interface EntryData {
   id: string;
@@ -19,7 +20,7 @@ interface EntryData {
   createdAt: string | number;
 }
 
-export function EntryDetail({ id }: { id: string }) {
+export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { id: string; pack?: string; iconFormat?: string }) {
   const locale = useLocale();
   const t = useTranslations("entry");
   const router = useRouter();
@@ -149,7 +150,7 @@ export function EntryDetail({ id }: { id: string }) {
       >
         {mood && (
           <img
-            src={mood.iconUrl}
+            src={moodIconUrl(mood.id, pack, iconFormat)}
             alt=""
             width={120}
             height={120}

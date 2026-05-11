@@ -11,6 +11,8 @@ interface DaySheetProps {
   onClose: () => void;
   onNavigate: (date: string) => void;
   onOpenLog: (date: string) => void;
+  pack?: string;
+  iconFormat?: string;
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -32,6 +34,8 @@ export function DaySheet({
   onClose,
   onNavigate,
   onOpenLog,
+  pack,
+  iconFormat,
 }: DaySheetProps) {
   const locale = useLocale();
   const t = useTranslations("daySheet");
@@ -195,7 +199,7 @@ export function DaySheet({
             </div>
           )}
           {entries.map((entry) => (
-            <EntryMiniCard key={entry.id} entry={entry} />
+            <EntryMiniCard key={entry.id} entry={entry} pack={pack} iconFormat={iconFormat} />
           ))}
         </div>
       )}

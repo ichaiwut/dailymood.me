@@ -240,6 +240,8 @@ export function CalendarShell({
         tier={tier}
         monthLabel={monthNames[viewMonth]}
         tooFewEntries={tier === "premium" && !!aiData?.tooFewEntries && !aiData?.summary}
+        pack={pack}
+        iconFormat={iconFormat}
       />
 
       {/* ── Patterns Feed ── */}
@@ -439,6 +441,8 @@ export function CalendarShell({
               setSheetDate(null);
               setLogDate(date);
             }}
+            pack={pack}
+            iconFormat={iconFormat}
           />
         )}
       </BottomSheet>
