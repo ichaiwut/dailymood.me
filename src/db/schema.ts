@@ -1,43 +1,42 @@
-import { sqliteTable, text, integer, real, primaryKey, index } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, real, primaryKey, index, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name"),
   email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "timestamp" }),
-  passwordHash: text("password_hash"), // null for OAuth-only users
+  emailVerified: timestamp("email_verified"),
+  passwordHash: text("password_hash"),
   image: text("image"),
   locale: text("locale").default("en"),
-  isPremium: integer("is_premium", { mode: "boolean" }).notNull().default(false),
-  // selected mood-icon pack (free: only DEFAULT_MOOD_PACK; premium: any from MOOD_PACKS)
+  isPremium: boolean("is_premium").notNull().default(false),
   moodPack: text("mood_pack").notNull().default("set_486038"),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
-  currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
-  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" }).notNull().default(false),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
   planInterval: text("plan_interval"),
   subscriptionStatus: text("subscription_status"),
   bio: text("bio"),
   accentColor: text("accent_color"),
-  hidePreview: integer("hide_preview", { mode: "boolean" }).notNull().default(false),
-  anonymousInsights: integer("anonymous_insights", { mode: "boolean" }).notNull().default(true),
-  reminderEnabled: integer("reminder_enabled", { mode: "boolean" }).notNull().default(false),
+  hidePreview: boolean("hide_preview").notNull().default(false),
+  anonymousInsights: boolean("anonymous_insights").notNull().default(true),
+  reminderEnabled: boolean("reminder_enabled").notNull().default(false),
   reminderTime: text("reminder_time").notNull().default("21:00"),
   reminderDays: text("reminder_days").notNull().default("1,2,3,4,5"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 });
 
-export const verificationTokens = sqliteTable("verification_tokens", {
-  identifier: text("identifier").notNull(), // email
+export const verificationTokens = pgTable("verification_tokens", {
+  identifier: text("identifier").notNull(),
   token: text("token").notNull().unique(),
-  expires: integer("expires", { mode: "timestamp" }).notNull(),
+  expires: timestamp("expires").notNull(),
   type: text("type", { enum: ["email_verify", "password_reset"] }).notNull(),
 }, (t) => ({
   pk: primaryKey({ columns: [t.identifier, t.token] }),
   identifierTypeIdx: index("verification_tokens_identifier_type_idx").on(t.identifier, t.type),
 }));
 
-export const accounts = sqliteTable("accounts", {
+export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
@@ -51,109 +50,111 @@ export const accounts = sqliteTable("accounts", {
   idToken: text("id_token"),
 });
 
-export const sessions = sqliteTable("sessions", {
+export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
   sessionToken: text("session_token").notNull().unique(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  expires: integer("expires", { mode: "timestamp" }).notNull(),
+  expires: timestamp("expires").notNull(),
 });
 
-export const moodTypes = sqliteTable("mood_types", {
+export const moodTypes = pgTable("mood_types", {
   id: text("id").primaryKey(),
-  // userId NULL = system default; non-null = custom (premium only)
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   emoji: text("emoji").notNull(),
   label: text("label").notNull(),
   labelTh: text("label_th"),
   color: text("color").notNull(),
   order: integer("order").notNull().default(0),
-  isDefault: integer("is_default", { mode: "boolean" }).notNull().default(false),
+  isDefault: boolean("is_default").notNull().default(false),
   iconKey: text("icon_key"),
 }, (t) => ({
   userIdx: index("mood_types_user_idx").on(t.userId),
 }));
 
-export const moodEntries = sqliteTable("mood_entries", {
+export const moodEntries = pgTable("mood_entries", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moodTypeId: text("mood_type_id").notNull().references(() => moodTypes.id),
   note: text("note"),
-  imageKey: text("image_key"), // R2 object key; null if no image
-  tags: text("tags", { mode: "json" }).$type<string[]>().default([]),
-  sentiment: real("sentiment"), // -1..1, null if not analyzed
+  imageKey: text("image_key"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  sentiment: real("sentiment"),
   aiSummary: text("ai_summary"),
-  aiSource: text("ai_source", { enum: ["manual", "nlp", "vision", "nlp+vision"] })
-    .notNull()
-    .default("manual"),
-  date: text("date").notNull(), // YYYY-MM-DD (local) for fast filtering
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  aiSource: text("ai_source").notNull().default("manual"),
+  date: text("date").notNull(),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 }, (t) => ({
   userDateIdx: index("mood_entries_user_date_idx").on(t.userId, t.date),
   userCreatedIdx: index("mood_entries_user_created_idx").on(t.userId, t.createdAt),
 }));
 
-// Daily AI usage counter per user (for free-tier rate limit)
-export const aiUsage = sqliteTable("ai_usage", {
+export const aiUsage = pgTable("ai_usage", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  date: text("date").notNull(), // YYYY-MM-DD
+  date: text("date").notNull(),
   nlpCount: integer("nlp_count").notNull().default(0),
   visionCount: integer("vision_count").notNull().default(0),
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.date] }),
 }));
 
-export const calendarAiCache = sqliteTable("calendar_ai_cache", {
+export const calendarAiCache = pgTable("calendar_ai_cache", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  yearMonth: text("year_month").notNull(), // "YYYY-MM"
-  result: text("result", { mode: "json" }).$type<CalendarAiResult>().notNull(),
+  yearMonth: text("year_month").notNull(),
+  result: jsonb("result").$type<CalendarAiResult>().notNull(),
   entryCount: integer("entry_count").notNull().default(0),
-  generatedAt: integer("generated_at", { mode: "timestamp" }).notNull(),
+  generatedAt: timestamp("generated_at").notNull(),
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.yearMonth] }),
 }));
 
-export const insightsAiCache = sqliteTable("insights_ai_cache", {
+export const insightsAiCache = pgTable("insights_ai_cache", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   weekKey: text("week_key").notNull(),
-  result: text("result", { mode: "json" }).$type<InsightsAiResult>().notNull(),
+  result: jsonb("result").$type<InsightsAiResult>().notNull(),
   entryCount: integer("entry_count").notNull().default(0),
-  generatedAt: integer("generated_at", { mode: "timestamp" }).notNull(),
+  generatedAt: timestamp("generated_at").notNull(),
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.weekKey] }),
 }));
 
-export const suggestionFeedback = sqliteTable("suggestion_feedback", {
+export const suggestionFeedback = pgTable("suggestion_feedback", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   weekKey: text("week_key").notNull(),
   suggestionTitle: text("suggestion_title").notNull(),
-  reaction: text("reaction", { enum: ["up", "down", "routine"] }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  reaction: text("reaction").notNull(),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 }, (t) => ({
   userWeekIdx: index("suggestion_feedback_user_week_idx").on(t.userId, t.weekKey),
 }));
 
-export const feedbacks = sqliteTable("feedbacks", {
+export const feedbacks = pgTable("feedbacks", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   message: text("message").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 });
 
-export const userAchievements = sqliteTable("user_achievements", {
+export const userAchievements = pgTable("user_achievements", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   badgeId: text("badge_id").notNull(),
-  earnedAt: integer("earned_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  earnedAt: timestamp("earned_at").notNull().$defaultFn(() => new Date()),
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.badgeId] }),
 }));
 
-export const moodPacks = sqliteTable("mood_packs", {
+export const moodPacks = pgTable("mood_packs", {
   id: text("id").primaryKey(),
   label: text("label").notNull(),
-  premium: integer("premium", { mode: "boolean" }).notNull().default(false),
+  premium: boolean("premium").notNull().default(false),
   iconFormat: text("icon_format").notNull().default("svg"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+});
+
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(0),
+  resetAt: timestamp("reset_at").notNull(),
 });
 
 export interface InsightsAiResult {
@@ -168,12 +169,6 @@ export interface InsightsAiResult {
   }[];
   suggestion: { title: string; description: string } | null;
 }
-
-export const rateLimits = sqliteTable("rate_limits", {
-  key: text("key").primaryKey(), // `${endpoint}:${ip}` (or `${endpoint}:${email}`)
-  count: integer("count").notNull().default(0),
-  resetAt: integer("reset_at", { mode: "timestamp" }).notNull(),
-});
 
 export interface CalendarAiResult {
   summary: string;
