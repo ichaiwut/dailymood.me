@@ -68,6 +68,7 @@ export const moodTypes = sqliteTable("mood_types", {
   color: text("color").notNull(),
   order: integer("order").notNull().default(0),
   isDefault: integer("is_default", { mode: "boolean" }).notNull().default(false),
+  iconKey: text("icon_key"),
 }, (t) => ({
   userIdx: index("mood_types_user_idx").on(t.userId),
 }));

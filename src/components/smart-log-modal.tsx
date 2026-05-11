@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 
@@ -26,6 +26,7 @@ interface Props {
   iconFormat?: string;
   preSelectedMoodId?: string;
   presetDate?: string;
+  customMoods?: { id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[];
 }
 
 export function SmartLogModal({
@@ -36,6 +37,7 @@ export function SmartLogModal({
   iconFormat = "svg",
   preSelectedMoodId,
   presetDate,
+  customMoods = [],
 }: Props) {
   const t = useTranslations("smart");
   const locale = useLocale();
@@ -180,18 +182,66 @@ export function SmartLogModal({
           </button>
         </div>
 
+        {/* Date + heading */}
+        <div className="mt-1 mb-3">
+          <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
+            {dateLabel} · {timeLabel}
+          </div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 4, lineHeight: 1.2, color: "var(--ink)", whiteSpace: "pre-line" }}>
+            {locale === "th" ? "วันนี้เป็นยังไง?" : "How was\nyour day?"}
+          </h1>
+        </div>
+
+        {/* ── Mood picker (always visible, outside scroll container) ── */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4" style={{ marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
+            {DEFAULT_MOODS.map((m) => {
+              const active = m.id === moodId;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMoodId(m.id)}
+                  className="shrink-0 flex flex-col items-center justify-center gap-0.5 transition active:scale-95"
+                  style={{
+                    width: 62, height: 78, borderRadius: 18,
+                    background: active ? m.color : `${m.color}30`,
+                    border: active ? `2.5px solid ${m.color}` : "2px solid transparent",
+                    fontSize: 12, fontWeight: active ? 800 : 600,
+                    color: active ? "#fff" : "var(--ink-2)",
+                  }}
+                >
+                  <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={28} height={28} style={{ pointerEvents: "none" }} />
+                  <span>{locale === "th" ? m.labelTh : m.label}</span>
+                </button>
+              );
+            })}
+            {customMoods.map((m) => {
+              const active = m.id === moodId;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMoodId(m.id)}
+                  className="shrink-0 flex flex-col items-center justify-center gap-0.5 transition active:scale-95"
+                  style={{
+                    width: 62, height: 78, borderRadius: 18,
+                    background: active ? m.color : `${m.color}30`,
+                    border: active ? `2.5px solid ${m.color}` : "2px solid transparent",
+                    fontSize: 12, fontWeight: active ? 800 : 600,
+                    color: active ? "#fff" : "var(--ink-2)",
+                  }}
+                >
+                  {m.iconKey ? (
+                    <img src={`${R2_PUBLIC_URL}/${m.iconKey}`} alt="" width={28} height={28} style={{ pointerEvents: "none" }} />
+                  ) : (
+                    <span style={{ fontSize: 22, lineHeight: 1 }}>{m.emoji}</span>
+                  )}
+                  <span>{locale === "th" && m.labelTh ? m.labelTh : m.label}</span>
+                </button>
+              );
+            })}
+        </div>
+
         {/* ── Scrollable content ── */}
         <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 100 }}>
-          {/* Date + heading */}
-          <div className="mt-1 mb-4">
-            <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
-              {dateLabel} · {timeLabel}
-            </div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 4, lineHeight: 1.2, color: "var(--ink)", whiteSpace: "pre-line" }}>
-              {locale === "th" ? "วันนี้เป็นยังไง?" : "How was\nyour day?"}
-            </h1>
-          </div>
-
           {/* ── Text area ── */}
           <div className="mb-4">
             <div className="flex gap-2 items-end">

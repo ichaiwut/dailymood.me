@@ -27,6 +27,7 @@ interface CreateBody {
   label: string;
   labelTh?: string;
   color: string;
+  iconKey?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -56,6 +57,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const iconKey =
+    typeof body.iconKey === "string" && body.iconKey.startsWith("custom-emojis/")
+      ? body.iconKey
+      : null;
+
   const id = ulid();
   await db.insert(moodTypes).values({
     id,
@@ -66,6 +72,7 @@ export async function POST(req: NextRequest) {
     color: body.color,
     order: 100 + n,
     isDefault: false,
+    iconKey,
   });
   return NextResponse.json({ id });
 }

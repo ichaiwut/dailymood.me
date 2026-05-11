@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { SmartLogModal } from "./smart-log-modal";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
@@ -48,6 +48,7 @@ export function HomeShell({
   const [logMoodId, setLogMoodId] = useState<string | null>(null);
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [customMoods, setCustomMoods] = useState<{ id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[]>([]);
 
   // Inline AI composer state
   const [composerText, setComposerText] = useState("");
@@ -186,7 +187,8 @@ export function HomeShell({
           ? r.json()
           : { streak: 0, todayMood: null, last7: [], distribution: {}, total30d: 0 },
       ),
-    ]).then(([logData, statsData]) => {
+      fetch("/api/moods").then((r) => (r.ok ? r.json() : { moods: [] })),
+    ]).then(([logData, statsData, moodsData]) => {
       if (!alive) return;
       const allEntries = (logData as { entries: Entry[] }).entries;
       const sevenDaysAgo = new Date();
@@ -194,6 +196,8 @@ export function HomeShell({
       sevenDaysAgo.setHours(0, 0, 0, 0);
       setEntries(allEntries.filter((e) => new Date(e.createdAt) >= sevenDaysAgo));
       setStats(statsData as Stats);
+      const allMoods = (moodsData as { moods: { id: string; emoji: string; label: string; labelTh: string | null; color: string; isDefault: boolean; iconKey: string | null }[] }).moods;
+      setCustomMoods(allMoods.filter((m) => !m.isDefault));
     });
     return () => {
       alive = false;
@@ -503,7 +507,7 @@ export function HomeShell({
         </div>
 
         <div className="flex gap-2.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-2">
-          {DEFAULT_MOODS.map((m, i) => (
+          {DEFAULT_MOODS.map((m) => (
             <button
               key={m.id}
               onClick={() => setLogMoodId(m.id)}
@@ -522,6 +526,31 @@ export function HomeShell({
             >
               <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
               <span>{locale === "th" ? m.labelTh : m.label}</span>
+            </button>
+          ))}
+          {customMoods.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setLogMoodId(m.id)}
+              aria-label={locale === "th" && m.labelTh ? m.labelTh : m.label}
+              className="shrink-0 flex flex-col items-center justify-center gap-1 transition-transform active:scale-95"
+              style={{
+                width: 76,
+                height: 96,
+                background: m.color,
+                borderRadius: 22,
+                fontWeight: 700,
+                color: "#0A0A0A",
+                fontSize: 13,
+                boxShadow: "0 6px 14px rgba(0,0,0,0.06)",
+              }}
+            >
+              {m.iconKey ? (
+                <img src={`${R2_PUBLIC_URL}/${m.iconKey}`} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
+              ) : (
+                <span style={{ fontSize: 28, lineHeight: 1 }}>{m.emoji}</span>
+              )}
+              <span>{locale === "th" && m.labelTh ? m.labelTh : m.label}</span>
             </button>
           ))}
         </div>
@@ -702,6 +731,7 @@ export function HomeShell({
           pack={pack}
           iconFormat={iconFormat}
           preSelectedMoodId={logMoodId}
+          customMoods={customMoods}
           onClose={() => setLogMoodId(null)}
           onSaved={() => {
             setLogMoodId(null);
