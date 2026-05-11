@@ -5,7 +5,6 @@ import { users, moodEntries, moodTypes, moodPacks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { moodScore, addDays, computeStreak, scoreToEmoji, ymd } from "@/lib/mood-scores";
 
-export const runtime = "edge";
 
 export async function GET() {
   const { userId, tier } = await getSessionInfo();

@@ -4,7 +4,6 @@ import { users, verificationTokens } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/password";
 
-export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => null)) as {

@@ -5,7 +5,6 @@ import { sql, gte, eq, desc } from "drizzle-orm";
 import { StatCard } from "@/components/admin/stat-card";
 import Link from "next/link";
 
-export const runtime = "edge";
 
 function dates() {
   const now = Date.now();

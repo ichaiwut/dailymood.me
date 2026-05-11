@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { ProfileSettingsShell } from "@/components/profile-settings-shell";
 
-export const runtime = "edge";
 
 export default async function ProfileSettingsPage() {
   const { userId, tier } = await getSessionInfo();

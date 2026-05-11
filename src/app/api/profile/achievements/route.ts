@@ -5,7 +5,6 @@ import { moodEntries, userAchievements } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { BADGE_CATALOG, computeBadgeProgress } from "@/lib/achievements";
 
-export const runtime = "edge";
 
 export async function GET() {
   const { userId } = await getSessionInfo();

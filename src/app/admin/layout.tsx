@@ -1,7 +1,6 @@
 import { requireAdmin } from "@/lib/admin-auth";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
-export const runtime = "edge";
 
 export default async function AdminLayout({
   children,

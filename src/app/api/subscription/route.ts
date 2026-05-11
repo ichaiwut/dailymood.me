@@ -5,7 +5,6 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 
-export const runtime = "edge";
 
 export async function GET() {
   const { userId } = await getSessionInfo();

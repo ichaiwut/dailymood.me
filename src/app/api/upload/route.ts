@@ -4,7 +4,6 @@ import { uploadObject } from "@/lib/r2";
 import { todayKey } from "@/lib/usage";
 import { ulid } from "@/lib/ulid";
 
-export const runtime = "edge";
 
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 

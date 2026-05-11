@@ -6,7 +6,6 @@ import { generateToken } from "@/lib/password";
 import { sendResetEmail } from "@/lib/auth-email";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 const RESET_TTL_MS = 60 * 60 * 1000;
 

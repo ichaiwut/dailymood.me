@@ -4,7 +4,6 @@ import { getDb } from "@/lib/cf";
 import { moodEntries, moodTypes } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET() {
   const { userId } = await getSessionInfo();

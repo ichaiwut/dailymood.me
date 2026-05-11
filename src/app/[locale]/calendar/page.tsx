@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { CalendarShell } from "@/components/calendar-shell";
 
-export const runtime = "edge";
 
 export default async function CalendarPage() {
   const locale = await getLocale();

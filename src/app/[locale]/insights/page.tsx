@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { InsightsShell } from "@/components/insights-shell";
 
-export const runtime = "edge";
 
 export default async function InsightsPage() {
   const { userId, tier } = await getSessionInfo();

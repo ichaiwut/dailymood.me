@@ -4,7 +4,6 @@ import { getDb } from "@/lib/cf";
 import { moodEntries } from "@/db/schema";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 const MOOD_SCORES: Record<string, number> = {
   amazing: 5,

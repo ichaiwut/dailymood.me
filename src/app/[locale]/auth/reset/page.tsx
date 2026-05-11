@@ -1,6 +1,5 @@
 import { ResetForm } from "@/components/reset-form";
 
-export const runtime = "edge";
 
 export default async function ResetPage({
   searchParams,

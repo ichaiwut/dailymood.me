@@ -6,7 +6,6 @@ import type { CalendarAiResult } from "@/db/schema";
 import { generateCalendarAi } from "@/lib/gemini";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 const MOOD_SCORES: Record<string, number> = {
   amazing: 5, happy: 4, neutral: 3, sad: 2, angry: 1, anxious: 2, tired: 2,

@@ -6,7 +6,6 @@ import { moodPacks } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { DEFAULT_MOOD_IDS } from "@/lib/default-moods";
 
-export const runtime = "edge";
 
 const ALLOWED: Record<string, string> = {
   "image/svg+xml": "svg",

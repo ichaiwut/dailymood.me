@@ -7,8 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "pages:build": "npx @cloudflare/next-on-pages",
-    "pages:dev": "wrangler pages dev .vercel/output/static --d1 DB --r2 R2",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:prod": "wrangler d1 migrations apply DB --remote",
@@ -19,7 +17,6 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
-    "@cloudflare/next-on-pages": "^1.13.16",
     "@google/generative-ai": "^0.24.1",
     "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.45.2",

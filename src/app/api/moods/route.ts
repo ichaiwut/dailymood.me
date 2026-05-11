@@ -6,7 +6,6 @@ import { ulid } from "@/lib/ulid";
 import { PREMIUM_CUSTOM_MOOD_LIMIT } from "@/lib/default-moods";
 import { asc, count, eq, isNull, or } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET() {
   const { userId } = await getSessionInfo();

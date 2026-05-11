@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { StatsShell } from "@/components/stats-shell";
 
-export const runtime = "edge";
 
 export default async function StatsPage() {
   const { userId, tier, moodPack, iconFormat } = await getSessionInfo();

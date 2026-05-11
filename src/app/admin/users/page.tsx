@@ -4,7 +4,6 @@ import { users } from "@/db/schema";
 import { sql, like, or, eq, desc, and } from "drizzle-orm";
 import { UsersShell } from "@/components/admin/users-shell";
 
-export const runtime = "edge";
 
 export default async function AdminUsersPage({
   searchParams,

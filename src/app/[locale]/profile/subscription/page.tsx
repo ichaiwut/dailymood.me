@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { SubscriptionShell } from "@/components/subscription-shell";
 
-export const runtime = "edge";
 
 export default async function SubscriptionPage() {
   const { userId } = await getSessionInfo();

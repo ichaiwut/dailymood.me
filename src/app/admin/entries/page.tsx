@@ -4,7 +4,6 @@ import { moodEntries, users, moodTypes } from "@/db/schema";
 import { sql, eq, desc } from "drizzle-orm";
 import { EntriesShell } from "@/components/admin/entries-shell";
 
-export const runtime = "edge";
 
 export default async function AdminEntriesPage({
   searchParams,

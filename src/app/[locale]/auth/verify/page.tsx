@@ -1,6 +1,5 @@
 import { VerifyClient } from "@/components/verify-client";
 
-export const runtime = "edge";
 
 export default async function VerifyPage({
   searchParams,

@@ -5,7 +5,6 @@ import { moodPacks, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 
-export const runtime = "edge";
 
 export async function PATCH(
   req: NextRequest,

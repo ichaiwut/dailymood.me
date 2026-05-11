@@ -1,6 +1,5 @@
 import { ForgotForm } from "@/components/forgot-form";
 
-export const runtime = "edge";
 
 export default function ForgotPage() {
   return (

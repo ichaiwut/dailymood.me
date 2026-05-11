@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { EntryDetail } from "@/components/entry-detail";
 
-export const runtime = "edge";
 
 export default async function EntryPage({
   params,

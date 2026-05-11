@@ -4,7 +4,6 @@ import { getDb } from "@/lib/cf";
 import { suggestionFeedback } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   const { userId, tier } = await getSessionInfo();

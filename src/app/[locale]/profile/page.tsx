@@ -4,7 +4,6 @@ import { getSessionInfo } from "@/lib/tier";
 import { ProfileShell } from "@/components/profile-shell";
 import { getTranslations } from "next-intl/server";
 
-export const runtime = "edge";
 
 export default async function ProfilePage() {
   const { userId } = await getSessionInfo();

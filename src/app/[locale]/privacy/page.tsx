@@ -1,6 +1,5 @@
 import { PrivacyPage } from "@/components/privacy-page";
 
-export const runtime = "edge";
 
 export default function Privacy() {
   return (

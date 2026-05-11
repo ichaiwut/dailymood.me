@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { ProfileEditShell } from "@/components/profile-edit-shell";
 
-export const runtime = "edge";
 
 export default async function EditProfilePage() {
   const { userId } = await getSessionInfo();

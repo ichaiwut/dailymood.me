@@ -7,7 +7,6 @@ import { generateInsights } from "@/lib/gemini";
 import { isoWeekKey, ymd, addDays, computeStreak as computeStreakFromDates } from "@/lib/mood-scores";
 import type { InsightsAiResult } from "@/db/schema";
 
-export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const { userId, tier } = await getSessionInfo();

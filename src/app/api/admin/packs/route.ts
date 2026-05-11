@@ -4,7 +4,6 @@ import { getDb } from "@/lib/cf";
 import { moodPacks } from "@/db/schema";
 import { desc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET() {
   await requireAdminAction();

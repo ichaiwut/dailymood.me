@@ -5,7 +5,6 @@ import { feedbacks } from "@/db/schema";
 import { ulid } from "@/lib/ulid";
 import { eq, desc } from "drizzle-orm";
 
-export const runtime = "edge";
 
 const COOLDOWN_MS = 30 * 60 * 1000;
 

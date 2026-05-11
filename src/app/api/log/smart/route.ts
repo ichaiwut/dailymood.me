@@ -6,7 +6,6 @@ import { FREE_NLP_DAILY_LIMIT, getNlpUsage, incNlpUsage, incVisionUsage, todayKe
 import { rateLimit } from "@/lib/rate-limit";
 import { ulid } from "@/lib/ulid";
 
-export const runtime = "edge";
 
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024; // 6MB after client optimization
 

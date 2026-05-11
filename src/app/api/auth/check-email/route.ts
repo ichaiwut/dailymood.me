@@ -3,7 +3,6 @@ import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 // Tells the email-first login UI which path to show:
 // - { exists: false }                       → show register form

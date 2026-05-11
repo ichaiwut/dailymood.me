@@ -4,7 +4,6 @@ import { getDb } from "@/lib/cf";
 import { moodTypes } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function DELETE(
   _req: NextRequest,

@@ -3,7 +3,6 @@ import { redirect } from "@/i18n/navigation";
 import { getLocale } from "next-intl/server";
 import { LoginForm } from "@/components/login-form";
 
-export const runtime = "edge";
 
 export default async function LoginPage() {
   const session = await auth();

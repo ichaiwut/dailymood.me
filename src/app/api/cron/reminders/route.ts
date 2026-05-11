@@ -4,7 +4,6 @@ import { users, moodEntries } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { resend } from "@/lib/resend";
 
-export const runtime = "edge";
 
 const FROM = "Dailymood <hello@dailymood.me>";
 const APP_URL = process.env.NEXTAUTH_URL || "https://my.dailymood.me";

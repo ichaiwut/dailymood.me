@@ -1,6 +1,5 @@
 import { TermsPage } from "@/components/terms-page";
 
-export const runtime = "edge";
 
 export default function Terms() {
   return (

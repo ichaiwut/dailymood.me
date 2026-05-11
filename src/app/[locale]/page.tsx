@@ -4,7 +4,6 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { HomeShell } from "@/components/home-shell";
 
-export const runtime = "edge";
 
 export default async function Home() {
   const session = await auth();

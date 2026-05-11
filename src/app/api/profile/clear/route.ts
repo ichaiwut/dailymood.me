@@ -4,7 +4,6 @@ import { getDb } from "@/lib/cf";
 import { moodEntries, aiUsage, calendarAiCache, insightsAiCache, suggestionFeedback, userAchievements } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function DELETE() {
   const { userId } = await getSessionInfo();

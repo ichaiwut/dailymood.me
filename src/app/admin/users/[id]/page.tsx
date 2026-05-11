@@ -5,7 +5,6 @@ import { eq, desc, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { UserDetailShell } from "@/components/admin/user-detail-shell";
 
-export const runtime = "edge";
 
 export default async function AdminUserDetail({
   params,

@@ -7,7 +7,6 @@ import { hashPassword, generateToken } from "@/lib/password";
 import { sendVerifyEmail } from "@/lib/auth-email";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
 

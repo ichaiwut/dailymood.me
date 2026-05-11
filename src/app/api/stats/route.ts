@@ -5,7 +5,6 @@ import { moodEntries } from "@/db/schema";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { moodScore, ymd, addDays, computeStreak } from "@/lib/mood-scores";
 
-export const runtime = "edge";
 
 type Period = "week" | "month" | "year";
 

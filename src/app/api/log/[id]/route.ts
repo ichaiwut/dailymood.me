@@ -6,7 +6,6 @@ import { getSignedReadUrl, deleteObject } from "@/lib/r2";
 import { todayKey } from "@/lib/usage";
 import { and, eq, isNull, or } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET(
   _req: NextRequest,

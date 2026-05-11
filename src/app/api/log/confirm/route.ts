@@ -6,7 +6,6 @@ import { ulid } from "@/lib/ulid";
 import { todayKey } from "@/lib/usage";
 import { and, eq, isNull, or } from "drizzle-orm";
 
-export const runtime = "edge";
 
 interface ConfirmBody {
   moodTypeId: string;

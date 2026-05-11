@@ -4,7 +4,6 @@ import { feedbacks, suggestionFeedback, users } from "@/db/schema";
 import { sql, eq, desc } from "drizzle-orm";
 import { FeedbackShell } from "@/components/admin/feedback-shell";
 
-export const runtime = "edge";
 
 export default async function AdminFeedbackPage({
   searchParams,

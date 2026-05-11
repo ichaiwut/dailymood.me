@@ -5,7 +5,6 @@ import { sql, gte, eq, desc } from "drizzle-orm";
 import { StatCard } from "@/components/admin/stat-card";
 import { AiUsageShell } from "@/components/admin/ai-usage-shell";
 
-export const runtime = "edge";
 
 function dates() {
   const now = Date.now();

@@ -5,7 +5,6 @@ import { moodEntries } from "@/db/schema";
 import { getSignedReadUrl } from "@/lib/r2";
 import { and, desc, eq } from "drizzle-orm";
 
-export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const { userId } = await getSessionInfo();
