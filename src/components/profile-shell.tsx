@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { signOut } from "next-auth/react";
@@ -82,6 +83,7 @@ function formatTime24to12(time: string): string {
 export function ProfileShell() {
   const t = useTranslations("profile");
   const locale = useLocale();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSignOut, setShowSignOut] = useState(false);
@@ -155,6 +157,12 @@ export function ProfileShell() {
 
     return () => { cancel = true; };
   }, []);
+
+  useEffect(() => {
+    if (!loading && data && searchParams.get("feedback") === "true") {
+      openFeedback();
+    }
+  }, [loading, data]);
 
   const handleLocaleChange = (newLocale: string) => {
     fetch("/api/profile", {

@@ -76,6 +76,8 @@
 | Admin AI Usage | `/admin/ai`. Stat card grid (6 cards). Stacked bar chart (purple=NLP, peach=Vision) 30 days. Top users leaderboard with rank + email link + total count | Done |
 | Admin Feedback | `/admin/feedback`. Two-panel grid: user feedback cards (surface-2 bg, message + email link + date + delete) + AI suggestion feedback cards (title + thumbs up/down/routine counts with colored icons) | Done |
 | Admin Mood Packs | `/admin/packs`. Create form (ID regex input + label + premium checkbox + purple "สร้าง" button). Pack cards: header (label + Free/Premium badge + pack ID), 7-icon preview grid (48px tiles on surface-2, R2 CDN URLs with onError hide). Edit inline (label + premium). Upload panel (surface-2 bg, 7 file inputs for SVG, selected=purple border, upload count button). Delete (red, blocked for default pack). | Done |
+| 404 Not Found | Standalone (no TopBar/BottomNav). Back arrow + "Error 404" header. Blue circle (200px) kawaii character (dot eyes + smile) with peach "?" floating badges. Faded "404" giant text behind (purple 8% opacity). Title + subtitle + body copy. Black pill "Back to home" button (home icon) + ghost "Report broken link" button (links to profile feedback). `fade-in` + `pop` animations | Done |
+| 403 Forbidden | `/forbidden`. Standalone. Back arrow + "Error 403" header. Orange circle (200px) kawaii character (closed eyes + blush) with purple lock badge (44px circle, bottom center) + purple sparkle decorations. Faded "403" giant text. Purple uppercase "PRIVATE ENTRY" label. Title + body copy. Purple pill "Sign in to different account" button (lock icon) + ghost "Back to my journal" button | Done |
 
 ## Components
 
@@ -114,6 +116,9 @@
 | `AiUsageShell` | Admin AI usage: stacked bar chart (div-based, purple NLP + peach Vision) + top users leaderboard (ranked list with email links) |
 | `FeedbackShell` | Admin feedback: two-panel grid — user feedback cards (message + email + date + delete) + suggestion feedback aggregation (title + reaction counts) |
 | `PacksShell` | Admin mood packs: create form, pack cards (preview + edit + upload + delete), SVG file upload with FormData to `/api/admin/packs/[id]/upload` |
+| `NotFoundCharacter` / `ForbiddenCharacter` | Pure CSS+SVG kawaii circle characters for error pages. 404: blue circle with dot eyes + smile + peach "?" badges. 403: orange circle with closed eyes + blush + purple lock badge + sparkles. Both use `pop` animation on badges |
+| `NotFoundPage` | 404 page client component: standalone layout (back arrow + header), character + faded "404" text, copy section, home + report buttons. Uses `useTranslations("errors")` |
+| `ForbiddenPage` | 403 page client component: standalone layout, character + faded "403" text, "PRIVATE ENTRY" label, copy, sign-in + back buttons. Uses `useTranslations("errors")` |
 
 ## Smart Log Flow (UX)
 
@@ -146,3 +151,4 @@
 | 2026-05-10 | Profile tab ("You") — 4 screens | Profile Overview replaces old Settings as bottom nav destination. Hero card with user-selectable accent color (6 options) driving gradient. Mood signature computed from 30-day distribution. Achievements with 12 badges, auto-earned on API check. Settings grouped into Reminders/Appearance/Language/Privacy/Data sections. `/settings` redirects to `/profile/settings` |
 | 2026-05-10 | Subscription Management (`/profile/subscription`) | PRD adapted from iOS StoreKit → web Stripe. All billing actions via Stripe Customer Portal (no custom billing UI). Deep purple hero card distinct from profile's accent-based gradient. Subscription state stored in DB via webhook (stripeSubscriptionId, currentPeriodEnd, cancelAtPeriodEnd, planInterval) for fast reads. Cancel confirmation via reusable BottomSheet. Free users see upgrade CTA (never hidden per premium-gating rule). Profile NavRow links premium→subscription, free→pricing |
 | 2026-05-10 | Admin Panel (`/admin`) — 5 pages | Separate layout outside `[locale]` — sidebar dashboard style, no TopBar/BottomNav. Auth via `ADMIN_EMAILS` env var (hardcoded email, no DB schema change). Server Components + Server Actions (no admin API routes). TH-only UI. Reuses same CSS variables and Tailwind. Dashboard → Users (CRUD) → Entries (browse/delete) → AI Usage (charts) → Feedback (user + AI suggestion) |
+| 2026-05-11 | 404 + 403 error pages — kawaii character style | Standalone pages (no TopBar/BottomNav) matching Moodly Figma reference. Pure CSS+SVG characters (no image assets). 404: blue circle + "?" badges, reassuring copy. 403: orange circle + lock badge + sparkles, private entry context. Root `not-found.tsx` wraps own `NextIntlClientProvider`. 403 at `/forbidden` inside `[locale]` tree. "Report broken link" links to existing profile feedback feature |

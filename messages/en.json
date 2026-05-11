@@ -551,5 +551,19 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "restorePurchase": "Restore purchase"
+  },
+  "errors": {
+    "404header": "Error 404",
+    "404title": "Page not found",
+    "404subtitle": "This page seems to have disappeared",
+    "404body": "The link might be broken, or the entry was deleted. Don't worry — your mood journal is still safe.",
+    "404home": "Back to home",
+    "404report": "Report broken link",
+    "403header": "Error 403",
+    "403label": "PRIVATE ENTRY",
+    "403title": "This one's just for you",
+    "403body": "You don't have access to this mood entry. It might belong to another account, or have been made private.",
+    "403switch": "Sign in to a different account",
+    "403back": "Back to my journal"
   }
 }

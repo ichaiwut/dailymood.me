@@ -70,6 +70,8 @@
 - [x] ~~History/Timeline page (`/history`)~~ — redirects to Calendar tab (Timeline view)
 - [x] Mood Detail page (`/entry/[id]`) — mood hero card with giant faded emoji, note section, AI summary, tags, three-dot menu → edit
 - [x] Edit Entry page (`/entry/[id]/edit`) — edit mood, note, tags (add/remove), re-analyze with AI, image replace/delete, date/time edit, delete entry. API: `PATCH /api/log/[id]`, `DELETE /api/log/[id]`
+- [x] 404 Not Found page — standalone (no TopBar/BottomNav), blue kawaii circle character with "?" badges, faded "404" bg text, back-to-home + report-broken-link buttons. Root-level `not-found.tsx` with i18n (TH/EN)
+- [x] 403 Forbidden page (`/forbidden`) — standalone, orange kawaii circle character with lock badge + sparkles, faded "403" bg text, "PRIVATE ENTRY" label, sign-in-to-different-account + back-to-journal buttons. i18n (TH/EN)
 
 #### Calendar AI (Premium)
 - [x] AI Monthly Summary card — replaces stat tiles for premium; Gemini-generated 2-3 sentence summary with **bold** key phrases + 3 highlight chips (Best day, Hardest day, Top trigger) + "Tell me more →" to Insights. Free users see 1st sentence + blurred chips + upgrade CTA. Cache: D1 `calendar_ai_cache` table, invalidate on ≥3 new entries. API: `GET /api/calendar/ai`
