@@ -248,7 +248,9 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
           <Divider />
           <NavRow icon="💬" iconBg="#F4F2F7" title={t("sendFeedback")} />
           <Divider />
-          <NavRow icon="📄" iconBg="#F4F2F7" title={t("termsPrivacy")} />
+          <NavRow icon="📄" iconBg="#F4F2F7" title={t("termsLink")} href="/terms" />
+          <Divider />
+          <NavRow icon="🔒" iconBg="#F4F2F7" title={t("privacyLink")} href="/privacy" />
         </SettingCard>
       </Section>
 
@@ -385,13 +387,13 @@ function ToggleRow({
 }
 
 function NavRow({
-  icon, iconBg, title, value,
+  icon, iconBg, title, value, href,
 }: {
   icon: string; iconBg: string;
-  title: string; value?: string;
+  title: string; value?: string; href?: string;
 }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px" }}>
+  const content = (
+    <>
       <div style={{
         width: 42, height: 42, borderRadius: 14,
         background: `${iconBg}18`, display: "flex", alignItems: "center", justifyContent: "center",
@@ -406,6 +408,10 @@ function NavRow({
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3, flexShrink: 0 }}>
         <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-    </div>
+    </>
   );
+  const style = { display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", textDecoration: "none", color: "inherit" } as const;
+
+  if (href) return <a href={href} style={style}>{content}</a>;
+  return <div style={style}>{content}</div>;
 }

@@ -72,6 +72,8 @@
 - [x] Edit Entry page (`/entry/[id]/edit`) — edit mood, note, tags (add/remove), re-analyze with AI, image replace/delete, date/time edit, delete entry. API: `PATCH /api/log/[id]`, `DELETE /api/log/[id]`
 - [x] 404 Not Found page — standalone (no TopBar/BottomNav), blue kawaii circle character with "?" badges, faded "404" bg text, back-to-home + report-broken-link buttons. Root-level `not-found.tsx` with i18n (TH/EN)
 - [x] 403 Forbidden page (`/forbidden`) — standalone, orange kawaii circle character with lock badge + sparkles, faded "403" bg text, "PRIVATE ENTRY" label, sign-in-to-different-account + back-to-journal buttons. i18n (TH/EN)
+- [x] Privacy page (`/privacy`) — hero card (purple gradient, shield icon, ENCRYPTED/NO TRACKERS/NO ADS badges), TL;DR summary (4 items with icons), 7 numbered sections covering data collection, AI, images, third-party services, retention, rights, contact. i18n TH/EN. Linked from Settings + Pricing footer
+- [x] Terms page (`/terms`) — hero card (peach gradient, handshake icon, effective date), TL;DR summary (4 items: age, conduct, billing, medical disclaimer), 7 numbered sections covering accounts, acceptable use, premium, content ownership, liability, changes, contact. i18n TH/EN. Linked from Settings + Pricing footer
 
 #### Calendar AI (Premium)
 - [x] AI Monthly Summary card — replaces stat tiles for premium; Gemini-generated 2-3 sentence summary with **bold** key phrases + 3 highlight chips (Best day, Hardest day, Top trigger) + "Tell me more →" to Insights. Free users see 1st sentence + blurred chips + upgrade CTA. Cache: D1 `calendar_ai_cache` table, invalidate on ≥3 new entries. API: `GET /api/calendar/ai`

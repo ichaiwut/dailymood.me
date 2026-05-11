@@ -283,10 +283,10 @@ export function PricingShell({ tier }: { tier: Tier }) {
       </p>
 
       {/* Footer */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 12, color: "var(--ink-3)" }}>
-        <span style={{ cursor: "pointer" }}>{t("terms")}</span>
+      <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: "var(--fs-sm)", color: "var(--ink-3)" }}>
+        <a href="/terms" style={{ color: "inherit", textDecoration: "none" }}>{t("terms")}</a>
         <span>·</span>
-        <span style={{ cursor: "pointer" }}>{t("privacy")}</span>
+        <a href="/privacy" style={{ color: "inherit", textDecoration: "none" }}>{t("privacy")}</a>
       </div>
     </div>
   );

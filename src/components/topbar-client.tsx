@@ -210,6 +210,25 @@ function UserMenu({
         >
           {tc("settings")}
         </Link>
+        <Link
+          href={"/privacy" as "/"}
+          role="menuitem"
+          onClick={() => setMenuOpen(false)}
+          className="block px-4 py-2.5 text-sm transition hover:bg-black/5"
+          style={{ color: "var(--ink)" }}
+        >
+          {tc("privacy")}
+        </Link>
+        <Link
+          href={"/terms" as "/"}
+          role="menuitem"
+          onClick={() => setMenuOpen(false)}
+          className="block px-4 py-2.5 text-sm transition hover:bg-black/5"
+          style={{ color: "var(--ink)" }}
+        >
+          {tc("terms")}
+        </Link>
+        <div style={{ height: 1, background: "var(--hairline)", margin: "4px 16px" }} />
         <button
           role="menuitem"
           onClick={() => { setMenuOpen(false); signOut(); }}
