@@ -170,7 +170,7 @@ export function ProfileShell() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: newLocale }),
     }).then(() => {
-      globalThis.location.assign(`/${newLocale}/profile`);
+      globalThis.location.assign("/profile");
     });
   };
 
@@ -569,7 +569,7 @@ export function ProfileShell() {
                       type="button"
                       onClick={() => {
                         if (locked) {
-                          globalThis.location.assign(`/${locale}/pricing`);
+                          globalThis.location.assign("/pricing");
                           return;
                         }
                         if (isSelected) return;

@@ -25,7 +25,7 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: newLocale }),
     }).then(() => {
-      globalThis.location.assign(`/${newLocale}/profile/settings`);
+      globalThis.location.assign("/profile/settings");
     });
   };
 
