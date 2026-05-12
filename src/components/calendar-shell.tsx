@@ -459,6 +459,8 @@ export function CalendarShell({
           onFilterChange={setTimelineFilter}
           locale={locale}
           monthLabel={monthNames[viewMonth]}
+          pack={pack}
+          iconFormat={iconFormat}
         />
       )}
 

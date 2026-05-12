@@ -2,8 +2,9 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 
 export interface TimelineEntry {
   id: string;
@@ -11,13 +12,14 @@ export interface TimelineEntry {
   note: string | null;
   aiSummary: string | null;
   tags: string[] | null;
+  imageUrl: string | null;
   date: string;
   createdAt: string | number;
 }
 
 interface DayGroup {
-  label: string;
-  dateSuffix: string;
+  relativeLabel: string;
+  dateLabel: string;
   entries: TimelineEntry[];
 }
 
@@ -34,24 +36,25 @@ function groupEntriesByDate(entries: TimelineEntry[], locale: string): DayGroup[
     const [yStr, mStr, dStr] = entry.date.split("-");
     const entryDay = new Date(+yStr, +mStr - 1, +dStr);
 
-    let label: string;
-    let dateSuffix: string;
+    const weekday = entryDay.toLocaleDateString(bcp47, { weekday: "long" });
+    const dayMonth = entryDay.toLocaleDateString(bcp47, { day: "numeric", month: "short" });
+
+    let relativeLabel: string;
+    let dateLabel: string;
 
     if (entryDay.getTime() === today.getTime()) {
-      label = "TODAY";
-      dateSuffix = entryDay.toLocaleDateString(bcp47, { month: "short", day: "numeric" });
+      relativeLabel = locale === "th" ? "วันนี้" : "Today";
+      dateLabel = `${weekday} ${dayMonth}`;
     } else if (entryDay.getTime() === yesterday.getTime()) {
-      label = "YESTERDAY";
-      dateSuffix = entryDay.toLocaleDateString(bcp47, { month: "short", day: "numeric" });
+      relativeLabel = locale === "th" ? "เมื่อวาน" : "Yesterday";
+      dateLabel = `${weekday} ${dayMonth}`;
     } else {
-      label = entryDay
-        .toLocaleDateString(bcp47, { weekday: "short", month: "short", day: "numeric" })
-        .toUpperCase();
-      dateSuffix = "";
+      relativeLabel = `${weekday} ${dayMonth}`;
+      dateLabel = "";
     }
 
     if (!groups.has(dateKey)) {
-      groups.set(dateKey, { label, dateSuffix, entries: [] });
+      groups.set(dateKey, { relativeLabel, dateLabel, entries: [] });
     }
     groups.get(dateKey)!.entries.push(entry);
   }
@@ -67,6 +70,8 @@ interface TimelineFeedProps {
   onFilterChange: (id: string) => void;
   locale: string;
   monthLabel: string;
+  pack?: string;
+  iconFormat?: string;
 }
 
 export function TimelineFeed({
@@ -75,16 +80,19 @@ export function TimelineFeed({
   onFilterChange,
   locale,
   monthLabel,
+  pack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
 }: TimelineFeedProps) {
   const t = useTranslations("calendar");
 
   const moodChips = useMemo(
     () => [
-      { key: "all", label: t("filterAll"), emoji: "" },
+      { key: "all", label: t("filterAll"), color: "", dot: false },
       ...DEFAULT_MOODS.map((m) => ({
         key: m.id,
         label: locale === "th" ? m.labelTh : m.label,
-        emoji: m.emoji,
+        color: m.color,
+        dot: true,
       })),
     ],
     [locale, t],
@@ -104,59 +112,58 @@ export function TimelineFeed({
   return (
     <div className="fade-in">
       {/* ── Filter Chips ── */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-3">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-4">
         {moodChips.map((chip) => (
           <button
             key={chip.key}
             onClick={() => onFilterChange(chip.key)}
             className="shrink-0"
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
               padding: "8px 14px",
               borderRadius: 100,
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 700,
               border: "none",
               cursor: "pointer",
-              background: activeFilter === chip.key ? "#0A0A0A" : "#F8F6FB",
-              color: activeFilter === chip.key ? "#fff" : "#0A0A0A",
+              background: activeFilter === chip.key ? "var(--ink)" : "var(--surface-2)",
+              color: activeFilter === chip.key ? "#fff" : "var(--ink)",
               transition: "all 0.15s ease",
             }}
           >
-            {chip.emoji ? `${chip.emoji} ${chip.label}` : chip.label}
+            {chip.dot && (
+              <span style={{ width: 8, height: 8, borderRadius: 100, background: chip.color, flexShrink: 0 }} />
+            )}
+            {chip.label}
           </button>
         ))}
       </div>
 
       {/* ── Entry List ── */}
       {filtered === null ? (
-        <div className="space-y-4 mt-2">
+        <div className="space-y-6 mt-2">
           <SkeletonGroup />
           <SkeletonGroup />
         </div>
       ) : dayGroups.length > 0 ? (
-        <div className="space-y-6 mt-2">
+        <div className="space-y-8 mt-2">
           {dayGroups.map((group, gi) => (
             <div key={gi}>
-              <div className="flex items-center gap-2 mb-3 px-1">
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 800,
-                    color: "#A673F1",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  {group.label}
+              <div style={{ marginBottom: 12 }}>
+                <span style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>
+                  {group.relativeLabel}
                 </span>
-                {group.dateSuffix && (
-                  <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
-                    · {group.dateSuffix}
+                {group.dateLabel && (
+                  <span style={{ fontSize: 14, color: "var(--ink-3)", marginLeft: 6 }}>
+                    · {group.dateLabel}
                   </span>
                 )}
               </div>
-              <div className="space-y-3">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
                 {group.entries.map((entry) => (
-                  <EntryCard key={entry.id} entry={entry} locale={locale} />
+                  <EntryCard key={entry.id} entry={entry} locale={locale} pack={pack} iconFormat={iconFormat} />
                 ))}
               </div>
             </div>
@@ -176,153 +183,90 @@ export function TimelineFeed({
   );
 }
 
-function EntryCard({ entry, locale }: { entry: TimelineEntry; locale: string }) {
-  const router = useRouter();
+function EntryCard({ entry, locale, pack, iconFormat }: { entry: TimelineEntry; locale: string; pack: string; iconFormat: string }) {
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
+  const moodColor = mood?.color ?? "#F4F2F7";
   const date = new Date(entry.createdAt);
   const time = date.toLocaleTimeString(locale === "th" ? "th-TH" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
 
-  const title =
-    entry.aiSummary ??
-    (entry.note
-      ? entry.note.split("\n")[0]
-      : (locale === "th" ? mood?.labelTh : mood?.label) ?? "—");
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => router.push(`/entry/${entry.id}` as "/")}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          router.push(`/entry/${entry.id}` as "/");
-        }
-      }}
+    <Link
+      href={`/entry/${entry.id}` as "/"}
+      className="block transition active:scale-[0.97] card"
       style={{
-        background: "#fff",
-        border: "1.5px solid #F2F0F5",
-        borderRadius: 22,
-        padding: 14,
+        padding: 16,
+        textDecoration: "none",
+        color: "inherit",
         display: "flex",
-        gap: 12,
-        alignItems: "flex-start",
-        cursor: "pointer",
+        flexDirection: "column",
+        gap: 10,
       }}
     >
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 16,
-          background: mood?.color ?? "#F4F2F7",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 24,
-          flexShrink: 0,
-        }}
-      >
-        {mood?.emoji ?? "·"}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="line-clamp-1"
-            style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", flex: 1, minWidth: 0 }}
-          >
-            {title}
-          </span>
-          <span style={{ fontSize: 11, color: "var(--ink-3)", flexShrink: 0 }}>{time}</span>
+      <div className="flex items-center gap-2.5">
+        <div
+          style={{
+            width: 40, height: 40, borderRadius: 12,
+            background: moodColor,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {mood && <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={24} height={24} />}
         </div>
-        {entry.note && entry.aiSummary && (
-          <p
-            className="line-clamp-1"
-            style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}
-          >
-            {entry.note}
-          </p>
-        )}
-        {entry.note && !entry.aiSummary && entry.note.includes("\n") && (
-          <p
-            className="line-clamp-1"
-            style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}
-          >
-            {entry.note.split("\n").slice(1).join(" ")}
-          </p>
-        )}
-        {entry.tags && entry.tags.length > 0 && (
-          <div className="flex gap-1.5 mt-2">
-            {entry.tags.slice(0, 5).map((tag, j) => (
-              <span key={j} style={{ fontSize: 14 }}>
-                {tag}
-              </span>
-            ))}
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+            {locale === "th" ? mood?.labelTh : mood?.label}
           </div>
-        )}
+          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+            {time}
+          </div>
+        </div>
       </div>
-    </div>
+      {entry.imageUrl && (
+        <img src={entry.imageUrl} alt="" style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 10 }} />
+      )}
+      {entry.note && (
+        <p className="line-clamp-2" style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, margin: 0 }}>
+          {entry.note}
+        </p>
+      )}
+      {entry.tags && entry.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {entry.tags.slice(0, 3).map((tag, j) => (
+            <span
+              key={j}
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#A673F1",
+                background: "#F4EEFB",
+                borderRadius: 8,
+                padding: "2px 8px",
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </Link>
   );
 }
 
 function SkeletonGroup() {
   return (
     <div>
-      <div
-        style={{
-          height: 10,
-          width: 80,
-          background: "var(--surface-2)",
-          borderRadius: 6,
-          opacity: 0.6,
-          marginBottom: 12,
-        }}
-      />
+      <div style={{ height: 14, width: 120, background: "var(--surface-2)", borderRadius: 6, opacity: 0.6, marginBottom: 12 }} />
       <div className="space-y-3">
         {[1, 2].map((i) => (
-          <div
-            key={i}
-            style={{
-              background: "#fff",
-              border: "1.5px solid #F2F0F5",
-              borderRadius: 22,
-              padding: 14,
-              display: "flex",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 16,
-                background: "var(--surface-2)",
-                opacity: 0.6,
-                flexShrink: 0,
-              }}
-            />
+          <div key={i} style={{ background: "#fff", border: "1.5px solid var(--hairline)", borderRadius: 18, padding: 14, display: "flex", gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 100, background: "var(--surface-2)", opacity: 0.6, flexShrink: 0 }} />
             <div className="flex-1 space-y-2 py-1">
-              <div
-                style={{
-                  height: 12,
-                  width: "50%",
-                  background: "var(--surface-2)",
-                  borderRadius: 6,
-                  opacity: 0.6,
-                }}
-              />
-              <div
-                style={{
-                  height: 10,
-                  width: "75%",
-                  background: "var(--surface-2)",
-                  borderRadius: 6,
-                  opacity: 0.4,
-                }}
-              />
+              <div style={{ height: 14, width: "50%", background: "var(--surface-2)", borderRadius: 6, opacity: 0.6 }} />
+              <div style={{ height: 14, width: "75%", background: "var(--surface-2)", borderRadius: 6, opacity: 0.4 }} />
             </div>
           </div>
         ))}

@@ -3,6 +3,7 @@ import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { moodEntries } from "@/db/schema";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
+import { getSignedReadUrl } from "@/lib/r2";
 
 
 export async function GET(req: NextRequest) {
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
       note: moodEntries.note,
       aiSummary: moodEntries.aiSummary,
       tags: moodEntries.tags,
+      imageKey: moodEntries.imageKey,
       date: moodEntries.date,
       createdAt: moodEntries.createdAt,
     })
@@ -37,5 +39,13 @@ export async function GET(req: NextRequest) {
     .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, from), lte(moodEntries.date, to)))
     .orderBy(desc(moodEntries.createdAt));
 
-  return NextResponse.json({ entries: rows });
+  const entries = await Promise.all(
+    rows.map(async (r) => ({
+      ...r,
+      imageKey: undefined,
+      imageUrl: r.imageKey ? await getSignedReadUrl(r.imageKey) : null,
+    })),
+  );
+
+  return NextResponse.json({ entries });
 }
