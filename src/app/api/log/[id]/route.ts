@@ -80,7 +80,7 @@ export async function PATCH(
 
   const updateData: Record<string, unknown> = {};
   if (body.moodTypeId !== undefined) updateData.moodTypeId = body.moodTypeId;
-  if (body.note !== undefined) updateData.note = body.note?.trim() || null;
+  if (body.note !== undefined) updateData.note = body.note?.trim()?.slice(0, 2000) || null;
   if (body.tags !== undefined) updateData.tags = (body.tags ?? []).slice(0, 12);
   if (body.sentiment !== undefined) updateData.sentiment = body.sentiment;
   if ("imageKey" in body) updateData.imageKey = body.imageKey ?? null;

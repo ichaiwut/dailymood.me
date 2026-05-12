@@ -6,12 +6,16 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ulid } from "@/lib/ulid";
 import { verifyPassword } from "@/lib/password";
+import { rateLimit } from "@/lib/rate-limit";
 
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "email_not_verified";
 }
 class InvalidCredentialsError extends CredentialsSignin {
   code = "invalid_credentials";
+}
+class RateLimitedError extends CredentialsSignin {
+  code = "rate_limited";
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -27,6 +31,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = (creds?.email as string | undefined)?.trim().toLowerCase();
         const password = creds?.password as string | undefined;
         if (!email || !password) throw new InvalidCredentialsError();
+        if (password.length > 1024) throw new InvalidCredentialsError();
+
+        const rl = await rateLimit({ key: `login:${email}`, limit: 10, windowSec: 900 });
+        if (!rl.ok) throw new RateLimitedError();
 
         const db = getDb();
         const [u] = await db

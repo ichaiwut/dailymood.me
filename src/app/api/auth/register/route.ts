@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "invalid_email" }, { status: 400 });
   }
-  if (!password || password.length < 8) {
+  if (!password || password.length < 8 || password.length > 1024) {
     return NextResponse.json({ error: "weak_password" }, { status: 400 });
   }
   if (!name || name.length < 1) {

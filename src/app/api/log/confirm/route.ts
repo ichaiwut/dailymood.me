@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     id,
     userId,
     moodTypeId: body.moodTypeId,
-    note: body.note?.trim() || null,
+    note: body.note?.trim()?.slice(0, 2000) || null,
     tags: (body.tags ?? []).slice(0, 12),
     sentiment: body.sentiment ?? null,
     imageKey: body.imageKey ?? null,

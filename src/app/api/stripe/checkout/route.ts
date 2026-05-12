@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     monthly: process.env.STRIPE_PRICE_MONTHLY,
     yearly: process.env.STRIPE_PRICE_YEARLY,
   };
-  const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || "https://my.dailymood.me";
+  const origin = process.env.NEXTAUTH_URL || "https://my.dailymood.me";
 
   const { userId } = await getSessionInfo();
   if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });

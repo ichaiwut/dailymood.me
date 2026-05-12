@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const password = body?.password;
 
   if (!token) return NextResponse.json({ error: "invalid_token" }, { status: 400 });
-  if (!password || password.length < 8) {
+  if (!password || password.length < 8 || password.length > 1024) {
     return NextResponse.json({ error: "weak_password" }, { status: 400 });
   }
 

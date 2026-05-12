@@ -156,7 +156,7 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.reminderTime === "string" && /^\d{2}:\d{2}$/.test(body.reminderTime as string)) {
     updates.reminderTime = body.reminderTime;
   }
-  if (typeof body.reminderDays === "string") {
+  if (typeof body.reminderDays === "string" && /^[0-6](,[0-6]){0,6}$/.test(body.reminderDays as string)) {
     updates.reminderDays = body.reminderDays;
   }
   if (typeof body.moodPack === "string") {
