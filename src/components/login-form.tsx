@@ -209,9 +209,6 @@ function LandingStep({
       <SocialButton onClick={onGoogle} icon={<GoogleIcon />}>
         {t("continueWithGoogle")}
       </SocialButton>
-      <SocialButton onClick={() => {}} icon={<FacebookIcon />}>
-        {t("continueWithFacebook")}
-      </SocialButton>
 
       <Divider label={t("or")} />
 
