@@ -301,6 +301,48 @@ export async function generateAskAi(data: string): Promise<AskAiResult> {
   return JSON.parse(r.response.text()) as AskAiResult;
 }
 
+// ── Year in Pixels: yearly AI summary ──
+
+import type { YearAiResult } from "@/db/schema";
+
+const YEAR_AI_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    summary: { type: SchemaType.STRING },
+    summaryShort: { type: SchemaType.STRING },
+    bestQuarter: { type: SchemaType.STRING },
+    hardestPeriod: { type: SchemaType.STRING },
+    yearTheme: { type: SchemaType.STRING },
+  },
+  required: ["summary", "summaryShort", "bestQuarter", "hardestPeriod", "yearTheme"],
+};
+
+const YEAR_AI_PROMPT = `Yearly mood analyzer. Input: JSON with user's mood data aggregated by month for one full year.
+Output JSON in user's locale (th/en). Warm, personal, observational tone — like a supportive friend reviewing the year.
+
+summary: 3-4 sentences summarizing the year. Use **double asterisks** to bold 2-3 key phrases. Mention specific months by name. Reference actual mood patterns, best/worst periods, and notable trends. Never start with "สรุปว่า" or "Overall".
+summaryShort: exact first sentence of summary (keep **bold** as-is).
+bestQuarter: 1 sentence about the best quarter/period and why (reference month names and mood data).
+hardestPeriod: 1 sentence about the hardest period and what patterns appeared (reference month names).
+yearTheme: a short 3-5 word label capturing the year's emotional theme (e.g. "ปีแห่งการเติบโต", "Year of Recovery").`;
+
+export async function generateYearAi(data: string): Promise<YearAiResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: YEAR_AI_SCHEMA,
+      temperature: 0.5,
+      maxOutputTokens: 800,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: YEAR_AI_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as YearAiResult;
+}
+
 function uint8ToBase64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; // 32 KB — safe under spread/argv limits
   let binary = "";

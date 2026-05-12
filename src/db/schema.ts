@@ -157,6 +157,24 @@ export const rateLimits = pgTable("rate_limits", {
   resetAt: timestamp("reset_at").notNull(),
 });
 
+export const yearAiCache = pgTable("year_ai_cache", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  year: text("year").notNull(),
+  result: jsonb("result").$type<YearAiResult>().notNull(),
+  entryCount: integer("entry_count").notNull().default(0),
+  generatedAt: timestamp("generated_at").notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.year] }),
+}));
+
+export interface YearAiResult {
+  summary: string;
+  summaryShort: string;
+  bestQuarter: string;
+  hardestPeriod: string;
+  yearTheme: string;
+}
+
 export interface InsightsAiResult {
   headline: string;
   previewHeadline: string;

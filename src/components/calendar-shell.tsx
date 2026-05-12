@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DaySheet } from "./day-sheet";
@@ -10,6 +11,7 @@ import { PatternsFeed } from "./calendar-patterns-feed";
 import { AskAiBar } from "./calendar-ask-ai";
 import { TimelineFeed } from "./timeline-feed";
 import type { TimelineEntry } from "./timeline-feed";
+import { Link } from "@/i18n/navigation";
 import type { Tier } from "@/lib/tier";
 import type { CalendarAiResult } from "@/db/schema";
 
@@ -54,6 +56,8 @@ export function CalendarShell({
   iconFormat?: string;
 }) {
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const askAiQuery = searchParams.get("askAi") ?? undefined;
   const t = useTranslations("calendar");
   const tSheet = useTranslations("daySheet");
   const tAi = useTranslations("calendarAi");
@@ -235,6 +239,28 @@ export function CalendarShell({
             {v === "calendar" ? t("tabCalendar") : t("tabTimeline")}
           </button>
         ))}
+        <Link
+          href={"/year-in-pixels" as "/"}
+          style={{
+            flex: 1,
+            padding: "8px 0",
+            fontSize: 14,
+            fontWeight: 600,
+            borderRadius: 10,
+            border: "none",
+            textDecoration: "none",
+            textAlign: "center",
+            background: "transparent",
+            color: "var(--ink-3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          {t("tabYear")}
+          {tier !== "premium" && <span style={{ fontSize: 14 }}>🔒</span>}
+        </Link>
       </div>
 
       {calView === "calendar" ? (
@@ -260,6 +286,7 @@ export function CalendarShell({
         year={viewYear}
         month={viewMonth}
         onDateSelect={(date) => setSheetDate(date)}
+        initialQuery={askAiQuery}
       />
 
       {/* ── Patterns Feed ── */}

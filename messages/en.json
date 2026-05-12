@@ -66,6 +66,7 @@
     "navCalendar": "Calendar",
     "navStats": "Stats",
     "navInsights": "AI",
+    "navAi": "AI",
     "navLog": "Log",
     "navExplore": "Explore",
     "navJourney": "Journey",
@@ -203,6 +204,7 @@
     "noData": "No data",
     "tabCalendar": "Calendar",
     "tabTimeline": "Timeline",
+    "tabYear": "Full Year",
     "filterAll": "All",
     "timelineEmpty": "Nothing logged in {month} yet",
     "timelineFilterEmpty": "No entries match this mood"
@@ -632,5 +634,8 @@
     "s6body": "We may update these terms. When we do, we'll notify you via email or in-app notice. Continued use means you accept the new terms.",
     "s7title": "Contact",
     "s7body": "Questions? Reach us at hello@dailymood.me"
+  },
+  "yearPixels": {
+    "title": "Full Year Overview"
   }
 }

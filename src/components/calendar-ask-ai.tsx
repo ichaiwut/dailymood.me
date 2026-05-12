@@ -10,6 +10,7 @@ interface Props {
   year: number;
   month: number;
   onDateSelect?: (date: string) => void;
+  initialQuery?: string;
 }
 
 const PLACEHOLDERS_EN = [
@@ -25,7 +26,7 @@ const PLACEHOLDERS_TH = [
   "อะไรทำให้วันศุกร์ดีขึ้น?",
 ];
 
-export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
+export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Props) {
   const locale = useLocale();
   const t = useTranslations("calendarAi");
   const isPremium = tier === "premium";
@@ -63,6 +64,14 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
     setQuery("");
     setExpanded(false);
   }, [year, month]);
+
+  useEffect(() => {
+    if (initialQuery && isPremium) {
+      setExpanded(true);
+      setQuery(initialQuery);
+      setTimeout(() => inputRef.current?.focus(), 200);
+    }
+  }, [initialQuery, isPremium]);
 
   function showToast(msg: string) {
     clearTimeout(toastTimer.current);
