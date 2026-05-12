@@ -42,20 +42,23 @@ export async function POST(req: NextRequest) {
   }
 
   if (tier === "free") {
-    // Free: 1 AI call/day — no cooldown needed
     const used = await getNlpUsage(userId);
     if (used >= FREE_NLP_DAILY_LIMIT) {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setUTCDate(midnight.getUTCDate() + 1);
+      midnight.setUTCHours(0, 0, 0, 0);
+      const retryAfterSec = Math.ceil((midnight.getTime() - now.getTime()) / 1000);
       return NextResponse.json(
-        { error: "rate_limited", used, limit: FREE_NLP_DAILY_LIMIT, imageKey },
+        { error: "rate_limited", used, limit: FREE_NLP_DAILY_LIMIT, retryAfterSec, imageKey },
         { status: 429 },
       );
     }
   } else {
-    // Premium: cooldown 1 call per 5 minutes
-    const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 1, windowSec: 300 });
+    const cooldown = await rateLimit({ key: `ai-cooldown:${userId}`, limit: 3, windowSec: 300 });
     if (!cooldown.ok) {
       return NextResponse.json(
-        { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec, imageKey },
+        { error: "rate_limited", retryAfterSec: cooldown.retryAfterSec, used: 3, limit: 3, imageKey },
         { status: 429 },
       );
     }
@@ -82,7 +85,7 @@ export async function POST(req: NextRequest) {
     sentiment = r.sentiment;
     nlpTags = r.tags ?? [];
     if (tier === "premium") aiSummary = r.summary || null;
-    if (tier === "free") await incNlpUsage(userId);
+    await incNlpUsage(userId);
   }
 
   const tags = Array.from(new Set([...nlpTags, ...visionTags])).slice(0, 12);
