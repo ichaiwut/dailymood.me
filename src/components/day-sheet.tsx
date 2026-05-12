@@ -95,11 +95,10 @@ export function DaySheet({
         <div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: 700,
               color: "var(--ink-3)",
-              letterSpacing: "0.5px",
-              textTransform: "uppercase",
+              letterSpacing: "0.3px",
             }}
           >
             {weekday}
@@ -185,14 +184,13 @@ export function DaySheet({
           <EmptyState onLog={() => onOpenLog(selectedDate)} />
         )
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {entries.length > 1 && (
             <div
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 700,
                 color: "var(--ink-3)",
-                letterSpacing: "0.3px",
               }}
             >
               {t("entries", { count: entries.length })}

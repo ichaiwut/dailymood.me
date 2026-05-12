@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_params" }, { status: 400 });
   }
 
-  const rl = await rateLimit({ key: `calendar-ask:${userId}`, limit: 10, windowSec: 1800 });
+  const rl = await rateLimit({ key: `calendar-ask:${userId}`, limit: 5, windowSec: 1800 });
   if (!rl.ok) {
     return NextResponse.json({ error: "rate_limited", retryAfterSec: rl.retryAfterSec }, { status: 429 });
   }

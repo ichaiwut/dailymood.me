@@ -30,17 +30,21 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
   const t = useTranslations("calendarAi");
   const isPremium = tier === "premium";
 
+  const ASK_LIMIT = 5;
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AskAiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [askCount, setAskCount] = useState(0);
   const [cooldown, setCooldown] = useState(false);
+  const [cooldownSec, setCooldownSec] = useState(0);
   const [rateLimited, setRateLimited] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cooldownTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const cooldownInterval = useRef<ReturnType<typeof setInterval>>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const placeholders = locale === "th" ? PLACEHOLDERS_TH : PLACEHOLDERS_EN;
@@ -96,66 +100,95 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
     } finally {
       setLoading(false);
       if (!rateLimited) {
+        setAskCount((c) => c + 1);
         setCooldown(true);
+        setCooldownSec(30);
         clearTimeout(cooldownTimer.current);
-        cooldownTimer.current = setTimeout(() => setCooldown(false), 10000);
+        clearInterval(cooldownInterval.current);
+        cooldownInterval.current = setInterval(() => {
+          setCooldownSec((s) => {
+            if (s <= 1) { clearInterval(cooldownInterval.current); return 0; }
+            return s - 1;
+          });
+        }, 1000);
+        cooldownTimer.current = setTimeout(() => { setCooldown(false); setCooldownSec(0); }, 30000);
       }
     }
   }
 
+  const sparkle = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor" />
+    </svg>
+  );
+
   if (!isPremium) {
     return (
-      <div
-        className="mt-6 mb-4 fade-in"
-        style={{
-          borderRadius: 18,
-          padding: "14px 16px",
-          background: "#FAF7FE",
-          border: "1.5px dashed #D4BEE4",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          opacity: 0.7,
-        }}
-      >
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: "#A673F1",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <div className="mt-6 mb-4 fade-in">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", flex: 1 }}>
-          {t("askLocked")}
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+          {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
         </span>
-        <span
-          style={{
-            background: "#0A0A0A",
-            color: "#fff",
-            fontSize: 9,
-            fontWeight: 800,
-            padding: "2px 6px",
-            borderRadius: 4,
-            letterSpacing: "0.3px",
-          }}
-        >
-          PRO
-        </span>
+      </div>
+      <a
+        href="/pricing"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "14px 18px",
+          borderRadius: 16,
+          background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+          textDecoration: "none",
+          transition: "transform 120ms",
+        }}
+      >
+        <div style={{
+          width: 32, height: 32, borderRadius: 10,
+          background: "linear-gradient(135deg, #A673F1, #C49BF7)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff", flexShrink: 0,
+        }}>
+          {sparkle}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+            {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
+          </div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>
+            {t("askLocked")}
+          </div>
+        </div>
+        <span style={{
+          background: "var(--ink)", color: "#fff",
+          fontSize: 9, fontWeight: 800,
+          padding: "2px 6px", borderRadius: 4, letterSpacing: "0.3px",
+          flexShrink: 0,
+        }}>PRO</span>
+      </a>
       </div>
     );
   }
 
   return (
     <div className="mt-6 mb-4 fade-in">
+      {/* Section header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
+          </svg>
+        </div>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+          {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
+        </span>
+      </div>
+
       {/* Input bar */}
       <div
         onClick={() => {
@@ -165,37 +198,25 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
           }
         }}
         style={{
-          borderRadius: 18,
-          padding: "12px 14px",
-          background: "#FAF7FE",
-          border: "1.5px dashed #D4BEE4",
+          borderRadius: 16,
+          padding: "10px 12px 10px 18px",
+          background: "#fff",
+          border: "1.5px solid var(--hairline)",
+          boxShadow: expanded ? "0 4px 20px -4px rgba(166,115,241,.15)" : "0 2px 8px -2px rgba(0,0,0,.04)",
           display: "flex",
           alignItems: "center",
           gap: 10,
           cursor: expanded ? "default" : "pointer",
+          transition: "box-shadow 200ms, border-color 200ms",
+          ...(expanded ? { borderColor: "#D4BEE4" } : {}),
         }}
       >
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: "#A673F1",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
-          </svg>
-        </div>
         {expanded ? (
           <form
             onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
             className="flex items-center gap-2 flex-1"
           >
+            <span style={{ color: "#A673F1", flexShrink: 0, display: "flex" }}>{sparkle}</span>
             <input
               ref={inputRef}
               value={query}
@@ -209,47 +230,68 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
                 fontSize: 14,
                 fontWeight: 600,
                 color: "var(--ink)",
+                fontFamily: "inherit",
               }}
             />
             <button
               type="submit"
               disabled={loading || cooldown || rateLimited || !query.trim()}
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: 10,
-                background: "#A673F1",
+                width: 34, height: 34, borderRadius: 10,
+                background: loading || !query.trim() ? "var(--surface-2)" : "linear-gradient(135deg, #A673F1, #C49BF7)",
                 border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: loading || !query.trim() ? 0.4 : 1,
-                flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: loading || !query.trim() ? "var(--ink-3)" : "#fff",
+                flexShrink: 0, cursor: "pointer",
+                transition: "background 200ms",
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              {loading ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="ai-spin">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" strokeDasharray="40 20" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
             </button>
           </form>
         ) : (
-          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", fontStyle: "italic", flex: 1 }}>
-            {t("askLabel")}: &ldquo;{placeholders[placeholderIdx]}&rdquo;
-          </span>
+          <>
+            <span style={{ color: "#A673F1", flexShrink: 0, display: "flex" }}>{sparkle}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {placeholders[placeholderIdx]}
+            </span>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10,
+              background: "var(--surface-2)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "var(--ink-3)", flexShrink: 0,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="mt-3 fade-in" style={{ fontSize: 13, fontWeight: 600, color: "#A673F1" }}>
-          <span className="pulse" style={{ display: "inline-block", marginRight: 6 }}>✨</span>
-          {t("askLoading")}
+      {/* Usage counter + cooldown */}
+      {expanded && (askCount > 0 || cooldown) && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 14, color: "var(--ink-3)" }}>
+          <span>{locale === "th" ? `ใช้ไป ${askCount} / ${ASK_LIMIT} ครั้ง` : `Used ${askCount} / ${ASK_LIMIT}`}</span>
+          {cooldown && cooldownSec > 0 && (
+            <span style={{ color: "var(--purple)", fontWeight: 600 }}>
+              · {locale === "th" ? `ถามได้อีกใน ${cooldownSec} วิ` : `Ask again in ${cooldownSec}s`}
+            </span>
+          )}
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="mt-3 fade-in" style={{ fontSize: 13, fontWeight: 600, color: "#D14343" }}>
+        <div className="mt-3 fade-in" style={{ fontSize: 14, fontWeight: 600, color: "#D14343" }}>
           {error}
         </div>
       )}
@@ -263,7 +305,7 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
             borderRadius: 12,
             background: "#FEF2F2",
             border: "1px solid #FECACA",
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 600,
             color: "#D14343",
           }}
@@ -278,7 +320,7 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
           className="mt-3 fade-in card"
           style={{ padding: "14px 16px" }}
         >
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink)", marginBottom: 8 }}>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink)", marginBottom: result.matchingDates.length > 0 ? 8 : 0 }}>
             {result.answer}
           </p>
           {result.matchingDates.length > 0 && (
@@ -292,9 +334,10 @@ export function AskAiBar({ tier, year, month, onDateSelect }: Props) {
                     border: "1px solid #E6DBF7",
                     borderRadius: 100,
                     padding: "4px 10px",
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: 700,
                     color: "#A673F1",
+                    cursor: "pointer",
                   }}
                 >
                   {formatDate(date)}

@@ -270,7 +270,7 @@ export function SmartLogModal({
 
               {/* Progress bar */}
               <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "14px 18px", maxWidth: 380, margin: "0 auto 24px", textAlign: "left" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, color: "var(--ink-2)", marginBottom: 8 }}>
                   <span>{locale === "th" ? "วันนี้ใช้ไปแล้ว" : "Used today"}</span>
                   <span style={{ color: "var(--ink)" }}>{rateLimitInfo.used} / {rateLimitInfo.limit}</span>
                 </div>
@@ -278,7 +278,7 @@ export function SmartLogModal({
                   <div style={{ height: "100%", borderRadius: 100, background: "linear-gradient(90deg, #A673F1, #FCA45B)", width: `${Math.min(100, (rateLimitInfo.used / rateLimitInfo.limit) * 100)}%`, transition: "width 0.4s ease" }} />
                 </div>
                 {countdown > 0 && (
-                  <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 6 }}>
+                  <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 6 }}>
                     {locale === "th" ? `รีเซ็ตในอีก ${formatCountdown(countdown, locale)}` : `Resets in ${formatCountdown(countdown, locale)}`}
                   </div>
                 )}
@@ -323,14 +323,14 @@ export function SmartLogModal({
               {/* Mic + Image buttons + AI count */}
               <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "center" }}>
                 <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
-                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "#fff", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 13, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "#fff", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 14, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   <span>{locale === "th" ? "รูป" : "Photo"}</span>
                   {tier !== "premium" && <span style={{ position: "absolute", top: -6, right: -4, background: "var(--ink)", color: "#fff", fontSize: 8, fontWeight: 800, padding: "1px 5px", borderRadius: 4 }}>PRO</span>}
                   {tier === "premium" && <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); } }} />}
                 </label>
                 {aiLimit !== null && aiRemaining !== null && (
-                  <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>
+                  <span style={{ fontSize: 14, color: "var(--ink-3)", marginLeft: "auto" }}>
                     {locale === "th" ? `เหลือ AI วันนี้ ${aiRemaining} / ${aiLimit}` : `AI remaining ${aiRemaining} / ${aiLimit}`}
                   </span>
                 )}
@@ -367,11 +367,11 @@ export function SmartLogModal({
                   <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
                     {locale === "th" ? "AI กำลังวิเคราะห์..." : "AI analyzing..."}
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 16 }}>
+                  <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 16 }}>
                     {locale === "th" ? "กำลังอ่านข้อความและจับ trigger — ใช้เวลาประมาณ 2-3 วินาที" : "Reading your text and detecting triggers — about 2-3 seconds"}
                   </div>
                   {/* Step indicators */}
-                  <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 13, fontWeight: 600 }}>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 14, fontWeight: 600 }}>
                     <span style={{ color: aiStep >= 1 ? "#34A853" : "var(--purple)" }}>
                       {aiStep >= 1 ? "✓" : "●"} {locale === "th" ? "ตรวจอารมณ์" : "Mood check"}
                     </span>
@@ -390,12 +390,12 @@ export function SmartLogModal({
                 <div style={{ marginTop: 24, padding: 18, borderRadius: 14, background: "linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--purple-strong)", textTransform: "uppercase", letterSpacing: ".05em" }}>{locale === "th" ? "AI วิเคราะห์ให้" : "AI ANALYSIS"}</span>
-                    <span style={{ fontSize: 11, color: "var(--ink-3)" }}>· {locale === "th" ? "แก้ไขได้" : "editable"}</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: ".03em" }}>{locale === "th" ? "AI วิเคราะห์ให้" : "AI ANALYSIS"}</span>
+                    <span style={{ fontSize: 14, color: "var(--ink-3)" }}>· {locale === "th" ? "แก้ไขได้" : "editable"}</span>
                   </div>
                   {/* Mood picker */}
                   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
                     <div style={{ display: "flex", gap: 6 }}>
                       {allMoods.slice(0, 7).map((m) => (
                         <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -406,22 +406,22 @@ export function SmartLogModal({
                   </div>
                   {/* Tags */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", minWidth: 50 }}>{locale === "th" ? "แท็ก:" : "Tags:"}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", minWidth: 50 }}>{locale === "th" ? "แท็ก:" : "Tags:"}</span>
                     {tags.map((tag, i) => (
-                      <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 100, background: "#fff", color: "var(--ink)", border: "1px solid var(--hairline)", fontSize: 12, fontWeight: 600 }}>
+                      <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 100, background: "#fff", color: "var(--ink)", border: "1px solid var(--hairline)", fontSize: 14, fontWeight: 600 }}>
                         #{tag}
                         <button onClick={() => setTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex" }}>×</button>
                       </span>
                     ))}
                     <form onSubmit={(e) => { e.preventDefault(); addTag(); }} style={{ display: "inline-flex" }}>
-                      <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder={locale === "th" ? "+ เพิ่ม" : "+ Add"} style={{ width: tagInput ? 100 : 60, padding: "4px 10px", borderRadius: 100, background: "transparent", border: "1px dashed var(--hairline-2)", color: "var(--ink-3)", fontFamily: "inherit", fontSize: 12, outline: "none" }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} />
+                      <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder={locale === "th" ? "+ เพิ่ม" : "+ Add"} style={{ width: tagInput ? 100 : 60, padding: "4px 10px", borderRadius: 100, background: "transparent", border: "1px dashed var(--hairline-2)", color: "var(--ink-3)", fontFamily: "inherit", fontSize: 14, outline: "none" }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} />
                     </form>
                   </div>
                   {/* Summary */}
                   {suggestion.aiSummary && (
                     <div style={{ padding: 12, background: "rgba(255,255,255,.6)", borderRadius: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>{locale === "th" ? "สรุป" : "Summary"}</div>
-                      <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: ".03em", marginBottom: 6 }}>{locale === "th" ? "สรุป" : "Summary"}</div>
+                      <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
                     </div>
                   )}
                 </div>
@@ -434,9 +434,9 @@ export function SmartLogModal({
                     <div style={{ width: 24, height: 24, borderRadius: 6, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#A673F1" }}>PRO</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>PRO</span>
                   </div>
-                  <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, margin: 0 }}>
+                  <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, margin: 0 }}>
                     {locale === "th" ? "AI อ่านสิ่งที่คุณเขียน แล้วสรุปอารมณ์ แท็ก และ insight ให้อัตโนมัติ" : "AI reads your text and extracts mood, tags, and insights automatically"}
                     {" "}<span style={{ fontWeight: 700, color: "#A673F1" }}>{locale === "th" ? "อัปเกรด →" : "Upgrade →"}</span>
                   </p>

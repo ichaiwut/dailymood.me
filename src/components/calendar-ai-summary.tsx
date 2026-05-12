@@ -84,7 +84,7 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
           {t("summaryHeader", { month: monthLabel.toUpperCase() })}
         </span>
       </div>
@@ -154,7 +154,7 @@ function Chip({ iconUrl, emoji, label, sub }: { iconUrl?: string | null; emoji: 
         border: "1.5px solid #F2F0F5",
         borderRadius: 100,
         padding: "7px 14px",
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: 700,
         color: "var(--ink)",
       }}
@@ -213,7 +213,7 @@ function FreeTeaser({ monthLabel }: { monthLabel: string }) {
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
           {t("summaryHeader", { month: monthLabel.toUpperCase() })}
         </span>
       </div>
@@ -227,7 +227,7 @@ function FreeTeaser({ monthLabel }: { monthLabel: string }) {
           border: "none",
           borderRadius: 100,
           padding: "10px 20px",
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: 700,
         }}
       >

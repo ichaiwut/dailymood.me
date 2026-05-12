@@ -7,9 +7,10 @@ import type { Tier } from "@/lib/tier";
 interface Props {
   patterns: CalendarAiResult["patterns"];
   tier: Tier;
+  onDateSelect?: (date: string) => void;
 }
 
-export function PatternsFeed({ patterns, tier }: Props) {
+export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
   const t = useTranslations("calendarAi");
   const isPremium = tier === "premium";
 
@@ -20,7 +21,7 @@ export function PatternsFeed({ patterns, tier }: Props) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="#A673F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#A673F1", letterSpacing: "0.5px" }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
             {t("patternsTitle")}
           </span>
         </div>
@@ -37,7 +38,7 @@ export function PatternsFeed({ patterns, tier }: Props) {
           <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
             {t("patternsLocked")}
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-2)" }}>
+          <p style={{ fontSize: 14, color: "var(--ink-2)" }}>
             {t("patternsLockedBody")}
           </p>
         </div>
@@ -52,11 +53,13 @@ export function PatternsFeed({ patterns, tier }: Props) {
 
   return (
     <div style={{ marginTop: 12, marginBottom: 12 }} className="fade-in">
-      <div className="flex items-center gap-1.5" style={{ marginBottom: 12 }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="#A673F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span style={{ fontSize: 11, fontWeight: 800, color: "#A673F1", letterSpacing: "0.5px" }}>
+      <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
+          </svg>
+        </div>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
           {t("patternsTitle")}
         </span>
       </div>
@@ -87,20 +90,24 @@ export function PatternsFeed({ patterns, tier }: Props) {
                 {p.explanation}
               </p>
             </div>
-            <button
-              style={{
-                background: "none",
-                border: "none",
-                color: "#A673F1",
-                fontSize: 14,
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                paddingTop: 4,
-              }}
-            >
-              {t("view")} →
-            </button>
+            {p.dates.length > 0 && (
+              <button
+                onClick={() => onDateSelect?.(p.dates[0])}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#A673F1",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  paddingTop: 4,
+                  cursor: "pointer",
+                }}
+              >
+                {t("view")} →
+              </button>
+            )}
           </div>
         ))}
       </div>

@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { BottomSheet } from "./bottom-sheet";
 import { DaySheet } from "./day-sheet";
 import { SmartLogModal } from "./smart-log-modal";
 import { AiSummaryCard } from "./calendar-ai-summary";
@@ -135,6 +134,13 @@ export function CalendarShell({
     return () => { alive = false; };
   }, [viewYear, viewMonth, refreshKey, calView]);
 
+  useEffect(() => {
+    if (sheetDate) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [sheetDate]);
+
   function prevMonth() {
     if (viewMonth === 0) { setViewYear((y) => y - 1); setViewMonth(11); }
     else setViewMonth((m) => m - 1);
@@ -183,7 +189,7 @@ export function CalendarShell({
       {/* ── Header + View toggle ── */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600 }}>
             {calView === "timeline" && timelineEntries
               ? `${timelineEntries.length.toLocaleString()} ${locale === "th" ? "รายการ" : "entries"}`
               : t("yourYear")}
@@ -233,6 +239,10 @@ export function CalendarShell({
 
       {calView === "calendar" ? (
         <div>
+      {/* ── Calendar grid + stats sidebar ── */}
+      <div className="grid-2col">
+      <div>{/* left column */}
+
       {/* ── AI Summary Card ── */}
       <AiSummaryCard
         data={aiData?.tooFewEntries && !aiData?.summary ? null : aiData}
@@ -244,8 +254,16 @@ export function CalendarShell({
         iconFormat={iconFormat}
       />
 
+      {/* ── Ask AI ── */}
+      <AskAiBar
+        tier={tier}
+        year={viewYear}
+        month={viewMonth}
+        onDateSelect={(date) => setSheetDate(date)}
+      />
+
       {/* ── Patterns Feed ── */}
-      <PatternsFeed patterns={aiData?.tooFewEntries ? [] : (aiData?.patterns ?? [])} tier={tier} />
+      <PatternsFeed patterns={aiData?.tooFewEntries ? [] : (aiData?.patterns ?? [])} tier={tier} onDateSelect={(date) => setSheetDate(date)} />
 
       {/* ── AI Pattern Toggle ── */}
       {tier === "premium" && aiData?.patterns && aiData.patterns.length > 0 && (
@@ -261,7 +279,7 @@ export function CalendarShell({
               background: aiPatternsVisible ? "var(--ink)" : "var(--surface-2)",
               color: aiPatternsVisible ? "#fff" : "var(--ink-2)",
               border: "none",
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: 700,
               whiteSpace: "nowrap",
               flexShrink: 0,
@@ -275,7 +293,7 @@ export function CalendarShell({
           {aiPatternsVisible && (
             <>
               {aiData.patterns.some((p) => p.type === "best") && (
-                <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                <span className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
                   <span style={{
                     width: 14, height: 14, borderRadius: 100, background: "#FDE8DA",
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -285,7 +303,7 @@ export function CalendarShell({
                 </span>
               )}
               {ringLegend.map((l, i) => (
-                <span key={i} className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                <span key={i} className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
                   <span style={{
                     width: 8, height: 8, borderRadius: 100,
                     background: l.type === "recurring" ? "#A673F1" : "#D4BEE4",
@@ -299,10 +317,6 @@ export function CalendarShell({
         </div>
       )}
 
-      {/* ── Calendar grid + stats sidebar ── */}
-      <div className="grid-2col">
-      <div>{/* left column */}
-
       {/* ── Monthly Grid ── */}
       {entries === null ? (
         <CalendarSkeleton />
@@ -314,7 +328,7 @@ export function CalendarShell({
               key={i}
               style={{
                 textAlign: "center",
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: 700,
                 color: "var(--ink-3)",
                 paddingBottom: 4,
@@ -407,17 +421,10 @@ export function CalendarShell({
         </div>
       )}
 
-      {/* ── Ask AI ── */}
-      <AskAiBar
-        tier={tier}
-        year={viewYear}
-        month={viewMonth}
-        onDateSelect={(date) => setSheetDate(date)}
-      />
       </div>{/* end left column */}
 
       {/* ── Right sidebar stats ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, alignSelf: "start", position: "sticky", top: 80 }}>
         {[
           { label: locale === "th" ? "อารมณ์เฉลี่ย" : "Avg Mood", value: stats?.avgMood ? stats.avgMood.toFixed(1) : "—", sub: stats?.avgMoodDelta ? `${stats.avgMoodDelta > 0 ? "↑" : "↓"} ${Math.abs(stats.avgMoodDelta).toFixed(1)} ${locale === "th" ? "จากเดือนก่อน" : "vs last month"}` : "", color: "var(--peach)" },
           { label: "Streak", value: String(stats?.streak ?? 0), sub: `${locale === "th" ? "วันติดต่อกัน 🔥" : "consecutive days 🔥"}`, color: "var(--purple)" },
@@ -427,7 +434,7 @@ export function CalendarShell({
             <div className="w-eyebrow">{s.label}</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
               <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.value}</span>
-              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{s.sub}</span>
+              <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{s.sub}</span>
             </div>
           </div>
         ))}
@@ -438,7 +445,7 @@ export function CalendarShell({
           {DEFAULT_MOODS.slice(0, 6).map(m => (
             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
               <span style={{ width: 14, height: 14, borderRadius: 4, background: m.color }} />
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{locale === "th" ? m.labelTh : m.label}</span>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{locale === "th" ? m.labelTh : m.label}</span>
             </div>
           ))}
         </div>
@@ -455,28 +462,44 @@ export function CalendarShell({
         />
       )}
 
-      {/* ── Day Sheet ── */}
-      <BottomSheet
-        open={sheetDate !== null}
-        onClose={() => setSheetDate(null)}
-        aria-label={tSheet("dayEntries")}
-      >
-        {sheetDate && (
-          <DaySheet
-            selectedDate={sheetDate}
-            viewYear={viewYear}
-            viewMonth={viewMonth}
-            onClose={() => setSheetDate(null)}
-            onNavigate={(date) => setSheetDate(date)}
-            onOpenLog={(date) => {
-              setSheetDate(null);
-              setLogDate(date);
+      {/* ── Day Sheet Modal ── */}
+      {sheetDate && (
+        <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)" }} onClick={(e) => { if (e.target === e.currentTarget) setSheetDate(null); }}>
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              maxWidth: 560,
+              width: "calc(100% - 32px)",
+              maxHeight: "85vh",
+              background: "#fff",
+              borderRadius: 22,
+              boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
             }}
-            pack={pack}
-            iconFormat={iconFormat}
-          />
-        )}
-      </BottomSheet>
+          >
+            <div style={{ flex: 1, overflowY: "auto", padding: "24px 0 0" }}>
+              <DaySheet
+                selectedDate={sheetDate}
+                viewYear={viewYear}
+                viewMonth={viewMonth}
+                onClose={() => setSheetDate(null)}
+                onNavigate={(date) => setSheetDate(date)}
+                onOpenLog={(date) => {
+                  setSheetDate(null);
+                  setLogDate(date);
+                }}
+                pack={pack}
+                iconFormat={iconFormat}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Smart Log Modal (from empty day CTA) ── */}
       {logDate && (
@@ -537,7 +560,7 @@ function StatCard({ label, value, sub, subColor, emoji, bg }: {
         padding: "12px 14px",
       }}
     >
-      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-3)", letterSpacing: "0.3px", marginBottom: 4 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: "0.3px", marginBottom: 4 }}>
         {label}
       </div>
       <div className="flex items-center gap-1.5">
@@ -546,7 +569,7 @@ function StatCard({ label, value, sub, subColor, emoji, bg }: {
         </span>
         {emoji && <span style={{ fontSize: 16 }}>{emoji}</span>}
         {sub && (
-          <span style={{ fontSize: 12, fontWeight: 700, color: subColor }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: subColor }}>
             {sub}
           </span>
         )}
