@@ -29,7 +29,7 @@ export default async function ProfilePage() {
             {t("title")}
           </h1>
           <a
-            href={`/${locale}/profile/edit`}
+            href="/profile/edit"
             style={{
               width: 40, height: 40, borderRadius: 12,
               background: "var(--surface-2)", border: "none",

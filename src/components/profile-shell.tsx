@@ -380,7 +380,7 @@ export function ProfileShell() {
       <Section label={t("subscriptionSection")} delay="150ms">
         <SettingCard>
           {data.user.isPremium ? (
-            <a href={`/${locale}/profile/subscription`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <a href="/profile/subscription" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <NavRow
                 icon="✦"
                 iconBg="#A673F1"
@@ -391,7 +391,7 @@ export function ProfileShell() {
               />
             </a>
           ) : (
-            <a href={`/${locale}/pricing`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <a href="/pricing" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <NavRow icon="✦" iconBg="#A673F1" title={t("subscription")} value={t("freeTier")} />
             </a>
           )}

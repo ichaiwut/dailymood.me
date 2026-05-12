@@ -351,7 +351,7 @@ function FreeState() {
         {t("subFreeBody")}
       </div>
       <a
-        href={`/${locale}/pricing`}
+        href="/pricing"
         style={{
           display: "inline-block", padding: "14px 32px", borderRadius: 20,
           border: "none", background: "var(--ink)", color: "#fff",
