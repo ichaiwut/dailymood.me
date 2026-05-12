@@ -6,6 +6,7 @@ import { ulid } from "@/lib/ulid";
 import { hashPassword, generateToken } from "@/lib/password";
 import { sendVerifyEmail } from "@/lib/auth-email";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { notifyAdmin } from "@/lib/line";
 
 
 const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
@@ -90,6 +91,8 @@ export async function POST(req: NextRequest) {
   });
 
   await sendVerifyEmail({ to: email, token, locale });
+
+  notifyAdmin(`🆕 สมัครใหม่: ${email}`);
 
   return NextResponse.json({ ok: true });
 }

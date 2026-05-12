@@ -3,6 +3,7 @@ import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
+import { notifyAdmin } from "@/lib/line";
 
 
 export async function POST(req: NextRequest) {
@@ -47,6 +48,13 @@ export async function POST(req: NextRequest) {
           planInterval: interval,
           subscriptionStatus: sub.status,
         }).where(eq(users.id, userId));
+
+        const planLabel = interval === "year" ? "รายปี" : "รายเดือน";
+        const amount = session.amount_total
+          ? `${(session.amount_total / 100).toLocaleString()} ${session.currency?.toUpperCase() ?? "THB"}`
+          : "-";
+        const who = session.customer_details?.email ?? userId;
+        notifyAdmin(`💳 ชำระเงิน: ${planLabel} ${amount} — ${who}`);
       }
       break;
     }

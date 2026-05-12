@@ -16,14 +16,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Tech Stack
 
 - Next.js (App Router) + TypeScript
-- Cloudflare Pages + Workers (deploy via `@cloudflare/next-on-pages`)
-- Cloudflare D1 (SQLite) + Drizzle ORM
-- NextAuth.js (Google/GitHub OAuth)
+- Railway (deploy + env vars)
+- PostgreSQL (Railway) + Drizzle ORM
+- Cloudflare R2 (image storage)
+- NextAuth.js (Google OAuth + Credentials)
 - Tailwind CSS
 - REST API design (`/api/*`) — เผื่อ Mobile App ในอนาคต
 - Resend (email)
 - Google Gemini AI
 - Stripe (payment)
+- LINE Messaging API (admin notifications)
 
 ## Commands
 
@@ -70,7 +72,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Verify-before-login:** บังคับ — Credentials provider โยน `email_not_verified` ถ้ายังไม่ verify
 - **Email collision:** ถ้า email นั้นสมัครด้วย Google แล้ว → register เพิ่มไม่ได้ (HTTP 409 `use_google`); ห้าม auto-link
 - **Tokens:** `verification_tokens` table; verify TTL 24h, reset TTL 1h, single-use (delete on consume)
-- **Rate limiting:** `src/lib/rate-limit.ts` (D1 fixed window) — register 5/hr/IP, forgot 5/hr/IP, resend-verify 3/hr/IP. ใช้ `clientIp(req)` (อ่าน `cf-connecting-ip` ก่อน fallback `x-forwarded-for`)
+- **Rate limiting:** `src/lib/rate-limit.ts` (PostgreSQL fixed window) — register 5/hr/IP, forgot 5/hr/IP, resend-verify 3/hr/IP. ใช้ `clientIp(req)` (อ่าน `cf-connecting-ip` ก่อน fallback `x-forwarded-for`)
 - **Login UI:** email-first single page (`src/components/login-form.tsx`) — email → branch ไป password / register / google_only / verify_sent
 
 ## AI — Google Gemini
@@ -83,3 +85,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ใช้ **Stripe** สำหรับระบบ payment
 - Credentials อยู่ใน `.env` (`STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`)
 - ตอนนี้ใช้ **test mode** อยู่
+
+## LINE OA — Admin Notifications
+
+- ใช้ **LINE Messaging API** (Push Message) แจ้ง admin เมื่อมี user สมัครใหม่ หรือชำระเงิน
+- Credentials ใน env (Railway เท่านั้น, ไม่ใส่ใน local `.env`): `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`
+- Helper: `notifyAdmin(message)` ใน `src/lib/line.ts` — fire-and-forget, ไม่กระทบ flow หลัก
+- ถ้าไม่มี env vars → `notifyAdmin` return ทันที (local dev ไม่ส่ง LINE)

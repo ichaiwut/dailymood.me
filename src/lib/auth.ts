@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { ulid } from "@/lib/ulid";
 import { verifyPassword } from "@/lib/password";
 import { rateLimit } from "@/lib/rate-limit";
+import { notifyAdmin } from "@/lib/line";
 
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "email_not_verified";
@@ -91,6 +92,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             emailVerified: new Date(), // OAuth providers vouch for email
           });
           token.sub = id;
+          notifyAdmin(`🆕 สมัครใหม่ (Google): ${user.email}`);
         }
       }
       return token;
