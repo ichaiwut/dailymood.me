@@ -6,6 +6,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
+import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -84,6 +85,7 @@ export function SmartLogModal({
 
   async function handleAnalyze() {
     if (!text.trim() && !imageFile) return;
+    trackAiAnalyze(imageFile ? "vision" : "nlp");
     setAnalyzing(true);
     setError(null);
     try {
@@ -156,6 +158,7 @@ export function SmartLogModal({
         }
         return;
       }
+      trackMoodLog(suggestion ? "smart_log" : "quick");
       onSaved();
     } finally {
       setBusy(false);
@@ -500,7 +503,7 @@ export function SmartLogModal({
           background: "linear-gradient(transparent, #FEFEFE 20%)",
         }}>
           <div className="mx-auto max-w-lg flex items-center gap-3">
-            <VoiceButton onTranscript={(s) => setText((p) => (p ? p + " " : "") + s)} />
+            <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
             <label
               className="icon-btn"
               style={{

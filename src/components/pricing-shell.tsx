@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import type { Tier } from "@/lib/tier";
+import { trackPricingView, trackPlanSelect, trackCheckoutStart, trackCheckoutSuccess } from "@/lib/analytics";
 
 type Plan = "monthly" | "yearly";
 
@@ -28,7 +29,9 @@ export function PricingShell({ tier }: { tier: Tier }) {
   const [cancelled, setCancelled] = useState(false);
 
   useEffect(() => {
+    trackPricingView();
     if (searchParams.get("success") === "1") {
+      trackCheckoutSuccess();
       setSuccess(true);
       globalThis.history.replaceState(null, "", "/pricing");
     }
@@ -43,6 +46,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
 
   const handleSubscribe = async () => {
     if (loading) return;
+    trackCheckoutStart(plan);
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", {

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { trackExportData, trackUpgradeClick } from "@/lib/analytics";
 import { signOut } from "next-auth/react";
 import { CustomMoodManager } from "./custom-mood-manager";
 import { R2_PUBLIC_URL, DEFAULT_MOOD_PACK } from "@/lib/moods";
@@ -569,6 +570,7 @@ export function ProfileShell() {
                       type="button"
                       onClick={() => {
                         if (locked) {
+                          trackUpgradeClick("profile_settings");
                           globalThis.location.assign("/pricing");
                           return;
                         }
@@ -687,8 +689,8 @@ export function ProfileShell() {
           <div
             role="button"
             tabIndex={0}
-            onClick={() => { globalThis.location.assign("/api/profile/export"); }}
-            onKeyDown={(e) => { if (e.key === "Enter") globalThis.location.assign("/api/profile/export"); }}
+            onClick={() => { trackExportData(); globalThis.location.assign("/api/profile/export"); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { trackExportData(); globalThis.location.assign("/api/profile/export"); } }}
             style={{ cursor: "pointer" }}
           >
             <NavRow icon="📥" iconBg="#D4BEE4" title={t("exportYourData")} value="CSV" />

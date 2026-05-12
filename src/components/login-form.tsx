@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { trackLogin, trackSignUp } from "@/lib/analytics";
 
 type Step =
   | { kind: "landing" }
@@ -67,6 +68,7 @@ export function LoginForm() {
       else setError(t("errInvalidCredentials"));
       return;
     }
+    trackLogin("email");
     window.location.href = "/";
   }
 
@@ -90,6 +92,7 @@ export function LoginForm() {
         else setError(t("errGeneric"));
         return;
       }
+      trackSignUp("email");
       setStep({ kind: "verify_sent", email });
     } finally {
       setBusy(false);
@@ -130,7 +133,7 @@ export function LoginForm() {
 
       {step.kind === "landing" && (
         <LandingStep
-          onGoogle={() => signIn("google", { callbackUrl: "/" })}
+          onGoogle={() => { trackLogin("google"); signIn("google", { callbackUrl: "/" }); }}
           onEmailSignIn={() => setStep({ kind: "email" })}
           t={t}
         />
@@ -171,7 +174,7 @@ export function LoginForm() {
       {step.kind === "google_only" && (
         <GoogleOnlyStep
           email={step.email}
-          onGoogle={() => signIn("google", { callbackUrl: "/" })}
+          onGoogle={() => { trackLogin("google"); signIn("google", { callbackUrl: "/" }); }}
           onBack={reset}
           t={t}
         />

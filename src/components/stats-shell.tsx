@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { trackStatsView, trackPremiumGate } from "@/lib/analytics";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { moodScore, scoreToEmoji } from "@/lib/mood-scores";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
@@ -251,6 +252,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
   const [insight, setInsight] = useState<{ headline: string; summary: string; locked?: boolean } | null>(null);
 
   useEffect(() => {
+    trackStatsView(period);
     let alive = true;
     setLoading(true);
     setYearBlocked(false);

@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { trackInsightsView, trackShareInsight } from "@/lib/analytics";
 import type { Tier } from "@/lib/tier";
 
 /* ── Types ─────────────────────────────────────────────── */
@@ -62,6 +63,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
   const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    trackInsightsView();
     let alive = true;
     fetch(`/api/insights?locale=${locale}`)
       .then((r) => {
@@ -100,6 +102,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
   const handleShare = useCallback(async () => {
     if (!data) return;
+    trackShareInsight();
     const text = `${data.headline}\n\n${data.summary}`;
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
