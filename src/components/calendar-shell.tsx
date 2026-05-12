@@ -180,8 +180,8 @@ export function CalendarShell({
 
   return (
     <div className="fade-in pb-28">
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-4">
+      {/* ── Header + View toggle ── */}
+      <div className="flex items-center justify-between mb-6">
         <div>
           <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 600 }}>
             {calView === "timeline" && timelineEntries
@@ -232,7 +232,7 @@ export function CalendarShell({
       </div>
 
       {calView === "calendar" ? (
-        <>
+        <div>
       {/* ── AI Summary Card ── */}
       <AiSummaryCard
         data={aiData?.tooFewEntries && !aiData?.summary ? null : aiData}
@@ -299,8 +299,9 @@ export function CalendarShell({
         </div>
       )}
 
-      {/* ── Spacer before grid ── */}
-      <div style={{ height: 8 }} />
+      {/* ── Calendar grid + stats sidebar ── */}
+      <div className="grid-2col">
+      <div>{/* left column */}
 
       {/* ── Monthly Grid ── */}
       {entries === null ? (
@@ -413,7 +414,37 @@ export function CalendarShell({
         month={viewMonth}
         onDateSelect={(date) => setSheetDate(date)}
       />
-        </>
+      </div>{/* end left column */}
+
+      {/* ── Right sidebar stats ── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {[
+          { label: locale === "th" ? "อารมณ์เฉลี่ย" : "Avg Mood", value: stats?.avgMood ? stats.avgMood.toFixed(1) : "—", sub: stats?.avgMoodDelta ? `${stats.avgMoodDelta > 0 ? "↑" : "↓"} ${Math.abs(stats.avgMoodDelta).toFixed(1)} ${locale === "th" ? "จากเดือนก่อน" : "vs last month"}` : "", color: "var(--peach)" },
+          { label: "Streak", value: String(stats?.streak ?? 0), sub: `${locale === "th" ? "วันติดต่อกัน 🔥" : "consecutive days 🔥"}`, color: "var(--purple)" },
+          { label: locale === "th" ? "บันทึก" : "Logged", value: String(stats?.loggedDays ?? 0), sub: `${locale === "th" ? "ครั้งในเดือนนี้" : "this month"}`, color: "var(--mint)" },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ padding: 18, borderLeft: `4px solid ${s.color}` }}>
+            <div className="w-eyebrow">{s.label}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+              <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.value}</span>
+              <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{s.sub}</span>
+            </div>
+          </div>
+        ))}
+
+        {/* mood legend */}
+        <div className="card" style={{ padding: 18 }}>
+          <div className="w-eyebrow" style={{ marginBottom: 10 }}>{locale === "th" ? "คำอธิบายสี" : "Legend"}</div>
+          {DEFAULT_MOODS.slice(0, 6).map(m => (
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
+              <span style={{ width: 14, height: 14, borderRadius: 4, background: m.color }} />
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{locale === "th" ? m.labelTh : m.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      </div>
+      </div>
       ) : (
         <TimelineFeed
           entries={timelineEntries}

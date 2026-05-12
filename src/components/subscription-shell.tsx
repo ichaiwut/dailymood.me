@@ -83,7 +83,7 @@ export function SubscriptionShell() {
   const isTrial = data.subscriptionStatus === "trialing";
 
   return (
-    <div className="fade-in" style={{ paddingBottom: 32 }}>
+    <div className="fade-in center-880" style={{ paddingBottom: 32 }}>
       <TopBar t={t} router={router} />
 
       {!data.isPremium ? (

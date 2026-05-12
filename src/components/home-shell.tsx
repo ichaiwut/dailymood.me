@@ -208,15 +208,65 @@ export function HomeShell({
 
   return (
     <>
-      {/* ── AI COMPOSER CARD (inline) ─── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 24 }} className="home-grid">
+      {/* ── LEFT COLUMN ── */}
+      <div>
+
+      {/* ── GREETING HERO + MOOD PICKER ─── */}
       <section className="mb-6 fade-in" style={{ animationDelay: "40ms" }}>
         <div
           style={{
-            background: "#fff",
-            borderRadius: 24,
+            borderRadius: 18,
+            padding: "32px 36px",
+            background: "linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%)",
+            position: "relative",
+            overflow: "hidden",
+            marginBottom: 24,
+          }}
+        >
+          <div className="w-eyebrow" style={{ color: "var(--purple-strong)", marginBottom: 6 }}>
+            {locale === "th" ? "สวัสดี" : "Hello"} · {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" })}
+          </div>
+          <h1 style={{ fontSize: 30, fontWeight: 800, margin: "4px 0 18px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>
+            {locale === "th" ? "วันนี้คุณรู้สึกยังไง?" : "How are you feeling?"}
+          </h1>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="no-scrollbar">
+            {DEFAULT_MOODS.map((m, i) => (
+              <button
+                key={m.id}
+                onClick={() => setLogMoodId(m.id)}
+                style={{
+                  minWidth: 72,
+                  flex: "0 0 auto",
+                  padding: "14px 6px 10px",
+                  borderRadius: 14,
+                  background: i === 0 ? "#fff" : "rgba(255,255,255,.5)",
+                  border: i === 0 ? "2px solid var(--peach)" : "2px solid transparent",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 6,
+                  fontFamily: "inherit",
+                  boxShadow: i === 0 ? "0 8px 20px -8px rgba(252,164,91,.55)" : "none",
+                }}
+              >
+                <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                  {locale === "th" ? m.labelTh : m.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI COMPOSER CARD ─── */}
+      <section className="mb-6 fade-in" style={{ animationDelay: "60ms" }}>
+        <div
+          className="card"
+          style={{
             padding: "20px 18px",
-            border: "1.5px solid #F0EAF7",
-            boxShadow: "0 10px 30px rgba(166,115,241,0.10)",
             position: "relative",
             overflow: "hidden",
           }}
@@ -280,16 +330,13 @@ export function HomeShell({
 
           {/* Image preview */}
           {composerImagePreview && (
-            <div className="relative mt-2.5">
-              <img src={composerImagePreview} alt="" className="w-full max-h-32 object-cover" style={{ borderRadius: 14 }} />
+            <div style={{ display: "inline-flex", position: "relative", marginTop: 10 }}>
+              <img src={composerImagePreview} alt="" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 12 }} />
               <button
                 onClick={() => { setComposerImage(null); setComposerImagePreview(null); }}
-                className="absolute top-1.5 right-1.5"
-                style={{ width: 24, height: 24, borderRadius: 8, background: "rgba(0,0,0,0.5)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 10 }}
               >
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
-                  <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
+                ×
               </button>
             </div>
           )}
@@ -495,234 +542,122 @@ export function HomeShell({
         </div>
       </section>
 
-      {/* ── MOOD PICKER ROW ─── */}
-      <section className="mb-6 fade-in" style={{ animationDelay: "80ms" }}>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>
-            {locale === "th" ? "หรือแตะเลือกอารมณ์" : "Or just tap a mood"}
-          </h2>
-          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>
-            {stats?.total30d ?? 0} {locale === "th" ? "รายการ" : "logged"}
-          </span>
-        </div>
-
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-2">
-          {DEFAULT_MOODS.map((m) => (
-            <button
-              key={m.id}
-              onClick={() => setLogMoodId(m.id)}
-              aria-label={locale === "th" ? m.labelTh : m.label}
-              className="shrink-0 flex flex-col items-center justify-center gap-1 transition-transform active:scale-95"
-              style={{
-                width: 76,
-                height: 96,
-                background: m.color,
-                borderRadius: 22,
-                fontWeight: 700,
-                color: "#0A0A0A",
-                fontSize: 13,
-                boxShadow: "0 6px 14px rgba(0,0,0,0.06)",
-              }}
-            >
-              <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
-              <span>{locale === "th" ? m.labelTh : m.label}</span>
-            </button>
-          ))}
-          {customMoods.map((m) => (
-            <button
-              key={m.id}
-              onClick={() => setLogMoodId(m.id)}
-              aria-label={locale === "th" && m.labelTh ? m.labelTh : m.label}
-              className="shrink-0 flex flex-col items-center justify-center gap-1 transition-transform active:scale-95"
-              style={{
-                width: 76,
-                height: 96,
-                background: m.color,
-                borderRadius: 22,
-                fontWeight: 700,
-                color: "#0A0A0A",
-                fontSize: 13,
-                boxShadow: "0 6px 14px rgba(0,0,0,0.06)",
-              }}
-            >
-              {m.iconKey ? (
-                <img src={`${R2_PUBLIC_URL}/${m.iconKey}`} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
-              ) : (
-                <span style={{ fontSize: 28, lineHeight: 1 }}>{m.emoji}</span>
-              )}
-              <span>{locale === "th" && m.labelTh ? m.labelTh : m.label}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ── STREAK STRIP ─── */}
+      {/* ── TODAY'S ENTRIES (as cards grid on desktop) ─── */}
       <section className="mb-6 fade-in" style={{ animationDelay: "100ms" }}>
-        <div
-          style={{
-            background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 100%)",
-            borderRadius: 24,
-            padding: "16px 18px",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            boxShadow: "0 14px 30px rgba(166,115,241,0.32)",
-          }}
-        >
-          <div
-            style={{
-              width: 46,
-              height: 46,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.18)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 22,
-              flexShrink: 0,
-            }}
-          >
-            🔥
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, opacity: 0.85 }}>
-              {locale === "th" ? "Streak ต่อเนื่อง" : "You're on a streak"}
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.15, whiteSpace: "nowrap" }}>
-              {streak} {locale === "th" ? "วัน" : "days strong"}
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: 6,
-                  height: 22,
-                  borderRadius: 3,
-                  background: i < streak % 7 || streak >= 7
-                    ? "#fff"
-                    : "rgba(255,255,255,0.3)",
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7-DAY TIMELINE ─── */}
-      <section className="mb-6 fade-in" style={{ animationDelay: "120ms" }}>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>
-            {locale === "th" ? "7 วันที่ผ่านมา" : "Last 7 days"}
-          </h2>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 4 }}>
-          {(stats?.last7 ?? Array.from({ length: 7 }, () => null)).map((day, i) => {
-            const d = day ? new Date(day.date + "T00:00:00") : null;
-            const mood = day?.moodId
-              ? DEFAULT_MOODS.find((m) => m.id === day.moodId)
-              : null;
-            const isToday = d && d.toDateString() === new Date().toDateString();
-            const dayName = d
-              ? d.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "short" })
-              : "";
-            const dayNum = d ? d.getDate() : "";
-
-            return (
-              <div
-                key={i}
-                className="flex flex-col items-center gap-1.5"
-                style={{ flex: 1, minWidth: 0 }}
-              >
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: isToday ? "#A673F1" : "var(--ink-3)",
-                  }}
-                >
-                  {dayName}
-                </span>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 14,
-                    background: mood ? mood.color : "var(--surface-2)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: isToday ? "2px solid #A673F1" : "none",
-                  }}
-                >
-                  {mood ? (
-                    <img src={icon(mood.id)} alt="" width={24} height={24} />
-                  ) : (
-                    <span style={{ fontSize: 11, color: "var(--ink-3)" }}>—</span>
-                  )}
-                </div>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: isToday ? 800 : 500,
-                    color: isToday ? "#A673F1" : "var(--ink-3)",
-                  }}
-                >
-                  {dayNum}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── RECENT ENTRIES ─── */}
-      <section className="fade-in pb-28" style={{ animationDelay: "140ms" }}>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", margin: 0 }}>
             {t("todayEntries")}
           </h2>
-          <span
-            style={{ fontSize: 13, color: "#A673F1", fontWeight: 700, cursor: "pointer" }}
-          >
-            {t("seeAll")} →
+          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>
+            {stats?.total30d ?? 0} {locale === "th" ? "entry · กิจกรรม" : "entries"}
           </span>
         </div>
 
+        {/* Day axis */}
+        <div className="card" style={{ padding: "20px 24px", marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--ink-3)", fontWeight: 700, marginBottom: 8 }}>
+            {["6:00","9:00","12:00","15:00","18:00","21:00","24:00"].map(tt => <span key={tt}>{tt}</span>)}
+          </div>
+          <div style={{ height: 4, background: "var(--surface-2)", borderRadius: 100, position: "relative" }}>
+            {entries && entries.slice(0, 3).map((e, i) => {
+              const h = new Date(e.createdAt).getHours();
+              const p = Math.min(95, Math.max(5, ((h - 6) / 18) * 100));
+              const mood = DEFAULT_MOODS.find(m => m.id === e.moodTypeId);
+              return (
+                <div key={i} style={{ position: "absolute", left: `${p}%`, top: -6, width: 16, height: 16, borderRadius: "50%", background: mood?.color ?? "var(--ink-3)", border: "2px solid #fff", boxShadow: "0 2px 6px rgba(0,0,0,.15)" }} />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Entries grid (3-col desktop, scroll mobile) */}
         {entries === null ? (
-          <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="shrink-0"
-                style={{
-                  width: 200,
-                  height: 120,
-                  borderRadius: 18,
-                  background: "var(--surface-2)",
-                  opacity: 0.5,
-                }}
-              />
+              <div key={i} className="card" style={{ height: 140, opacity: 0.5 }} />
             ))}
           </div>
         ) : entries.length > 0 ? (
-          <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
-            {entries.map((entry) => (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+            {entries.slice(0, 6).map((entry) => (
               <EntryCard key={entry.id} entry={entry} locale={locale} blur={hidePreview} pack={pack} iconFormat={iconFormat} />
             ))}
           </div>
         ) : (
-          <div
-            className="text-center py-10"
-            style={{ color: "var(--ink-3)", fontSize: 15 }}
-          >
+          <div className="text-center py-10" style={{ color: "var(--ink-3)", fontSize: 15 }}>
             {t("emptyTitle")}
           </div>
         )}
       </section>
+
+      </div>{/* end left column */}
+
+      {/* ── RIGHT COLUMN (sidebar) ── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+        {/* AI weekly summary (dark card) */}
+        <AiSidebarCard tier={tier} locale={locale} />
+
+        {/* Streak */}
+        <div className="card" style={{ padding: 20 }}>
+          <div className="w-eyebrow" style={{ marginBottom: 10 }}>STREAK</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14 }}>
+            <span style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-0.03em" }}>{streak}</span>
+            <span style={{ color: "var(--ink-3)", fontSize: 14 }}>{locale === "th" ? "วันติดต่อกัน" : "consecutive days"}</span>
+            <span style={{ marginLeft: "auto", fontSize: 28 }}>🔥</span>
+          </div>
+          <div style={{ display: "flex", gap: 4 }}>
+            {Array.from({ length: 14 }).map((_, i) => (
+              <div key={i} style={{ flex: 1, height: 24, borderRadius: 4, background: i < streak ? "var(--peach)" : "var(--surface-2)" }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Mini calendar */}
+        <div className="card" style={{ padding: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 800 }}>
+              {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { month: "long", year: "numeric" })}
+            </span>
+            <Link href={"/calendar" as "/"} style={{ fontSize: 12, color: "var(--purple-strong)", textDecoration: "none", fontWeight: 700 }}>
+              {locale === "th" ? "ดูทั้งหมด →" : "View all →"}
+            </Link>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 8 }}>
+            {(locale === "th" ? ["อา","จ","อ","พ","พฤ","ศ","ส"] : ["Su","Mo","Tu","We","Th","Fr","Sa"]).map(d => (
+              <div key={d} style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-3)", textAlign: "center" }}>{d}</div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+            {Array.from({ length: 35 }).map((_, i) => {
+              const today = new Date().getDate();
+              const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay();
+              const d = i - firstDay + 1;
+              const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+              if (d < 1 || d > daysInMonth) return <div key={i} />;
+              const filled = d <= today;
+              const palette = ["var(--peach)", "var(--yellow)", "var(--mint)", "var(--lavender)", "var(--blue)", "var(--purple)"];
+              const c = filled ? palette[(d * 3) % palette.length] : "transparent";
+              return (
+                <div key={i} style={{
+                  aspectRatio: "1",
+                  borderRadius: 6,
+                  background: filled ? c : "var(--surface-2)",
+                  border: d === today ? "2px solid var(--ink)" : "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: filled ? "#fff" : "var(--ink-3)",
+                }}>{d}</div>
+              );
+            })}
+          </div>
+        </div>
+      </div>{/* end right column */}
+
+      </div>{/* end home-grid */}
 
       {/* ── SMART LOG MODAL ─── */}
       {logMoodId && (
@@ -763,6 +698,51 @@ export function HomeShell({
   );
 }
 
+function AiSidebarCard({ tier, locale }: { tier: Tier; locale: string }) {
+  const [insight, setInsight] = useState<{ headline: string; summary: string } | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/insights?locale=${locale}&cacheOnly=1`)
+      .then((r) => r.ok ? r.json() as Promise<Record<string, unknown>> : null)
+      .then((json) => {
+        if (!json || json.empty || json.tooFewEntries) return;
+        setInsight({ headline: json.headline as string, summary: json.summary as string });
+      })
+      .catch(() => {});
+  }, [locale]);
+
+  return (
+    <div className="card" style={{ padding: 20, background: "linear-gradient(155deg, #1A1320 0%, #2A1F33 100%)", color: "#fff", border: "none" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#FFC899" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <span style={{ fontSize: 11, fontWeight: 800, color: "#FFC899", letterSpacing: ".05em" }}>AI · {locale === "th" ? "สัปดาห์นี้" : "This week"}</span>
+        {tier !== "premium" && (
+          <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, background: "rgba(255,255,255,.2)", color: "#FFC899", padding: "2px 8px", borderRadius: 50 }}>PRO</span>
+        )}
+      </div>
+      <div style={{ fontSize: 14, lineHeight: 1.55, color: "rgba(255,255,255,.92)" }}>
+        {insight && tier === "premium" ? (
+          <span style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{insight.summary}</span>
+        ) : insight ? (
+          <span>{insight.headline}</span>
+        ) : (
+          locale === "th"
+            ? "AI สรุปอารมณ์ประจำสัปดาห์ วิเคราะห์ pattern และแนะนำสิ่งที่ช่วยให้ดีขึ้น"
+            : "Weekly mood summary, pattern analysis, and personalized suggestions"
+        )}
+      </div>
+      <Link
+        href={(tier === "premium" ? "/insights" : "/pricing") as "/"}
+        style={{ marginTop: 14, display: "inline-block", background: "rgba(255,255,255,.1)", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 100, fontWeight: 700, fontSize: 12, textDecoration: "none" }}
+      >
+        {tier === "premium"
+          ? (locale === "th" ? "เปิด AI Insights →" : "Open AI Insights →")
+          : (locale === "th" ? "อัปเกรด Pro →" : "Upgrade to Pro →")}
+      </Link>
+    </div>
+  );
+}
+
 function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { entry: Entry; locale: string; blur?: boolean; pack?: string; iconFormat?: string }) {
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
   const date = new Date(entry.createdAt);
@@ -776,16 +756,14 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
   return (
     <Link
       href={`/entry/${entry.id}` as "/"}
-      className="shrink-0 block transition active:scale-[0.97]"
+      className="block transition active:scale-[0.97] card"
       style={{
-        width: 200,
-        background: "#fff",
-        borderRadius: 20,
-        padding: "14px 16px",
-        border: "1.5px solid #F0EAF7",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+        padding: 16,
         textDecoration: "none",
         color: "inherit",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
       }}
     >
       <div className="flex items-center gap-2.5 mb-2">
@@ -809,8 +787,11 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
           </div>
         </div>
       </div>
+      {entry.imageUrl && (
+        <img src={entry.imageUrl} alt="" style={{ width: "100%", height: 80, objectFit: "cover", borderRadius: 8 }} />
+      )}
       {entry.note && (
-        <p className="line-clamp-2" style={{ fontSize: 12, color: "#5A5A5A", lineHeight: 1.4, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
+        <p className="line-clamp-2" style={{ fontSize: 12, color: "var(--ink-2)", lineHeight: 1.4, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
           {entry.note}
         </p>
       )}

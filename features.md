@@ -3,15 +3,16 @@
 ## Tech Stack
 - **Framework:** Next.js (App Router) + TypeScript
 - **API:** REST API via Next.js Route Handlers (`/api/*`) — รองรับ Mobile App ในอนาคต
-- **Database:** Cloudflare D1 (SQLite) + Drizzle ORM
-- **Auth:** NextAuth.js (Google OAuth)
-- **AI:** Google Gemini (gemini-2.0-flash, NLP + Vision)
+- **Database:** PostgreSQL (Railway) + Drizzle ORM
+- **Auth:** NextAuth.js (Google OAuth + Credentials)
+- **AI:** Google Gemini (gemini-2.5-flash, NLP + Vision)
 - **Email:** Resend
 - **Payment:** Stripe (test mode; gating ทำผ่าน `users.isPremium` flag)
 - **Image Storage:** Cloudflare R2 (signed read URLs, 1-hour TTL)
 - **Styling:** Tailwind CSS
-- **Deploy:** Cloudflare Pages + Workers (`@cloudflare/next-on-pages`)
+- **Deploy:** Railway
 - **i18n:** TH / EN
+- **Admin notifications:** LINE Messaging API (push message to admin on signup/payment)
 
 ## Target Audience
 - เปิดให้คนทั่วไปใช้ (public)
@@ -112,6 +113,9 @@
 - [x] Feedback Hub (`/admin/feedback`) — two-panel layout: user feedback messages (paginated, deletable, linked to user detail) + AI suggestion feedback aggregation (title, thumbs up/down/routine counts).
 - [x] Mood Pack Manager (`/admin/packs`) — CRUD for mood icon packs. Create pack (ID + label + premium flag), edit label/premium, delete (resets users to default). Upload 7 SVG icons per pack to R2 (`{packId}/{moodId}.svg`). Icon preview grid. DB: `mood_packs` table (id, label, premium, createdAt). API: `GET/POST /api/admin/packs`, `GET/PATCH/DELETE /api/admin/packs/[id]`, `POST /api/admin/packs/[id]/upload`. User-facing: `GET /api/moods/packs` returns dynamic pack list.
 
+#### Admin Notifications
+- [x] LINE OA — Push message to admin LINE account on new user signup (Credentials + Google) and successful Stripe checkout. Fire-and-forget via `notifyAdmin()` in `src/lib/line.ts`. Env vars (Railway production only): `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`
+
 #### Localization
 - [x] i18n — TH/EN (next-intl)
 
@@ -151,7 +155,7 @@
 | POST | `/api/stripe/portal` | auth | Create Stripe Customer Portal session (return_url: /profile/subscription) |
 | POST | `/api/stripe/webhook` | — | Stripe webhook: checkout.session.completed, customer.subscription.updated/deleted → sync isPremium + subscription columns |
 
-## Database Schema (Drizzle on D1)
+## Database Schema (Drizzle on PostgreSQL)
 
 - `users` — id, email, image, **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, locale, **bio**, **accentColor**, createdAt
 - `accounts`, `sessions` — NextAuth
@@ -169,19 +173,17 @@
 
 Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
-## Setup Notes (Cloudflare)
+## Setup Notes (Railway)
 
 ```bash
-# Create D1 + R2
-wrangler d1 create dailymood          # paste id into wrangler.toml
-wrangler r2 bucket create dailymood   # already exists
+# Local dev
+npm run dev
 
-# Migrate + seed
-npm run db:migrate:local && npm run db:seed:local
-npm run db:migrate:prod  && npm run db:seed:prod
+# Build
+npm run build
 
-# Local dev (after pages:build)
-npm run pages:build && npm run pages:dev
+# Deploy (auto via git push to Railway)
+git push origin master
 ```
 
-Required env: `R2_ACCOUNT_ID` (new — needed for SigV4 signed URLs).
+Required env (Railway): `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `R2_ACCOUNT_ID`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `RESEND_API_KEY`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `ADMIN_EMAIL`, `CRON_SECRET`, `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`.

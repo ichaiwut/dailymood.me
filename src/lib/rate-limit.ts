@@ -11,40 +11,46 @@ export function clientIp(req: NextRequest): string {
   return "unknown";
 }
 
-// Fixed-window rate limit on D1.
-// Returns { ok: true } if allowed; { ok: false, retryAfterSec } when over limit.
 export async function rateLimit(opts: {
   key: string;
   limit: number;
   windowSec: number;
 }): Promise<{ ok: true } | { ok: false; retryAfterSec: number }> {
   const db = getDb();
-  const nowMs = Date.now();
-  const nowSec = Math.floor(nowMs / 1000);
-  const resetAtSec = nowSec + opts.windowSec;
-  const resetAt = new Date(resetAtSec * 1000);
+  const now = new Date();
+  const resetAt = new Date(now.getTime() + opts.windowSec * 1000);
 
-  await db
-    .insert(rateLimits)
-    .values({ key: opts.key, count: 1, resetAt })
-    .onConflictDoUpdate({
-      target: rateLimits.key,
-      set: {
-        count: sql`CASE WHEN ${rateLimits.resetAt} < ${nowSec} THEN 1 ELSE ${rateLimits.count} + 1 END`,
-        resetAt: sql`CASE WHEN ${rateLimits.resetAt} < ${nowSec} THEN ${resetAtSec} ELSE ${rateLimits.resetAt} END`,
-      },
-    });
-
-  const [row] = await db
+  const [existing] = await db
     .select({ count: rateLimits.count, resetAt: rateLimits.resetAt })
     .from(rateLimits)
     .where(sql`${rateLimits.key} = ${opts.key}`)
     .limit(1);
 
-  if (!row) return { ok: true };
-  if (row.count > opts.limit) {
-    const retryAfter = Math.max(1, Math.ceil(row.resetAt.getTime() / 1000) - nowSec);
-    return { ok: false, retryAfterSec: retryAfter };
+  if (!existing) {
+    await db.insert(rateLimits).values({ key: opts.key, count: 1, resetAt });
+    return { ok: true };
   }
+
+  const windowExpired = existing.resetAt < now;
+
+  if (windowExpired) {
+    await db
+      .update(rateLimits)
+      .set({ count: 1, resetAt })
+      .where(sql`${rateLimits.key} = ${opts.key}`);
+    return { ok: true };
+  }
+
+  const newCount = existing.count + 1;
+  await db
+    .update(rateLimits)
+    .set({ count: newCount })
+    .where(sql`${rateLimits.key} = ${opts.key}`);
+
+  if (newCount > opts.limit) {
+    const retryAfterSec = Math.max(1, Math.ceil((existing.resetAt.getTime() - now.getTime()) / 1000));
+    return { ok: false, retryAfterSec };
+  }
+
   return { ok: true };
 }

@@ -166,395 +166,172 @@ export function SmartLogModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 fade-in" style={{ background: "#FEFEFE" }}>
+    <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)" }}>
       <div
-        className="flex flex-col h-full mx-auto w-full max-w-lg"
-        style={{ padding: "0 20px env(safe-area-inset-bottom)" }}
+        className="flex flex-col mx-auto w-full"
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          maxWidth: 720,
+          width: "calc(100% - 32px)",
+          maxHeight: "90vh",
+          background: "#fff",
+          borderRadius: 22,
+          boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)",
+          overflow: "hidden",
+        }}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between py-3.5">
-          <button onClick={onClose} className="icon-btn" style={{ width: 40, height: 40, borderRadius: 12 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-          <span style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>
-            {locale === "th" ? "บันทึกใหม่" : "New entry"}
-          </span>
-          <button
-            onClick={handleSave}
-            disabled={busy || analyzing}
-            style={{
-              background: "transparent", border: "none",
-              fontWeight: 700, color: "#A673F1", fontSize: 15,
-              opacity: busy || analyzing ? 0.4 : 1,
-            }}
-          >
-            {locale === "th" ? "บันทึก" : "Save"}
+        <div className="flex items-center justify-between" style={{ padding: "22px 28px", borderBottom: "1px solid var(--hairline)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)" }}>
+              {locale === "th" ? "บันทึกด้วย AI" : "Smart Log AI"}
+            </span>
+          </div>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="var(--ink-2)" strokeWidth="1.8" strokeLinecap="round" /></svg>
           </button>
         </div>
 
-        {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto no-scrollbar" style={{ paddingBottom: 100 }}>
+        {/* ── Content ── */}
+        <div style={{ padding: 28 }}>
+          {/* Textarea */}
+          <textarea
+            value={text}
+            onChange={(e) => { setText(e.target.value); if (suggestion) setSuggestion(null); }}
+            className="w-textarea"
+            placeholder={locale === "th" ? "วันนี้รู้สึกยังไง พิมพ์เหมือนคุยกับเพื่อน..." : "How are you feeling? Write like you're talking to a friend..."}
+            style={{ minHeight: 130, fontSize: 16, lineHeight: 1.6 }}
+          />
 
-          {/* ── HERO CARD ── */}
-          <div
-            style={{
-              background: selectedMood
-                ? `linear-gradient(135deg, ${selectedMood.color} 0%, ${selectedMood.color}CC 100%)`
-                : "linear-gradient(135deg, #FCA45B 0%, #FEAD8D 100%)",
-              borderRadius: 28,
-              padding: "20px 20px 16px",
-              marginBottom: 20,
-              position: "relative",
-            }}
-          >
-            {/* Date */}
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-              marginBottom: 8,
-            }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.7)", letterSpacing: 0.4 }}>
-                {locale === "th" ? "รู้สึก" : "FEELING"}
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>
-                {dateFull} · {timeLabel}
-              </div>
+          {/* Mood picker */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", flexShrink: 0 }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              {allMoods.slice(0, 7).map((m) => (
+                <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                  <img src={iconSrc(m)} alt="" width={24} height={24} />
+                </button>
+              ))}
             </div>
-
-            {/* Mood name + icon */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div>
-                <div style={{ fontSize: 32, fontWeight: 800, color: "#fff", lineHeight: 1.1 }}>
-                  {selectedMood ? selectedMood.label : "Neutral"}
-                </div>
-                {selectedMood?.labelTh && (
-                  <div style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>
-                    {selectedMood.labelTh}
-                  </div>
-                )}
-              </div>
-              {selectedMood && (
-                <img
-                  src={iconSrc(selectedMood)}
-                  alt=""
-                  width={72}
-                  height={72}
-                  style={{ flexShrink: 0, filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.15))" }}
-                />
-              )}
-            </div>
-
-            {/* Change mood */}
-            <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: 0.4, marginBottom: 8 }}>
-              {locale === "th" ? "เปลี่ยนอารมณ์" : "CHANGE MOOD"}
-            </div>
-            <div style={{ position: "relative" }}>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar" style={{ marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 48 }}>
-                {allMoods.map((m) => {
-                  const active = m.id === moodId;
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => setMoodId(m.id)}
-                      className="shrink-0 flex flex-col items-center gap-1 transition active:scale-95"
-                      style={{
-                        width: 64, padding: "8px 0 6px",
-                        borderRadius: 14,
-                        background: active ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.15)",
-                        border: active ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <img src={iconSrc(m)} alt="" width={28} height={28} style={{ pointerEvents: "none" }} />
-                      <span style={{ fontSize: 14, fontWeight: active ? 800 : 600, color: "#fff" }}>
-                        {locale === "th" && m.labelTh ? m.labelTh : m.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Scroll hint chevron */}
-              <div style={{
-                position: "absolute", right: -16, top: 0, bottom: 0,
-                display: "flex", alignItems: "center",
-                pointerEvents: "none",
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 6l6 6-6 6" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* ── NOTE ── */}
-          <div className="mb-5">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4 }}>
-                {locale === "th" ? "บันทึก" : "NOTE"}
-              </span>
-              <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
-                {locale === "th" ? "ไม่บังคับ" : "Optional"}
-              </span>
-            </div>
-            <textarea
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                if (suggestion) setSuggestion(null);
-              }}
-              placeholder={locale === "th" ? "วันนี้เป็นยังไงบ้าง..." : "What made you feel this way?"}
-              rows={3}
-              className="w-full resize-none"
-              style={{
-                background: "#fff",
-                color: "var(--ink)",
-                borderRadius: 18,
-                border: "1.5px solid var(--hairline)",
-                padding: "14px 16px",
-                fontSize: 15,
-                lineHeight: 1.5,
-                outline: "none",
-                fontFamily: "inherit",
-              }}
-            />
           </div>
 
           {/* Image preview */}
           {imagePreview && (
-            <div className="relative mb-4">
-              <img src={imagePreview} alt="" className="w-full max-h-40 object-cover" style={{ borderRadius: 16 }} />
-              <button
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-                className="absolute top-2 right-2 icon-btn"
-                style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.5)", color: "#fff" }}
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                  <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
+            <div className="relative mt-3">
+              <img src={imagePreview} alt="" className="w-full max-h-40 object-cover" style={{ borderRadius: 12 }} />
+              <button onClick={() => { setImageFile(null); setImagePreview(null); }} style={{ position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,.5)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </button>
             </div>
           )}
 
-          {/* ── Suggest tags with AI ── */}
-          {!suggestion && !analyzing && (
-            <button
-              onClick={handleAnalyze}
-              disabled={!hasInput || aiCooldown}
-              className="w-full flex items-center justify-center gap-2 transition active:scale-[0.98] mb-5"
-              style={{
-                height: 44,
-                background: "transparent",
-                color: "#A673F1",
-                border: "1.5px solid #E6DBF7",
-                borderRadius: 14,
-                fontWeight: 700,
-                fontSize: 14,
-                opacity: !hasInput || aiCooldown ? 0.4 : 1,
-                position: "relative",
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#A673F1" />
-              </svg>
-              {analyzing
-                ? (locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing...")
-                : (locale === "th" ? "แนะนำ tags ด้วย AI" : "Suggest tags with AI")}
-              {tier !== "premium" && (
-                <span style={{
-                  position: "absolute", top: -6, right: -4,
-                  background: "#0A0A0A", color: "#fff",
-                  fontSize: 9, fontWeight: 800,
-                  padding: "2px 6px", borderRadius: 5,
-                  letterSpacing: "0.3px", lineHeight: 1.3,
-                }}>
-                  PRO
-                </span>
-              )}
-            </button>
+          {/* Mic + Image buttons + AI count */}
+          <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "center" }}>
+            <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
+            <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "#fff", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 13, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <span>{locale === "th" ? "รูป" : "Photo"}</span>
+              {tier !== "premium" && <span style={{ position: "absolute", top: -6, right: -4, background: "var(--ink)", color: "#fff", fontSize: 8, fontWeight: 800, padding: "1px 5px", borderRadius: 4 }}>PRO</span>}
+              {tier === "premium" && <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); } }} />}
+            </label>
+            <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>
+              {tier === "premium" ? "" : (locale === "th" ? "AI ฟรี 1/วัน" : "1 free AI/day")}
+            </span>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 12, background: aiCooldown ? "#F4EEFB" : "#FEF0F0", border: aiCooldown ? "1px solid #E6DBF7" : "1px solid #F5D0D0" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: aiCooldown ? "#7A4DD0" : "#D14343", margin: 0 }}>
+                {aiCooldown ? error : (t(`err.${error}` as never) || (locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong."))}
+              </p>
+            </div>
           )}
 
           {/* AI analyzing state */}
           {analyzing && (
-            <div className="fade-in mb-5" style={{
-              padding: "14px 16px", borderRadius: 16,
-              background: "#F4EBFE", border: "1px solid #E6DBF7",
-              display: "flex", alignItems: "center", gap: 10,
-            }}>
-              <div className="pulse" style={{
-                width: 24, height: 24, borderRadius: 7,
-                background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
-              }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor" /></svg>
+            <div className="fade-in" style={{ marginTop: 24, textAlign: "center", padding: 32 }}>
+              <div className="pulse" style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", margin: "0 auto 14px" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor" /></svg>
               </div>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#7A4DD0" }}>
-                {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI is reading your day..."}
-              </span>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>{locale === "th" ? "AI กำลังวิเคราะห์..." : "AI analyzing..."}</div>
+              <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{locale === "th" ? "ใช้เวลาประมาณ 2-3 วินาที" : "Takes about 2-3 seconds"}</div>
             </div>
           )}
 
-          {/* Error */}
-          {error && (
-            <div className="mb-4" style={{
-              padding: "12px 16px", borderRadius: 14,
-              background: aiCooldown ? "#F4EEFB" : "#FEF0F0",
-              border: aiCooldown ? "1px solid #E6DBF7" : "1px solid #F5D0D0",
-            }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: aiCooldown ? "#7A4DD0" : "#D14343" }}>
-                {aiCooldown ? error : (t(`err.${error}` as never) || (locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong. Try again."))}
-              </p>
-            </div>
-          )}
-
-          {/* ── TAGS ── */}
-          <div className="mb-5">
-            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, marginBottom: 10 }}>
-              TAGS
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="flex items-center gap-1.5"
-                  style={{
-                    background: "#F4F2F7",
-                    padding: "7px 12px",
-                    borderRadius: 100,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "var(--ink)",
-                  }}
-                >
-                  <span>🏷️</span>
-                  {tag}
-                  <button
-                    onClick={() => setTags((p) => p.filter((_, j) => j !== i))}
-                    style={{ color: "var(--ink-3)", display: "flex", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
-                      <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              {/* + Add tag input */}
-              <form
-                onSubmit={(e) => { e.preventDefault(); addTag(); }}
-                className="flex items-center"
-              >
-                <input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  placeholder={locale === "th" ? "+ เพิ่ม" : "+ Add"}
-                  style={{
-                    width: tagInput ? 120 : 70,
-                    padding: "7px 12px",
-                    borderRadius: 100,
-                    border: "1.5px dashed var(--hairline-2)",
-                    background: "transparent",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "var(--primary)",
-                    outline: "none",
-                    transition: "width 0.2s",
-                    fontFamily: "inherit",
-                  }}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
-                />
-              </form>
-            </div>
-          </div>
-
-          {/* Pro teaser */}
-          {!suggestion && tier !== "premium" && (
-            <a
-              href="/pricing"
-              style={{
-                display: "block", textDecoration: "none", marginBottom: 16,
-                background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
-                borderRadius: 18, padding: "16px 18px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8,
-                  background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
+          {/* AI suggestion result */}
+          {suggestion && !analyzing && (
+            <div style={{ marginTop: 24, padding: 18, borderRadius: 14, background: "linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--purple-strong)", textTransform: "uppercase", letterSpacing: ".05em" }}>{locale === "th" ? "AI วิเคราะห์ให้" : "AI ANALYSIS"}</span>
+                <span style={{ fontSize: 11, color: "var(--ink-3)" }}>· {locale === "th" ? "แก้ไขได้" : "editable"}</span>
+              </div>
+              {/* Mood picker */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {allMoods.slice(0, 7).map((m) => (
+                    <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                      <img src={iconSrc(m)} alt="" width={24} height={24} />
+                    </button>
+                  ))}
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>PRO</span>
               </div>
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 6 }}>
-                {locale === "th"
-                  ? "AI อ่านสิ่งที่คุณเขียน แล้วสรุปอารมณ์ แท็ก และ insight ให้อัตโนมัติ"
-                  : "AI reads what you write and extracts mood, tags, and insights automatically"}
+              {/* Tags */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)", minWidth: 50 }}>{locale === "th" ? "แท็ก:" : "Tags:"}</span>
+                {tags.map((tag, i) => (
+                  <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 100, background: "#fff", color: "var(--ink)", border: "1px solid var(--hairline)", fontSize: 12, fontWeight: 600 }}>
+                    #{tag}
+                    <button onClick={() => setTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex" }}>×</button>
+                  </span>
+                ))}
+                <form onSubmit={(e) => { e.preventDefault(); addTag(); }} style={{ display: "inline-flex" }}>
+                  <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder={locale === "th" ? "+ เพิ่ม" : "+ Add"} style={{ width: tagInput ? 100 : 60, padding: "4px 10px", borderRadius: 100, background: "transparent", border: "1px dashed var(--hairline-2)", color: "var(--ink-3)", fontFamily: "inherit", fontSize: 12, outline: "none" }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} />
+                </form>
+              </div>
+              {/* Summary */}
+              {suggestion.aiSummary && (
+                <div style={{ padding: 12, background: "rgba(255,255,255,.6)", borderRadius: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>{locale === "th" ? "สรุป" : "Summary"}</div>
+                  <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pro teaser (no suggestion yet, free user) */}
+          {!suggestion && !analyzing && tier !== "premium" && (
+            <a href="/pricing" style={{ display: "block", textDecoration: "none", marginTop: 18, background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)", borderRadius: 14, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#A673F1" }}>PRO</span>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, margin: 0 }}>
+                {locale === "th" ? "AI อ่านสิ่งที่คุณเขียน แล้วสรุปอารมณ์ แท็ก และ insight ให้อัตโนมัติ" : "AI reads your text and extracts mood, tags, and insights automatically"}
+                {" "}<span style={{ fontWeight: 700, color: "#A673F1" }}>{locale === "th" ? "อัปเกรด →" : "Upgrade →"}</span>
               </p>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
-                {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
-              </span>
             </a>
           )}
-        </div>
 
-        {/* ── Fixed bottom bar ── */}
-        <div style={{
-          position: "fixed", bottom: 0, left: 0, right: 0,
-          padding: "12px 20px calc(12px + env(safe-area-inset-bottom))",
-          background: "linear-gradient(transparent, #FEFEFE 20%)",
-        }}>
-          <div className="mx-auto max-w-lg flex items-center gap-3">
-            <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
-            <label
-              className="icon-btn"
-              style={{
-                width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                cursor: tier === "premium" ? "pointer" : "default",
-                opacity: tier === "premium" ? 1 : 0.45,
-                position: "relative",
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {tier !== "premium" && (
-                <span style={{
-                  position: "absolute", top: -4, right: -6,
-                  background: "#0A0A0A", color: "#fff",
-                  fontSize: 8, fontWeight: 800,
-                  padding: "1px 4px", borderRadius: 4,
-                  letterSpacing: "0.3px", lineHeight: 1.3,
-                }}>PRO</span>
-              )}
-              {tier === "premium" && (
-                <input
-                  type="file" accept="image/*" className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); }
-                  }}
-                />
-              )}
-            </label>
-            <button
-              onClick={handleSave}
-              disabled={busy || analyzing}
-              className="flex-1 flex items-center justify-center gap-2"
-              style={{
-                height: 52,
-                background: "#0A0A0A", color: "#fff",
-                border: "none", borderRadius: 100,
-                fontWeight: 700, fontSize: 16,
-                opacity: busy || analyzing ? 0.4 : 1,
-              }}
-            >
-              {busy
-                ? (locale === "th" ? "กำลังบันทึก..." : "Saving...")
-                : suggestion
-                  ? (locale === "th" ? "บันทึกพร้อม AI" : "Save with AI")
-                  : (locale === "th" ? "บันทึก" : "Save entry")}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+          {/* Action buttons */}
+          <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+            <button onClick={onClose} className="w-btn w-btn-ghost">{locale === "th" ? "ยกเลิก" : "Cancel"}</button>
+            {!suggestion && !analyzing && (
+              <button onClick={handleAnalyze} disabled={!hasInput || aiCooldown} className="w-btn" style={{ background: "#fff", border: "1px solid var(--hairline)", opacity: !hasInput || aiCooldown ? 0.4 : 1 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" /></svg>
+                {locale === "th" ? "วิเคราะห์" : "Analyze"}
+              </button>
+            )}
+            <button onClick={handleSave} disabled={busy || analyzing} className="w-btn w-btn-primary" style={{ opacity: busy || analyzing ? 0.4 : 1 }}>
+              {busy ? (locale === "th" ? "กำลังบันทึก..." : "Saving...") : (locale === "th" ? "บันทึก" : "Save")}
             </button>
           </div>
         </div>

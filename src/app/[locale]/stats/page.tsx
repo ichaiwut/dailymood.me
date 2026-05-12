@@ -12,11 +12,5 @@ export default async function StatsPage() {
     redirect({ href: "/login", locale });
   }
 
-  return (
-    <main className="flex-1 px-5 pb-28">
-      <div className="mx-auto w-full max-w-[768px]">
-        <StatsShell tier={tier} moodPack={moodPack} iconFormat={iconFormat} />
-      </div>
-    </main>
-  );
+  return <StatsShell tier={tier} moodPack={moodPack} iconFormat={iconFormat} />;
 }

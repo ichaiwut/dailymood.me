@@ -12,11 +12,5 @@ export default async function AchievementsPage() {
     redirect({ href: "/login", locale });
   }
 
-  return (
-    <main className="flex-1 px-5 pb-28">
-      <div className="mx-auto w-full max-w-[768px]">
-        <AchievementsShell />
-      </div>
-    </main>
-  );
+  return <AchievementsShell />;
 }

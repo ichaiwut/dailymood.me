@@ -65,7 +65,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
   const isAi = entry.aiSource !== "manual";
 
   return (
-    <div className="fade-in">
+    <div className="fade-in center-720">
       {/* ── Header ── */}
       <div className="flex items-center justify-between py-4">
         <button

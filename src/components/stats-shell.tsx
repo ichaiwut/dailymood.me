@@ -234,7 +234,7 @@ function ActivityBar({ impact }: { impact: number }) {
     <svg viewBox={`0 0 ${barW} 10`} width={barW} height={10} style={{ flexShrink: 0 }}>
       <rect x={0} y={3} width={barW} height={4} rx={2} fill="#F2F0F5" />
       <line x1={mid} y1={0} x2={mid} y2={10} stroke="#E0DDE5" strokeWidth={1} />
-      <rect x={x} y={2} width={len} height={6} rx={3} fill={isPositive ? "#A673F1" : "#FEAD8D"} />
+      <rect x={x} y={2} width={len} height={6} rx={3} fill={isPositive ? "var(--mint)" : "#F4A8A8"} />
     </svg>
   );
 }
@@ -314,10 +314,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
       {/* ── HEADER ─── */}
       <section className="mb-5 fade-in" style={{ paddingTop: 8 }}>
         <div className="flex items-center justify-between">
-          <div>
-            <div style={{ fontSize: 13, color: "var(--ink-3, #999)" }}>{periodScopeLabel[period]}</div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink, #1a1a1a)", margin: 0 }}>{t("title")}</h1>
-          </div>
+          <h1 style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.02em" }}>{t("title")}</h1>
           <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2 }}>
             {PERIODS.map((p) => (
               <button
@@ -449,6 +446,22 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
             </div>
           </section>
 
+          {/* ── 4-COLUMN STAT CARDS ─── */}
+          <section className="mb-5 fade-in grid-stats-4" style={{ animationDelay: "30ms" }}>
+            {[
+              { l: t("avgMood"), v: avgScore != null ? avgScore.toFixed(1) : "—", d: avgDelta ? `${avgDelta > 0 ? "+" : ""}${avgDelta.toFixed(1)} ↑` : "", dc: "var(--mint)" },
+              { l: t("entries") || "Entries", v: String(stats?.total ?? 0), d: periodScopeLabel[period], dc: "var(--ink-3)" },
+              { l: "Streak", v: `${stats?.streak ?? 0} 🔥`, d: "", dc: "var(--ink-3)" },
+              { l: t("moodMix") || "Top mood", v: avgEmoji || "—", d: "", dc: "var(--ink-3)" },
+            ].map(s => (
+              <div key={s.l} className="card" style={{ padding: 18 }}>
+                <div className="w-eyebrow">{s.l}</div>
+                <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginTop: 6 }}>{s.v}</div>
+                {s.d && <div style={{ fontSize: 12, color: s.dc, fontWeight: 600, marginTop: 2 }}>{s.d}</div>}
+              </div>
+            ))}
+          </section>
+
           {/* ── MOOD LINE CHART CARD ─── */}
           <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
             <div style={CARD}>
@@ -484,14 +497,29 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
             </div>
           </section>
 
-          {/* ── 2-COLUMN GRID ─── */}
+          {/* ── TREND + DONUT (2fr 1fr grid like design) ─── */}
           <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
-            <div className="grid grid-cols-2 gap-4" style={{ maxWidth: 480 }}>
-              {/* Mood Mix */}
-              <div style={{ ...CARD, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div style={{ ...LABEL, marginBottom: 8, alignSelf: "flex-start" }}>{t("moodMix")}</div>
-                <div style={{ width: 110, height: 110, margin: "4px 0 10px" }}>
-                  <MoodDonut distribution={distribution} period={period} locale={locale} />
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
+              {/* Mood Mix Donut */}
+              <div style={CARD}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 18px" }}>{t("moodMix")}</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+                  <div style={{ width: 120, height: 120, flexShrink: 0 }}>
+                    <MoodDonut distribution={distribution} period={period} locale={locale} />
+                  </div>
+                  <div style={{ fontSize: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                    {Object.entries(distribution).filter(([,v]) => v > 0).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([id, count]) => {
+                      const m = moodById(id);
+                      const total = Object.values(distribution).reduce((s,v) => s+v, 0);
+                      return m ? (
+                        <div key={id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
+                          <span style={{ minWidth: 50 }}>{locale === "th" ? m.labelTh : m.label}</span>
+                          <span style={{ color: "var(--ink-3)", fontWeight: 700 }}>{Math.round((count/total)*100)}%</span>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               </div>
 

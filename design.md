@@ -1,9 +1,10 @@
 # DailyMood.me — Design
 
 ## Design Direction
-- **Concept:** "Moodly" — vibrant purple/mint/peach palette, big rounded corners, friendly and playful UI
-- **Reference:** Moodly Figma (Urbanist + purple #A673F1 primary, mint #85ECCB, peach #FCA45B); neon-vibrant mood colors
-- **Approach:** Mobile-first responsive; max-width 768px; light mode (white/lavender canvas)
+- **Concept:** "DailyMood Web App" — warm cream canvas, Vercel/Linear-style desktop layout, vibrant purple/mint/peach palette
+- **Reference:** Claude Design handoff (60 screens, 1280px desktop + 440px mobile artboards)
+- **Approach:** Desktop-first responsive; topbar 64px full-bleed, content container max-width 1180px centered; mobile fallback with bottom nav
+- **Layout pattern:** Topbar full-bleed + content centered (~1180px) — เหมือน Vercel/Linear
 - **AI-slop avoidance:** No generic gradients or glassmorphism; color comes from mood palette, not decoration
 
 ## Typography (next/font)
@@ -14,15 +15,15 @@
 ## Color Palette (hex, light)
 | Token | Value | Use |
 |---|---|---|
-| `--bg` | `#FEFEFE` | near-white canvas |
-| `--bg-grad` | `linear-gradient(180deg, #FEFEFE 0%, #F8F6FB 40%)` | subtle lavender gradient bg |
+| `--bg` | `#FBF6EE` | warm cream canvas |
+| `--bg-grad` | `#FBF6EE` | flat warm cream (no gradient) |
 | `--surface` | `#FFFFFF` | card backgrounds |
-| `--surface-2` | `#F8F6FB` | lavender tint tile |
-| `--hairline` | `#F2F0F5` | borders, dividers |
-| `--hairline-2` | `#E6DBF7` | stronger border |
-| `--ink` | `#0A0A0A` | near-black (primary text) |
-| `--ink-2` | `#5A5A5A` | secondary text |
-| `--ink-3` | `#8C8C8C` | tertiary gray |
+| `--surface-2` | `#F4EEE6` | warm tint tile |
+| `--hairline` | `rgba(26,19,32,0.08)` | borders, dividers |
+| `--hairline-2` | `rgba(26,19,32,0.12)` | stronger border |
+| `--ink` | `#1A1320` | dark purple-black (primary text) |
+| `--ink-2` | `#4A3F55` | secondary text |
+| `--ink-3` | `#8C8497` | tertiary gray |
 | `--primary` / `--purple` | `#A673F1` | primary brand (active nav, labels, avatar) |
 | `--accent` / `--peach` | `#FCA45B` | CTA buttons, FAB, accent |
 | `--mint` | `#85ECCB` | calm/positive mood |
@@ -41,13 +42,26 @@
 | Anxious | 😟 | `#D4BEE4` (lavender) | 2 |
 | Tired | 😴 | `#A673F1` (purple) | 2 |
 
+## Layout System
+- **Frame:** 1280px (full page width including topbar)
+- **Container:** `.w-container` max-width 1180px, margin 0 auto, padding 0 32px
+- **Desktop topbar:** 64px height, full-bleed, backdrop-blur, horizontal nav (วันนี้/ปฏิทิน/สถิติ/AI) + "+ บันทึก" CTA + avatar
+- **Mobile:** BottomNav (floating pill, peach FAB center), topbar hidden
+- **Grid layouts:** `.grid-2col` (2.2fr 1fr), `.grid-sidebar` (320px 1fr), `.grid-stats-4` (4-col), `.home-grid` (1.7fr 1fr)
+- **Auth:** `.auth-split` (1.1fr 1fr) — gradient brand left + form right; mobile hides brand panel
+- **Admin:** `.admin-layout` (240px sidebar 1fr) — dark sidebar (#1A1320)
+
 ## Visual Signatures
-- **Rounded cards** — `border-radius: 22–28px`, white bg with 1.5px border `#F2F0F5`, subtle purple-tinted shadow
-- **Floating bottom nav** — white pill (`border-radius: 38px`) with purple active state, peach FAB elevated center
-- **Streak strip** — purple gradient card (`#A673F1 → #C89BF5`) with big shadow, fire emoji, weekly bars
-- **AI Composer card** — white card with purple sparkle badge "AI MOOD ASSISTANT", caret animation, mic/camera/save buttons
-- **Mood picker** — horizontal scroll of colored rounded rectangles (76×96px, `border-radius: 22px`) with emoji + label
-- **Tag chips** — pill-shaped with white bg + 1.5px border or mood-colored bg for detected mood
+- **Rounded cards** — `.card` class, `border-radius: 14px`, white bg with 1px border `rgba(26,19,32,0.08)`
+- **Desktop topbar** — frosted glass (backdrop-blur + 85% opacity), DMLogo SVG gradient (peach→pink→purple)
+- **Mobile bottom nav** — white pill (`border-radius: 38px`) with purple active state, peach FAB elevated center
+- **Streak card** — right sidebar, large number (44px) + 14 streak bars + 🔥 emoji
+- **AI weekly summary** — dark card (#1A1320→#2A1F33), golden sparkle icon (#FFC899), white text
+- **Smart Log modal** — centered 720px dialog, backdrop blur, 22px radius, heavy shadow
+- **Mood picker (hero)** — inline buttons in gradient hero card (lavender→purple), `minWidth: 72px`, `whiteSpace: nowrap`
+- **Tag chips** — pill-shaped with white bg + 1px border or mood-colored bg for detected mood
+- **Eyebrow labels** — `.w-eyebrow` class, 11px, weight 800, uppercase, letter-spacing .06em, `--ink-3` color
+- **Stat cards** — left colored border (4px solid), large value (36px/800), eyebrow label above
 - **Icon buttons** — 44×44px with 14px radius, `#F8F6FB` bg
 - **Labels** — uppercase 12px `font-weight: 800`, purple color, 0.4px letter-spacing
 
@@ -55,10 +69,10 @@
 
 | Page | Description | Status |
 |------|-------------|--------|
-| Home | Streak strip, AI composer card, mood picker row, recent entries list | Done (Moodly v1) |
-| Login | Email-first flow with Google OAuth, purple/peach buttons | Done |
-| Smart Log | Full-screen modal: mood picker → note input → AI analysis → tag extraction → confirm | Done |
-| Calendar | Month grid with mood-colored days, mini stats row (avg/streak/logged), year-in-pixels heatmap, prev/next navigation | Done |
+| Home | **Desktop:** 2-col grid (1.7fr main + 1fr sidebar). Main: greeting hero (lavender→purple gradient) with inline mood picker, AI composer card, day-axis timeline, 3-col entry grid. Sidebar: AI weekly summary (dark card), streak card (large number + 14 bars), mini calendar. **Mobile:** single column | Done (v2 redesign) |
+| Login | **Split-screen:** gradient brand panel left (peach→purple, tagline, mood emoji row) + form right. Mobile: brand panel hidden, form only | Done (v2 redesign) |
+| Smart Log | **Centered 720px modal dialog** (not full-screen). Backdrop blur rgba(26,19,32,.55). Header: sparkle icon + "บันทึกด้วย AI" + close X. Content: textarea, mic/image buttons, AI suggestion area, action buttons | Done (v2 redesign) |
+| Calendar | **2-col grid** (2.2fr calendar + 1fr stats sidebar). Main: segmented toggle, AI summary, patterns, 7-col calendar grid, Ask AI bar. Sidebar: avg mood/streak/logged stat cards (colored left border) + mood legend | Done (v2 redesign) |
 | Timeline | Integrated into Calendar tab via segmented toggle (Calendar/Timeline). Reverse-chronological feed grouped by day (TODAY/YESTERDAY/WEEKDAY), mood type filter chips, entry cards (48px mood swatch + title + time + 1-line note + tag emojis). Data: `/api/calendar/timeline`. `/history` redirects to `/calendar` | Done |
 | Stats | Functional period toggle (Week/Month/Year, #F4F2F7 pill bg). Average mood line chart (purple #A673F1 gradient fill, adapts to period length). Delta badge (green ↑ / red ↓ vs previous period). Mood mix donut (center label adapts to period). Highest Mood Day card (full-width mood-colored bg + emoji). Real activity impact from tag-mood correlation — diverging bars (purple=positive, peach=negative), tag emoji heuristic, min 5 entries/tag, cap 6 rows. Free: rows 4-6 blurred with gradient overlay + "See all with Premium" pill. Year toggle disabled for free (dimmed + inline upsell toast). Insights link card (pastel gradient #FAF7FE→#FDE8DA). Bottom nav: Stats tab replaces Insights tab (bar chart icon) | Done |
 | AI Insights | Hero gradient summary card (#A673F1→#C89BF5→#FCA45B) with Read Full (inline expand) + Share (Web Share API / clipboard fallback with "Copied!" toast). Pattern cards: tag badges (PATTERN orange #FCA45B, CORRELATION purple #A673F1, ALERT red #F26B6B) + optional sparkline SVG (60×24, purple line). Suggestion card (#FAFFF8 bg, #DEF1D5 border): green "TRY THIS" badge, thumbs up/down + "Add to routine" feedback pills (persisted in D1). Streak card (#FAF7FE bg, fire emoji). Free: hero preview (headline + first sentence only) + locked overlay. Premium: full feed. Cached weekly in D1 (delta-3 invalidation). Loading skeleton, empty state, too-few-entries state, error state. Back to Stats link in header | Done |

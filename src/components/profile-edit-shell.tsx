@@ -83,7 +83,7 @@ export function ProfileEditShell() {
   const initials = getInitials(name || user.name, user.email);
 
   return (
-    <div className="fade-in" style={{ paddingBottom: 32 }}>
+    <div className="fade-in center-720" style={{ paddingBottom: 32 }}>
       {/* Top Bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0 20px" }}>
         <button

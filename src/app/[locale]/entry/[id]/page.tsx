@@ -18,11 +18,5 @@ export default async function EntryPage({
 
   const { id } = await params;
 
-  return (
-    <main className="flex-1 px-5 pb-28">
-      <div className="mx-auto w-full max-w-[768px]">
-        <EntryDetail id={id} pack={moodPack} iconFormat={iconFormat} />
-      </div>
-    </main>
-  );
+  return <EntryDetail id={id} pack={moodPack} iconFormat={iconFormat} />;
 }

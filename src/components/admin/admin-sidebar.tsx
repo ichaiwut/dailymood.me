@@ -25,8 +25,9 @@ export function AdminSidebar({ email }: { email: string }) {
       style={{
         width: 240,
         minHeight: "100vh",
-        background: "var(--surface)",
-        borderRight: "1.5px solid var(--hairline)",
+        background: "var(--ink)",
+        color: "#fff",
+        borderRight: "none",
         display: "flex",
         flexDirection: "column",
         padding: "24px 0",
@@ -37,7 +38,7 @@ export function AdminSidebar({ email }: { email: string }) {
       }}
     >
       <div style={{ padding: "0 20px", marginBottom: 32 }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--purple)" }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>
           DailyMood
         </div>
         <div
@@ -47,7 +48,7 @@ export function AdminSidebar({ email }: { email: string }) {
             fontWeight: 800,
             letterSpacing: 1.5,
             textTransform: "uppercase",
-            background: "var(--purple)",
+            background: "rgba(255,255,255,.12)",
             color: "#fff",
             borderRadius: 4,
             padding: "2px 8px",
@@ -72,9 +73,10 @@ export function AdminSidebar({ email }: { email: string }) {
                 padding: "10px 20px",
                 fontSize: 14,
                 fontWeight: active ? 700 : 500,
-                color: active ? "var(--purple)" : "var(--ink-2)",
-                background: active ? "var(--surface-2)" : "transparent",
-                borderRight: active ? "3px solid var(--purple)" : "3px solid transparent",
+                color: active ? "#fff" : "rgba(255,255,255,.55)",
+                background: active ? "rgba(255,255,255,.08)" : "transparent",
+                borderLeft: active ? "3px solid var(--peach)" : "3px solid transparent",
+                borderRight: "none",
                 textDecoration: "none",
                 transition: "all 160ms",
               }}
@@ -90,8 +92,8 @@ export function AdminSidebar({ email }: { email: string }) {
         style={{
           padding: "0 20px",
           fontSize: 12,
-          color: "var(--ink-3)",
-          borderTop: "1px solid var(--hairline)",
+          color: "rgba(255,255,255,.5)",
+          borderTop: "1px solid rgba(255,255,255,.1)",
           paddingTop: 16,
         }}
       >

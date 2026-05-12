@@ -12,11 +12,5 @@ export default async function ProfileSettingsPage() {
     redirect({ href: "/login", locale });
   }
 
-  return (
-    <main className="flex-1 px-5 pb-28">
-      <div className="mx-auto w-full max-w-[768px]">
-        <ProfileSettingsShell isPremium={tier === "premium"} />
-      </div>
-    </main>
-  );
+  return <ProfileSettingsShell isPremium={tier === "premium"} />;
 }

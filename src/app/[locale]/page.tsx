@@ -16,10 +16,6 @@ export default async function Home() {
   const { tier, moodPack, iconFormat, hidePreview } = await getSessionInfo();
 
   return (
-    <main className="flex-1 px-5 pb-16">
-      <div className="mx-auto w-full max-w-[768px]">
-        <HomeShell tier={tier} pack={moodPack} iconFormat={iconFormat} hidePreview={hidePreview} />
-      </div>
-    </main>
+    <HomeShell tier={tier} pack={moodPack} iconFormat={iconFormat} hidePreview={hidePreview} />
   );
 }

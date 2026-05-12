@@ -14,9 +14,17 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      {isLoggedIn && <TopBar />}
-      {children}
-      {isLoggedIn && <BottomNav />}
+      {isLoggedIn ? (
+        <>
+          <TopBar />
+          <main className="w-container" style={{ padding: "32px 32px 100px", flex: 1, position: "relative", zIndex: 0 }}>
+            {children}
+          </main>
+          <BottomNav />
+        </>
+      ) : (
+        <>{children}</>
+      )}
     </NextIntlClientProvider>
   );
 }

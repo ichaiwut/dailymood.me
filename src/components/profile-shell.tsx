@@ -166,6 +166,7 @@ export function ProfileShell() {
   }, [loading, data]);
 
   const handleLocaleChange = (newLocale: string) => {
+    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
     fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -193,7 +194,9 @@ export function ProfileShell() {
   const memberDate = formatMemberDate(data.user.createdAt, locale);
 
   return (
-    <div className="fade-in" style={{ paddingBottom: 32 }}>
+    <div className="fade-in grid-sidebar" style={{ paddingBottom: 32 }}>
+      {/* ── SIDEBAR ── */}
+      <aside>
       {/* Hero Card */}
       <div
         className="fade-in"
@@ -374,6 +377,10 @@ export function ProfileShell() {
           </div>
         </div>
       )}
+
+      </aside>
+      {/* ── MAIN CONTENT ── */}
+      <div>
 
       {/* ── Settings Sections ── */}
 
@@ -966,6 +973,7 @@ export function ProfileShell() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
@@ -6,9 +6,8 @@ import { eq } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 
 
-const APP_URL = process.env.NEXTAUTH_URL || "https://my.dailymood.me";
-
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const APP_URL = req.headers.get("origin") || process.env.NEXTAUTH_URL || "https://my.dailymood.me";
   const { userId } = await getSessionInfo();
   if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
