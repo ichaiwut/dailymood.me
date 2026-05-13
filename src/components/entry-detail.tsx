@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 
@@ -16,305 +16,304 @@ interface EntryData {
   aiSource: string;
   imageUrl?: string | null;
   isPremium?: boolean;
+  entryNumber?: number;
   date: string;
   createdAt: string | number;
 }
+
+interface NearbyDay {
+  date: string;
+  moodTypeId: string | null;
+  note: string | null;
+}
+
+const MOOD_SCORES: Record<string, number> = {
+  amazing: 10, happy: 8, neutral: 6, sad: 4, angry: 2, anxious: 3, tired: 3,
+};
 
 export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { id: string; pack?: string; iconFormat?: string }) {
   const locale = useLocale();
   const t = useTranslations("entry");
   const router = useRouter();
+  const th = locale === "th";
   const [entry, setEntry] = useState<EntryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [nearby, setNearby] = useState<NearbyDay[]>([]);
+  const [lastYear, setLastYear] = useState<NearbyDay | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     fetch(`/api/log/${id}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setEntry(data as EntryData | null))
+      .then((data: unknown) => {
+        const d = data as (EntryData & { nearby?: NearbyDay[]; lastYear?: NearbyDay | null; streak?: number }) | null;
+        setEntry(d);
+        if (d?.nearby) setNearby(d.nearby);
+        if (d?.lastYear) setLastYear(d.lastYear);
+        if (d?.streak) setStreak(d.streak);
+      })
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleDelete() {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    setDeleting(true);
+    const res = await fetch(`/api/log/${id}`, { method: "DELETE" });
+    if (res.ok) router.push("/calendar" as "/");
+    setDeleting(false);
+  }
 
   if (loading) return <LoadingSkeleton />;
   if (!entry) {
     return (
-      <div className="text-center py-20 fade-in">
+      <div className="w-container text-center py-20 fade-in">
         <div style={{ fontSize: 48, marginBottom: 12 }}>😶</div>
-        <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>
-          {t("notFound")}
-        </p>
+        <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{t("notFound")}</p>
       </div>
     );
   }
 
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
   const moodColor = mood?.color ?? "#F4F2F7";
-  const moodLabel = locale === "th" ? mood?.labelTh : mood?.label;
+  const moodLabel = th ? mood?.labelTh : mood?.label;
   const date = new Date(entry.createdAt);
+  const score = MOOD_SCORES[entry.moodTypeId] ?? 5;
 
-  const dateLabel = date.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-  const timeLabel = date.toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const weekday = date.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "long" });
+  const timeLabel = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const hour = date.getHours();
+  const period = hour < 12 ? (th ? "เช้า" : "morning") : hour < 17 ? (th ? "บ่าย" : "afternoon") : (th ? "เย็น" : "evening");
 
-  const isAi = entry.aiSource !== "manual";
+  const dayNum = parseInt(entry.date.slice(8, 10), 10);
+  const monthShort = date.toLocaleDateString(th ? "th-TH" : "en-US", { month: "short" });
+  const yearNum = parseInt(entry.date.slice(0, 4), 10);
 
   return (
-    <div className="fade-in center-720">
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between py-4">
-        <button
-          onClick={() => router.back()}
-          className="icon-btn"
-          style={{ width: 40, height: 40, borderRadius: 12 }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+    <div className="w-container fade-in" style={{ paddingTop: 20, paddingBottom: 60 }}>
+      {/* ── Top bar ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+        <button onClick={() => router.back()} style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+          ← {th ? "ไทม์ไลน์" : "Timeline"}
         </button>
-        <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
-          {dateLabel}
-        </span>
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="icon-btn"
-            style={{ width: 40, height: 40, borderRadius: 12 }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-              <circle cx="12" cy="19" r="1.5" fill="currentColor" />
-            </svg>
-          </button>
-          {menuOpen && (
-            <>
-              <div
-                style={{ position: "fixed", inset: 0, zIndex: 40 }}
-                onClick={() => setMenuOpen(false)}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 44,
-                  background: "#fff",
-                  borderRadius: 14,
-                  padding: "6px 0",
-                  minWidth: 160,
-                  boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                  border: "1px solid #F2F0F5",
-                  zIndex: 50,
-                }}
-                className="pop"
-              >
-                <button
-                  onClick={() => { setMenuOpen(false); router.push(`/entry/${id}/edit` as "/"); }}
-                  className="flex items-center gap-2.5 w-full"
-                  style={{
-                    padding: "10px 16px",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "var(--ink)",
-                    background: "none",
-                    border: "none",
-                  }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {t("edit")}
-                </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href={`/entry/${id}/edit` as "/"} className="w-btn" style={{ background: "var(--ink)", color: "#fff", fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            ✏️ {th ? "แก้ไข" : "Edit"}
+          </Link>
+        </div>
+      </div>
+
+      {/* ── 2-Column Layout ── */}
+      <div className="grid-2col" style={{ alignItems: "start" }}>
+
+        {/* ═══ LEFT COLUMN ═══ */}
+        <div>
+          {/* Date hero */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 15, color: "var(--ink-3)", marginBottom: 8 }}>
+              {weekday} · {timeLabel} {th ? "น." : ""} · {period}
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: "clamp(72px, 12vw, 100px)", fontWeight: 800, color: "var(--ink)", lineHeight: 0.9, letterSpacing: "-0.03em" }}>{dayNum}</span>
+              <span style={{ fontSize: "clamp(48px, 8vw, 68px)", fontWeight: 800, color: "var(--ink-2)", fontStyle: "italic", letterSpacing: "-0.02em" }}>{monthShort}</span>
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink-2)", marginTop: 8 }}>
+              {yearNum}{entry.entryNumber ? ` · ${th ? "บันทึกที่" : "Entry #"} ${entry.entryNumber}` : ""}
+            </div>
+          </div>
+
+          {/* Mood pill */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "10px 20px 10px 10px", borderRadius: 100, background: "#fff", border: `2px solid ${moodColor}`, marginBottom: 24 }}>
+            {mood && (
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: moodColor, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={26} height={26} />
               </div>
+            )}
+            <div style={{ lineHeight: 1.2 }}>
+              <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{th ? "อารมณ์" : "Mood"}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{moodLabel}</div>
+            </div>
+          </div>
+
+          <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
+
+          {/* Note */}
+          {entry.note && (
+            <>
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>{th ? "บันทึก" : "Note"}</div>
+                <p style={{ fontSize: 17, lineHeight: 1.7, color: "var(--ink)", margin: 0 }}>{entry.note}</p>
+              </div>
+              <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
             </>
           )}
-        </div>
-      </div>
 
-      {/* ── Mood Hero Card ── */}
-      <div
-        className="mb-5"
-        style={{
-          background: moodColor + "99",
-          borderRadius: 28,
-          padding: "24px 22px",
-          position: "relative",
-          overflow: "hidden",
-          minHeight: 160,
-        }}
-      >
-        {mood && (
-          <img
-            src={moodIconUrl(mood.id, pack, iconFormat)}
-            alt=""
-            width={120}
-            height={120}
-            style={{
-              position: "absolute",
-              right: 10,
-              bottom: 10,
-              opacity: 0.6,
-              pointerEvents: "none",
-            }}
-          />
-        )}
-        <div style={{ position: "relative" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-3)", letterSpacing: "0.5px", marginBottom: 4 }}>
-            {t("feeling")}
-          </div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1, marginBottom: 8 }}>
-            {moodLabel}
-          </div>
-          <div style={{ fontSize: 13, color: "var(--ink-2)", fontWeight: 600 }}>
-            {t("loggedAt", { time: timeLabel })}
-          </div>
-        </div>
-      </div>
+          {/* Image */}
+          {entry.imageUrl && (
+            <>
+              <div style={{ marginBottom: 24 }}>
+                <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 300, objectFit: "contain", borderRadius: 16, background: "var(--surface-2)" }} />
+              </div>
+              <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
+            </>
+          )}
 
-      {/* ── Your Note ── */}
-      {entry.note && (
-        <div className="mb-5">
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
-            {t("yourNote")}
-          </div>
-          <p style={{ fontSize: 16, lineHeight: 1.6, color: "var(--ink)" }}>
-            {entry.note}
-          </p>
-        </div>
-      )}
+          {/* AI Insight */}
+          {entry.aiSummary && (
+            <>
+              <div style={{ marginBottom: 24, borderLeft: "3px solid var(--purple)", paddingLeft: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" /></svg>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)" }}>AI {th ? "สังเกตเห็น" : "Insight"}</span>
+                </div>
+                <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+              </div>
+              <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
+            </>
+          )}
 
-      {/* ── AI Summary ── */}
-      {(entry.aiSummary || entry.note) && <div className="mb-5">
-        <div
-          style={{
-            padding: "12px 14px",
-            borderRadius: 16,
-            background: "#FAF7FE",
-            border: "1px solid #F0EAF7",
-          }}
-        >
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="#B89AE8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#B89AE8", letterSpacing: "0.3px" }}>
-              {t("aiSummary")}
-            </span>
-            {!entry.aiSummary && (
-              <span style={{
-                marginLeft: "auto",
-                background: "#0A0A0A",
-                color: "#fff",
-                fontSize: 8,
-                fontWeight: 800,
-                padding: "1px 5px",
-                borderRadius: 4,
-                letterSpacing: "0.3px",
-              }}>
-                PRO
-              </span>
-            )}
+          {/* Tags */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>{th ? "แท็กของบันทึก" : "Entry tags"}</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {entry.tags && entry.tags.length > 0 ? (
+                entry.tags.map((tag, i) => (
+                  <span key={i} style={{ padding: "8px 16px", borderRadius: 100, border: "1.5px solid var(--hairline)", background: "#fff", fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+                    #{tag}
+                  </span>
+                ))
+              ) : (
+                <span style={{ fontSize: 14, color: "var(--ink-3)", fontStyle: "italic" }}>{th ? "ไม่มีแท็ก" : "No tags"}</span>
+              )}
+            </div>
           </div>
-          {entry.aiSummary ? (
-            <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--ink-2)" }}>
-              <BoldMarkdown text={entry.aiSummary} />
-            </p>
-          ) : (
-            <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-              <p style={{ fontSize: 13, lineHeight: 1.55, color: "#B89AE8", marginBottom: 6 }}>
-                {t("aiSummaryTeaser")}
-              </p>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#A673F1" }}>
-                {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
-              </span>
-            </a>
+
+          <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
+
+          {/* Delete */}
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            style={{ fontSize: 14, fontWeight: 700, color: confirmDelete ? "#fff" : "#D14343", background: confirmDelete ? "#D14343" : "none", border: confirmDelete ? "none" : "none", cursor: "pointer", padding: confirmDelete ? "8px 20px" : 0, borderRadius: 100 }}
+          >
+            {deleting ? "..." : confirmDelete ? (th ? "ยืนยันลบ" : "Confirm delete") : `× ${th ? "ลบบันทึกนี้" : "Delete this entry"}`}
+          </button>
+        </div>
+
+        {/* ═══ RIGHT COLUMN ═══ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Mood hero card */}
+          <div style={{
+            borderRadius: 22,
+            padding: "32px 24px 24px",
+            background: moodColor,
+            textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            <div style={{ position: "absolute", top: 12, left: 14, fontSize: 14, fontWeight: 700, color: "rgba(0,0,0,.3)" }}>{weekday}</div>
+            {mood && <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={80} height={80} style={{ margin: "0 auto 12px", display: "block" }} />}
+            <div style={{ fontSize: 18, fontWeight: 800, color: "rgba(0,0,0,.5)" }}>{moodLabel}</div>
+          </div>
+
+          {/* Nearby days — timeline style */}
+          {nearby.length > 0 && (
+            <div className="card" style={{ padding: 18 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 14 }}>{th ? "วันใกล้เคียง" : "Nearby days"}</div>
+              <div style={{ position: "relative", paddingLeft: 44 }}>
+                {/* Vertical line */}
+                <div style={{ position: "absolute", left: 17, top: 8, bottom: 8, width: 2, background: "var(--hairline)" }} />
+                {nearby.map((n, idx) => {
+                  const nm = DEFAULT_MOODS.find((m) => m.id === n.moodTypeId);
+                  const nd = new Date(n.date + "T12:00:00");
+                  const isCur = n.date === entry.date;
+                  return (
+                    <div key={n.date} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", position: "relative" }}>
+                      {/* Dot on timeline */}
+                      <div style={{ position: "absolute", left: -40, top: 12, width: 28, display: "flex", justifyContent: "center" }}>
+                        {nm ? (
+                          <img src={moodIconUrl(nm.id, pack, iconFormat)} alt="" width={isCur ? 28 : 22} height={isCur ? 28 : 22} style={{ borderRadius: "50%", border: isCur ? "2px solid var(--ink)" : "none" }} />
+                        ) : (
+                          <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--surface-2)", border: "2px solid var(--hairline)" }} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: isCur ? 800 : 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 10 }}>
+                          {nd.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "short" })} {nd.toLocaleDateString(th ? "th-TH" : "en-US", { day: "numeric", month: "short" })}
+                          {isCur && (
+                            <>
+                              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: "50%", background: "var(--ink)" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} /></span>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--peach)" }}>{n.date === new Date().toISOString().slice(0, 10) ? (th ? "วันนี้" : "Today") : (th ? "วันนี้" : "This entry")}</span>
+                            </>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
+                          {n.note ? n.note.slice(0, 30) + (n.note.length > 30 ? "..." : "") : (n.moodTypeId ? (th ? nm?.labelTh : nm?.label) : (th ? "ยังไม่มีบันทึก" : "No entry"))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* This day last year */}
+          {lastYear && (
+            <div className="card" style={{ padding: 18 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>{th ? "วันนี้เมื่อเดือนที่แล้ว" : "This day last month"}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {(() => { const lm = DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId); return lm ? <img src={moodIconUrl(lm.id, pack, iconFormat)} alt="" width={32} height={32} /> : null; })()}
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+                    {new Date(lastYear.date + "T12:00:00").toLocaleDateString(th ? "th-TH" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
+                    {" · "}{th ? DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId)?.labelTh : DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId)?.label}
+                  </div>
+                  {lastYear.note && (
+                    <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
+                      &ldquo;{lastYear.note.slice(0, 50)}{lastYear.note.length > 50 ? "..." : ""}&rdquo;
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Streak */}
+          {streak > 1 && (
+            <div className="card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: "#FDE8DA", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🔥</div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>
+                  {th ? `วันที่ ${streak} ของสตรีค` : `Day ${streak} of your streak`}
+                </div>
+                <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                  {th ? "บันทึกครบทุกวันติดต่อกัน" : "Logged every day in a row"}
+                </div>
+              </div>
+            </div>
           )}
         </div>
-      </div>}
-
-      {/* ── Moment (photo) ── */}
-      {entry.imageUrl && (
-        <div className="mb-5">
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
-            {t("moment")}
-          </div>
-          <img
-            src={entry.imageUrl}
-            alt=""
-            className="w-full"
-            style={{ borderRadius: 22, maxHeight: 300, objectFit: "cover" }}
-          />
-        </div>
-      )}
-
-      {/* ── Tags ── */}
-      <div className="mb-5">
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#A673F1", letterSpacing: "0.5px", marginBottom: 8 }}>
-          {t("tags")}
-        </div>
-        {entry.tags && entry.tags.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {entry.tags.map((tag, i) => (
-              <span
-                key={i}
-                style={{
-                  background: "#fff",
-                  border: "1.5px solid #F2F0F5",
-                  padding: "6px 14px",
-                  borderRadius: 100,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "var(--ink)",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: "12px 14px",
-              borderRadius: 16,
-              background: "#FAF7FE",
-              border: "1px solid #F0EAF7",
-            }}
-          >
-            <p style={{ fontSize: 13, lineHeight: 1.55, color: "#B89AE8" }}>
-              {t("tagsTeaser")}
-            </p>
-          </div>
-        )}
       </div>
-
-      <div className="pb-6" />
     </div>
-  );
-}
-
-function BoldMarkdown({ text }: { text: string }) {
-  const parts = text.split(/\*\*/);
-  return (
-    <>
-      {parts.map((part, i) =>
-        i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>,
-      )}
-    </>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="pt-16 space-y-4 fade-in">
-      <div style={{ height: 160, borderRadius: 28, background: "var(--surface-2)", opacity: 0.6 }} />
-      <div style={{ height: 16, width: "40%", borderRadius: 6, background: "var(--surface-2)", opacity: 0.5 }} />
-      <div style={{ height: 60, borderRadius: 16, background: "var(--surface-2)", opacity: 0.4 }} />
-      <div style={{ height: 100, borderRadius: 20, background: "var(--surface-2)", opacity: 0.35 }} />
+    <div className="w-container pt-16 fade-in">
+      <div className="grid-2col">
+        <div className="space-y-4">
+          <div style={{ height: 80, width: "60%", borderRadius: 12, background: "var(--surface-2)", opacity: 0.6 }} />
+          <div style={{ height: 40, width: "40%", borderRadius: 100, background: "var(--surface-2)", opacity: 0.5 }} />
+          <div style={{ height: 80, borderRadius: 16, background: "var(--surface-2)", opacity: 0.4 }} />
+        </div>
+        <div className="space-y-4">
+          <div style={{ height: 200, borderRadius: 22, background: "var(--surface-2)", opacity: 0.5 }} />
+          <div style={{ height: 120, borderRadius: 14, background: "var(--surface-2)", opacity: 0.4 }} />
+        </div>
+      </div>
     </div>
   );
 }

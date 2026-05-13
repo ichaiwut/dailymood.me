@@ -4,7 +4,7 @@ import { getDb } from "@/lib/cf";
 import { moodEntries, moodTypes } from "@/db/schema";
 import { getSignedReadUrl, deleteObject } from "@/lib/r2";
 import { todayKey } from "@/lib/usage";
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 
 
 export async function GET(
@@ -27,7 +27,57 @@ export async function GET(
 
   const imageUrl = row.imageKey ? await getSignedReadUrl(row.imageKey) : null;
 
-  return NextResponse.json({ ...row, imageUrl, isPremium: tier === "premium" });
+  const [countRow] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(moodEntries)
+    .where(and(eq(moodEntries.userId, userId), lte(moodEntries.createdAt, row.createdAt)));
+  const entryNumber = countRow?.n ?? 0;
+
+  // Nearby days (prev day, current day, next day)
+  const entryDate = new Date(row.date + "T12:00:00");
+  const prevDate = new Date(entryDate); prevDate.setDate(prevDate.getDate() - 1);
+  const nextDate = new Date(entryDate); nextDate.setDate(nextDate.getDate() + 1);
+  const nearbyDates = [prevDate, entryDate, nextDate].map((d) => d.toISOString().slice(0, 10));
+
+  const nearbyRows = await db
+    .select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId, note: moodEntries.note })
+    .from(moodEntries)
+    .where(and(eq(moodEntries.userId, userId), inArray(moodEntries.date, nearbyDates)));
+
+  const nearbyMap = new Map(nearbyRows.map((r) => [r.date, r]));
+  const nearby = nearbyDates.map((d) => nearbyMap.get(d) ?? { date: d, moodTypeId: null, note: null });
+
+  // Same date last month
+  const entryD = new Date(row.date + "T12:00:00");
+  entryD.setMonth(entryD.getMonth() - 1);
+  const lastYearDate = entryD.toISOString().slice(0, 10);
+  const [lastYearRow] = await db
+    .select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId, note: moodEntries.note })
+    .from(moodEntries)
+    .where(and(eq(moodEntries.userId, userId), eq(moodEntries.date, lastYearDate)))
+    .limit(1);
+
+  // Current streak
+  const allDates = await db
+    .select({ date: moodEntries.date })
+    .from(moodEntries)
+    .where(and(eq(moodEntries.userId, userId), lte(moodEntries.date, row.date)))
+    .orderBy(desc(moodEntries.date))
+    .limit(400);
+  const dateSet = new Set(allDates.map((r) => r.date));
+  let streak = 0;
+  const cur = new Date(row.date + "T12:00:00");
+  while (dateSet.has(cur.toISOString().slice(0, 10))) {
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+
+  return NextResponse.json({
+    ...row, imageUrl, isPremium: tier === "premium", entryNumber,
+    nearby,
+    lastYear: lastYearRow ?? null,
+    streak,
+  });
 }
 
 interface PatchBody {
