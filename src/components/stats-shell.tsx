@@ -207,7 +207,7 @@ function MoodDonut({ distribution, period, locale }: { distribution: Record<stri
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: "block", maxWidth: 120 }}>
+      <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: "block" }}>
         {segments}
         <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3)">{periodLabels[period]}</text>
         <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3)">MOODS</text>
@@ -448,179 +448,229 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
 
           {/* ── 4-COLUMN STAT CARDS ─── */}
           <section className="mb-5 fade-in grid-stats-4" style={{ animationDelay: "30ms" }}>
-            {[
-              { l: t("avgMood"), v: avgScore != null ? avgScore.toFixed(1) : "—", d: avgDelta ? `${avgDelta > 0 ? "+" : ""}${avgDelta.toFixed(1)} ↑` : "", dc: "var(--mint)" },
-              { l: t("entries") || "Entries", v: String(stats?.total ?? 0), d: periodScopeLabel[period], dc: "var(--ink-3)" },
-              { l: "Streak", v: `${stats?.streak ?? 0} 🔥`, d: "", dc: "var(--ink-3)" },
-              { l: t("moodMix") || "Top mood", v: avgEmoji || "—", d: "", dc: "var(--ink-3)" },
-            ].map(s => (
-              <div key={s.l} className="card" style={{ padding: 18 }}>
-                <div className="w-eyebrow">{s.l}</div>
-                <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginTop: 6 }}>{s.v}</div>
-                {s.d && <div style={{ fontSize: 12, color: s.dc, fontWeight: 600, marginTop: 2 }}>{s.d}</div>}
-              </div>
-            ))}
+            {(() => {
+              const distEntries = Object.entries(distribution).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+              const distTotal = distEntries.reduce((s, [, v]) => s + v, 0);
+              const topMoodEntry = distEntries[0];
+              const topMoodObj = topMoodEntry ? moodById(topMoodEntry[0]) : null;
+              const topMoodPct = distTotal > 0 && topMoodEntry ? Math.round((topMoodEntry[1] / distTotal) * 100) : 0;
+              const topMoodLabel = topMoodObj
+                ? `${locale === "th" ? topMoodObj.labelTh : topMoodObj.label} · ${topMoodPct}%`
+                : "";
+
+              return [
+                { l: t("avgMood"), v: avgScore != null ? avgScore.toFixed(1) : "—", d: avgDelta ? `${avgDelta > 0 ? "+" : ""}${avgDelta.toFixed(1)} ↑` : "", dc: "var(--mint)" },
+                { l: t("entries") || "Entries", v: String(stats?.total ?? 0), d: periodScopeLabel[period], dc: "var(--ink-3)" },
+                { l: "Streak", v: `${stats?.streak ?? 0} 🔥`, d: periodScopeLabel[period], dc: "var(--ink-3)" },
+                { l: locale === "th" ? "อารมณ์เด่น" : "Top mood", v: avgEmoji || "—", d: topMoodLabel, dc: "var(--ink-3)" },
+              ].map(s => (
+                <div key={s.l} className="card" style={{ padding: 18 }}>
+                  <div className="w-eyebrow">{s.l}</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginTop: 6 }}>{s.v}</div>
+                  {s.d && <div style={{ fontSize: 12, color: s.dc, fontWeight: 600, marginTop: 2 }}>{s.d}</div>}
+                </div>
+              ));
+            })()}
           </section>
 
-          {/* ── MOOD LINE CHART CARD ─── */}
+          {/* ── TREND LINE + MOOD MIX (side by side like design) ─── */}
           <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
-            <div style={CARD}>
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div style={LABEL}>{t("avgMood")}</div>
-                  <div className="flex items-center gap-2">
-                    <span style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
-                      {avgScore != null ? avgScore.toFixed(1) : "---"}
-                    </span>
-                    {avgScore != null && <span style={{ fontSize: 24 }}>{avgEmoji}</span>}
-                  </div>
-                </div>
-                {avgDelta != null && avgDelta !== 0 && (
-                  <div
-                    style={{
-                      background: avgDelta > 0 ? "#E8F8EE" : "#FDECEC",
-                      color: avgDelta > 0 ? "#2DA963" : "#E05A5A",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      padding: "4px 10px",
-                      borderRadius: 20,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 3,
-                    }}
-                  >
-                    {avgDelta > 0 ? "↑" : "↓"} {Math.abs(avgDelta).toFixed(1)} {deltaLabel[period]}
-                  </div>
-                )}
-              </div>
-              <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} />
-            </div>
-          </section>
-
-          {/* ── TREND + DONUT (2fr 1fr grid like design) ─── */}
-          <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
-              {/* Mood Mix Donut */}
+            <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 14 }}>
+              {/* Mood Line Chart */}
               <div style={CARD}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 18px" }}>{t("moodMix")}</h2>
-                <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-                  <div style={{ width: 120, height: 120, flexShrink: 0 }}>
-                    <MoodDonut distribution={distribution} period={period} locale={locale} />
-                  </div>
-                  <div style={{ fontSize: 12, display: "flex", flexDirection: "column", gap: 6 }}>
-                    {Object.entries(distribution).filter(([,v]) => v > 0).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([id, count]) => {
-                      const m = moodById(id);
-                      const total = Object.values(distribution).reduce((s,v) => s+v, 0);
-                      return m ? (
-                        <div key={id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
-                          <span style={{ minWidth: 50 }}>{locale === "th" ? m.labelTh : m.label}</span>
-                          <span style={{ color: "var(--ink-3)", fontWeight: 700 }}>{Math.round((count/total)*100)}%</span>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
+                    {locale === "th" ? "แนวโน้มอารมณ์" : "Mood Trend"}
+                  </h2>
+                  <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{periodScopeLabel[period]}</span>
+                </div>
+                <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} />
+              </div>
+
+              {/* Mood Mix — stacked bar + featured mood + list */}
+              <div style={CARD}>
+                {(() => {
+                  const distEntries = Object.entries(distribution).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+                  const distTotal = distEntries.reduce((s, [, v]) => s + v, 0);
+                  const topEntry = distEntries[0];
+                  const topMood = topEntry ? moodById(topEntry[0]) : null;
+                  const topCount = topEntry?.[1] ?? 0;
+                  const topPct = distTotal > 0 ? Math.round((topCount / distTotal) * 100) : 0;
+                  const dayLabel = locale === "th" ? "วัน" : "days";
+
+                  return (
+                    <>
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>{t("moodMix")}</h2>
+                        <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                          {distTotal} {t("entries")}
+                        </span>
+                      </div>
+
+                      {/* Stacked color bar */}
+                      {distTotal > 0 && (
+                        <div style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", marginBottom: 16 }}>
+                          {distEntries.map(([id, count]) => {
+                            const m = moodById(id);
+                            return (
+                              <div
+                                key={id}
+                                style={{
+                                  width: `${(count / distTotal) * 100}%`,
+                                  background: m?.color ?? "#ccc",
+                                  minWidth: 3,
+                                }}
+                              />
+                            );
+                          })}
                         </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              </div>
+                      )}
 
-              {/* Highest Mood Day */}
-              <div style={CARD}>
-                <div style={{ ...LABEL, marginBottom: 8 }}>{t("highestMoodDay")}</div>
-                {bestDay ? (
-                  <div className="flex flex-col items-center">
-                    <div
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 20,
-                        background: moodById(bestDay.moodId)?.color ?? "#F2F0F5",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "8px 0 12px",
-                      }}
-                    >
-                      <img src={moodIconUrl(bestDay.moodId, moodPack, iconFormat)} alt="" width={44} height={44} style={{ width: 44, height: 44 }} />
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{bestDayName}</div>
-                    <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
-                      Mood {bestDay.score}/5 · {bestDayEntryCount} {t("entries")}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center" style={{ minHeight: 100 }}>
-                    <div style={{ fontSize: 13, color: "var(--ink-3)" }}>{t("noData")}</div>
-                  </div>
-                )}
+                      {/* Featured top mood */}
+                      {topMood && (
+                        <div
+                          className="flex items-center gap-3"
+                          style={{
+                            marginBottom: 20,
+                            background: "#FFF8F0",
+                            borderRadius: 14,
+                            padding: "14px 16px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 56,
+                              height: 56,
+                              borderRadius: "50%",
+                              background: topMood.color,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <img
+                              src={moodIconUrl(topMood.id, moodPack, iconFormat)}
+                              alt=""
+                              width={32}
+                              height={32}
+                              style={{ width: 32, height: 32 }}
+                            />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, color: "var(--ink-3)", fontWeight: 600 }}>
+                              {locale === "th" ? "อารมณ์หลัก" : "Top mood"}
+                            </div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                              {locale === "th" ? topMood.labelTh : topMood.label} · {topCount} {dayLabel}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", lineHeight: 1 }}>
+                              {topPct}%
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Mood list — label above bar */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {distEntries.slice(0, 5).map(([id, count]) => {
+                          const m = moodById(id);
+                          if (!m) return null;
+                          const pct = distTotal > 0 ? Math.round((count / distTotal) * 100) : 0;
+                          return (
+                            <div key={id}>
+                              <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                                <img
+                                  src={moodIconUrl(m.id, moodPack, iconFormat)}
+                                  alt=""
+                                  width={20}
+                                  height={20}
+                                  style={{ width: 20, height: 20, flexShrink: 0 }}
+                                />
+                                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+                                  {locale === "th" ? m.labelTh : m.label}
+                                </span>
+                                <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                                  {count} {dayLabel}
+                                </span>
+                                <span style={{ fontSize: 13, fontWeight: 700, width: 32, textAlign: "right" }}>
+                                  {pct}%
+                                </span>
+                              </div>
+                              <div style={{ marginLeft: 28, height: 6, borderRadius: 3, background: "#F2F0F5", overflow: "hidden" }}>
+                                <div style={{ width: `${pct}%`, height: "100%", borderRadius: 3, background: m.color }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </section>
 
           {/* ── ACTIVITY IMPACT ─── */}
           <section className="mb-5 fade-in" style={{ animationDelay: "120ms" }}>
-            <div className="flex items-center gap-2 mb-1">
-              <div style={LABEL}>{t("whatLifts")}</div>
-            </div>
-            <div className="flex items-center gap-2 mb-4">
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
-              <span style={{ background: "#F0EAFF", color: "#A673F1", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6 }}>
-                ✨ AI
-              </span>
-              {tier !== "premium" && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
-                  PRO
-                </span>
-              )}
-            </div>
-
             {tier === "premium" ? (
             <div style={CARD}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
+                <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                  {locale === "th" ? `วิเคราะห์จาก ${stats?.total ?? 0} entries` : `Analyzed from ${stats?.total ?? 0} entries`}
+                </span>
+              </div>
               {activityImpact.length === 0 ? (
-                <div style={{ fontSize: 13, color: "var(--ink-3)", textAlign: "center", padding: "16px 0" }}>
+                <div style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", padding: "16px 0" }}>
                   {t("noActivity")}
                 </div>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {activityImpact.map((act) => (
-                      <div
-                        key={act.tag}
-                        className="flex items-center gap-3"
-                        style={{ minHeight: 32 }}
-                      >
-                        <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>
-                          {tagEmoji(act.tag)}
+                <div className="flex flex-col gap-4">
+                  {activityImpact.map((act) => {
+                    const isPositive = act.impact >= 0;
+                    const barPct = Math.min(Math.abs(act.impact) / 2, 50);
+                    return (
+                      <div key={act.tag} className="flex items-center gap-3">
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", width: 100, flexShrink: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          #{act.tag.replace(/^#/, "")}
                         </span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {act.tag}
-                          </div>
+                        <div style={{ flex: 1, position: "relative", height: 10 }}>
+                          <div style={{ position: "absolute", inset: 0, borderRadius: 5, background: "#F2F0F5" }} />
+                          <div style={{ position: "absolute", top: 0, height: "100%", left: isPositive ? "50%" : undefined, right: isPositive ? undefined : "50%", width: `${barPct}%`, borderRadius: 5, background: isPositive ? "var(--mint, #85ECCB)" : "#F4A8A8" }} />
+                          <div style={{ position: "absolute", top: -2, bottom: -2, left: "50%", width: 1, background: "#E0DDE5" }} />
                         </div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: act.impact >= 0 ? "#2DA963" : "#E05A5A", width: 48, textAlign: "right", flexShrink: 0 }}>
-                          {act.impact >= 0 ? "+" : ""}{act.impact}%
-                        </div>
-                        <ActivityBar impact={act.impact} />
-                        <div style={{ fontSize: 11, color: "var(--ink-3)", flexShrink: 0, width: 24, textAlign: "right" }}>
-                          ×{act.freq}
-                        </div>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: isPositive ? "#2DA963" : "#E05A5A", width: 40, textAlign: "right", flexShrink: 0 }}>
+                          {isPositive ? "+" : ""}{(act.impact / 100).toFixed(1)}
+                        </span>
                       </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
             ) : (
-            <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-              <div style={{
-                borderRadius: 22, padding: "22px 20px 20px",
-                background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
-              }}>
+            <div style={CARD}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+                <div className="flex items-center gap-2">
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>
+                    PRO
+                  </span>
+                </div>
+              </div>
+              <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
                 <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", marginBottom: 12 }}>
                   {locale === "th" ? "ดูว่ากิจกรรมไหนทำให้อารมณ์ดีขึ้นหรือแย่ลง วิเคราะห์จากบันทึกของคุณ" : "See which activities lift or lower your mood, analyzed from your entries"}
                 </p>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
                   {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
                 </span>
-              </div>
-            </a>
+              </a>
+            </div>
             )}
           </section>
 
