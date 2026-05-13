@@ -139,10 +139,7 @@ export function CalendarShell({
   }, [viewYear, viewMonth, refreshKey, calView]);
 
   useEffect(() => {
-    if (sheetDate) {
-      document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = ""; };
-    }
+    if (sheetDate) { document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = ""; }; }
   }, [sheetDate]);
 
   function prevMonth() {
@@ -465,8 +462,6 @@ export function CalendarShell({
             </div>
           </div>
         ))}
-
-        {/* mood legend */}
         <div className="card" style={{ padding: 18 }}>
           <div className="w-eyebrow" style={{ marginBottom: 10 }}>{locale === "th" ? "คำอธิบายสี" : "Legend"}</div>
           {DEFAULT_MOODS.slice(0, 6).map(m => (
@@ -491,41 +486,21 @@ export function CalendarShell({
         />
       )}
 
+
       {/* ── Day Sheet Modal ── */}
       {sheetDate && (
         <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)" }} onClick={(e) => { if (e.target === e.currentTarget) setSheetDate(null); }}>
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              maxWidth: 560,
-              width: "calc(100% - 32px)",
-              maxHeight: "85vh",
-              background: "#fff",
-              borderRadius: 22,
-              boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div style={{ flex: 1, overflowY: "auto", padding: "24px 0 0" }}>
-              <DaySheet
-                selectedDate={sheetDate}
-                viewYear={viewYear}
-                viewMonth={viewMonth}
-                onClose={() => setSheetDate(null)}
-                onNavigate={(date) => setSheetDate(date)}
-                onOpenLog={(date) => {
-                  setSheetDate(null);
-                  setLogDate(date);
-                }}
-                pack={pack}
-                iconFormat={iconFormat}
-              />
-            </div>
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 560, width: "calc(100% - 32px)", maxHeight: "85vh", overflowY: "auto", borderRadius: 22, boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)" }}>
+            <DaySheet
+              selectedDate={sheetDate}
+              viewYear={viewYear}
+              viewMonth={viewMonth}
+              onClose={() => setSheetDate(null)}
+              onNavigate={(date) => setSheetDate(date)}
+              onOpenLog={(date) => { setSheetDate(null); setLogDate(date); }}
+              pack={pack}
+              iconFormat={iconFormat}
+            />
           </div>
         </div>
       )}

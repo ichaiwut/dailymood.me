@@ -11,6 +11,7 @@ interface SheetEntry {
   note: string | null;
   tags: string[] | null;
   imageUrl: string | null;
+  aiSummary: string | null;
   createdAt: string | number;
 }
 

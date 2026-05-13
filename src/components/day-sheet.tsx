@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { EntryMiniCard, type SheetEntry } from "./entry-mini-card";
 
 interface DaySheetProps {
@@ -34,10 +37,11 @@ export function DaySheet({
   onClose,
   onNavigate,
   onOpenLog,
-  pack,
-  iconFormat,
+  pack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
 }: DaySheetProps) {
   const locale = useLocale();
+  const router = useRouter();
   const t = useTranslations("daySheet");
   const [entries, setEntries] = useState<SheetEntry[] | null>(null);
 
@@ -46,9 +50,6 @@ export function DaySheet({
   const now = new Date();
   const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const isFuture = new Date(viewYear, viewMonth, day) > todayMidnight;
-  const nextDayIsFuture = new Date(viewYear, viewMonth, day + 1) > todayMidnight;
-  const hasPrev = day > 1;
-  const hasNext = day < total && !nextDayIsFuture;
 
   const displayDate = new Date(selectedDate + "T12:00:00");
   const weekday = displayDate.toLocaleDateString(
@@ -67,257 +68,156 @@ export function DaySheet({
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!alive) return;
-        setEntries(
-          (data as { entries: SheetEntry[] } | null)?.entries ?? [],
-        );
+        setEntries((data as { entries: SheetEntry[] } | null)?.entries ?? []);
       });
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [selectedDate]);
 
-  function goPrev() {
-    if (!hasPrev) return;
-    onNavigate(formatDateStr(viewYear, viewMonth, day - 1));
-  }
-  function goNext() {
-    if (!hasNext) return;
-    onNavigate(formatDateStr(viewYear, viewMonth, day + 1));
-  }
+  const fe = entries && entries.length > 0 ? entries[0] : null;
+  const feMood = fe ? DEFAULT_MOODS.find((m) => m.id === fe.moodTypeId) : null;
+  const feLabel = feMood ? (locale === "th" ? feMood.labelTh : feMood.label) : null;
+  const feTime = fe ? new Date(fe.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) : null;
 
   return (
-    <div style={{ padding: "0 20px 20px" }}>
-      {/* Date header */}
-      <div
-        className="flex items-center justify-between"
-        style={{ marginBottom: 16 }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: "var(--ink-3)",
-              letterSpacing: "0.3px",
-            }}
-          >
-            {weekday}
-          </div>
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: "var(--ink)",
-              lineHeight: 1.2,
-            }}
-          >
-            {monthDay}
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={goPrev}
-            disabled={!hasPrev}
-            className="icon-btn"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              opacity: hasPrev ? 1 : 0.3,
-            }}
-            aria-label={t("prevDay")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden
-            >
-              <path
-                d="M15 6l-6 6 6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={goNext}
-            disabled={!hasNext}
-            className="icon-btn"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              opacity: hasNext ? 1 : 0.3,
-            }}
-            aria-label={t("nextDay")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden
-            >
-              <path
-                d="M9 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div className="card fade-in" style={{ padding: "28px 28px 32px", overflow: "hidden" }}>
 
-      {/* Content */}
+      {/* Loading */}
       {entries === null ? (
-        <SheetSkeleton />
-      ) : entries.length === 0 ? (
-        isFuture ? (
-          <FutureState />
-        ) : (
-          <EmptyState onLog={() => onOpenLog(selectedDate)} />
-        )
+        <div style={{ padding: "40px 0", textAlign: "center" }}>
+          <div className="ai-spin" style={{ width: 32, height: 32, margin: "0 auto 12px", borderRadius: "50%", border: "3px solid var(--hairline)", borderTopColor: "var(--purple)" }} />
+        </div>
+      ) : entries.length > 0 ? (
+        /* ═══ STATE 1: HAS ENTRIES ═══ */
+        <div>
+          {/* Date header */}
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--peach)", marginBottom: 4 }}>{weekday}</div>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", lineHeight: 1.15, marginBottom: 24 }}>{monthDay}</div>
+
+          {entries.map((e, idx) => {
+            const m = DEFAULT_MOODS.find((d) => d.id === e.moodTypeId);
+            const ml = m ? (locale === "th" ? m.labelTh : m.label) : "—";
+            const tm = new Date(e.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+            return (
+              <div key={e.id} style={{ marginBottom: idx < entries.length - 1 ? 24 : 0, paddingBottom: idx < entries.length - 1 ? 24 : 0, borderBottom: idx < entries.length - 1 ? "none" : "none" }}>
+                {idx > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                    <div style={{ flex: 1, height: 1, background: "var(--hairline-2)" }} />
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", flexShrink: 0 }}>{tm}</span>
+                    <div style={{ flex: 1, height: 1, background: "var(--hairline-2)" }} />
+                  </div>
+                )}
+                {/* Mood card */}
+                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 16, border: "1.5px solid var(--hairline)", marginBottom: 20 }}>
+                  {m && <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={40} height={40} style={{ flexShrink: 0 }} />}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>{ml}</div>
+                    <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{tm}</div>
+                  </div>
+                  <button
+                    onClick={() => router.push(`/entry/${e.id}/edit` as "/")}
+                    style={{ padding: "8px 18px", borderRadius: 10, border: "1.5px solid var(--hairline)", background: "#fff", fontSize: 14, fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
+                  >
+                    {locale === "th" ? "แก้ไข" : "Edit"}
+                  </button>
+                </div>
+
+                {/* Note */}
+                {e.note && (
+                  <div style={{ padding: "18px 20px", borderRadius: 16, background: "var(--surface-2)", marginBottom: 20, fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }}>
+                    &ldquo;{e.note}&rdquo;
+                  </div>
+                )}
+
+                {/* Image */}
+                {e.imageUrl && (
+                  <img src={e.imageUrl} alt="" style={{ width: "100%", maxHeight: 200, objectFit: "contain", borderRadius: 12, background: "var(--surface-2)", marginBottom: 20 }} />
+                )}
+
+                {/* Tags */}
+                {e.tags && e.tags.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+                    {e.tags.map((tag, i) => (
+                      <span key={i} style={{ padding: "8px 16px", borderRadius: 100, background: "var(--surface-2)", fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+                        # {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* AI insight */}
+                {e.aiSummary && (
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 20 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 3 }}>
+                      <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" />
+                    </svg>
+                    <div style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)" }}>
+                      <span style={{ fontWeight: 700, color: "var(--purple)" }}>AI: </span>
+                      {e.aiSummary}
+                    </div>
+                  </div>
+                )}
+
+                {/* View full entry link */}
+                <button
+                  onClick={() => router.push(`/entry/${e.id}` as "/")}
+                  style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "1.5px solid var(--hairline)", background: "#fff", fontSize: 14, fontWeight: 700, color: "var(--ink)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                >
+                  {locale === "th" ? "ดูบันทึกเต็ม" : "View full entry"} →
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : isFuture ? (
+        /* ═══ STATE 3: FUTURE ═══ */
+        <div style={{ padding: "32px 24px 40px", textAlign: "center" }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🔮</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
+            {locale === "th" ? "ยังมาไม่ถึง" : "Not yet"}
+          </div>
+          <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 20, maxWidth: 280, margin: "0 auto 20px" }}>
+            {locale === "th"
+              ? `วัน ${parseDay(selectedDate)} ${displayDate.toLocaleDateString("th-TH", { month: "long" })} ยังเป็นอนาคต\nบันทึกได้เฉพาะ "ตอนนี้" หรือย้อนหลัง`
+              : `${monthDay} is in the future.\nYou can only log today or past days.`}
+          </p>
+          <button disabled style={{ padding: "10px 24px", borderRadius: 100, border: "1.5px solid var(--hairline)", background: "var(--surface-2)", fontSize: 14, fontWeight: 700, color: "var(--ink-3)", cursor: "not-allowed" }}>
+            🔒 {locale === "th" ? "ยังบันทึกไม่ได้" : "Can't log yet"}
+          </button>
+          <div style={{ marginTop: 20, padding: "12px 16px", borderRadius: 12, background: "#FFF8F0", border: "1px solid #FDE8DA" }}>
+            <span style={{ fontSize: 14, color: "var(--ink-2)" }}>
+              💡 {locale === "th" ? "Tip: ตั้ง reminder ให้บันทึกตอนเย็น 21:00" : "Tip: Set a reminder to log at 9 PM"}
+            </span>
+          </div>
+        </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {entries.length > 1 && (
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: "var(--ink-3)",
-              }}
-            >
-              {t("entries", { count: entries.length })}
-            </div>
-          )}
-          {entries.map((entry) => (
-            <EntryMiniCard key={entry.id} entry={entry} pack={pack} iconFormat={iconFormat} />
-          ))}
+        /* ═══ STATE 2: EMPTY PAST ═══ */
+        <div style={{ padding: "32px 24px 40px", textAlign: "center" }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🤔</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
+            {locale === "th" ? "ไม่มีบันทึก" : "No entry"}
+          </div>
+          <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 280, margin: "0 auto 24px" }}>
+            {locale === "th"
+              ? `วัน ${parseDay(selectedDate)} ${displayDate.toLocaleDateString("th-TH", { month: "long" })} ยังไม่ได้บันทึก\nย้อนกลับไปเพิ่มได้นะ จำได้แค่ไหนก็เขียนเท่านั้น`
+              : `${monthDay} has no entry yet.\nYou can still add one — write whatever you remember.`}
+          </p>
+          <button
+            onClick={() => onOpenLog(selectedDate)}
+            style={{ padding: "12px 28px", borderRadius: 100, background: "var(--peach)", color: "#fff", border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 16px -4px rgba(252,164,91,0.4)" }}
+          >
+            + {locale === "th" ? "เพิ่มย้อนหลัง" : "Add retroactively"}
+          </button>
+          <div style={{ marginTop: 16 }}>
+            <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
+              {locale === "th" ? "หรือ " : "or "}
+              <a href="/settings" style={{ color: "var(--purple)", fontWeight: 700, textDecoration: "none" }}>
+                {locale === "th" ? "ตั้งเตือนทุกวัน" : "set daily reminder"}
+              </a>
+              {locale === "th" ? " เพื่อกันลืม" : " so you don't forget"}
+            </span>
+          </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function EmptyState({ onLog }: { onLog: () => void }) {
-  const t = useTranslations("daySheet");
-  return (
-    <div
-      className="flex flex-col items-center fade-in"
-      style={{ padding: "24px 0 8px", textAlign: "center" }}
-    >
-      <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
-      <div
-        style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: "var(--ink)",
-          marginBottom: 4,
-        }}
-      >
-        {t("emptyTitle")}
-      </div>
-      <div
-        style={{
-          fontSize: 14,
-          color: "var(--ink-2)",
-          marginBottom: 20,
-        }}
-      >
-        {t("emptyBody")}
-      </div>
-      <button
-        onClick={onLog}
-        className="flex items-center justify-center gap-2"
-        style={{
-          height: 48,
-          width: "100%",
-          maxWidth: 260,
-          background: "var(--peach)",
-          color: "#fff",
-          border: "none",
-          borderRadius: 100,
-          fontWeight: 700,
-          fontSize: 15,
-          boxShadow: "0 8px 20px rgba(252,164,91,0.35)",
-        }}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            d="M12 5v14M5 12h14"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        {t("logMood")}
-      </button>
-    </div>
-  );
-}
-
-function FutureState() {
-  const t = useTranslations("daySheet");
-  return (
-    <div
-      className="flex flex-col items-center fade-in"
-      style={{ padding: "24px 0 8px", textAlign: "center" }}
-    >
-      <div style={{ fontSize: 40, marginBottom: 12 }}>🔮</div>
-      <div
-        style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: "var(--ink)",
-          marginBottom: 4,
-        }}
-      >
-        {t("futureToast")}
-      </div>
-    </div>
-  );
-}
-
-function SheetSkeleton() {
-  return (
-    <div className="flex flex-col gap-3 fade-in">
-      <div
-        style={{
-          height: 100,
-          borderRadius: 20,
-          background: "var(--surface-2)",
-          opacity: 0.6,
-        }}
-      />
-      <div
-        style={{
-          height: 16,
-          width: "60%",
-          borderRadius: 6,
-          background: "var(--surface-2)",
-          opacity: 0.4,
-        }}
-      />
-      <div
-        style={{
-          height: 44,
-          borderRadius: 100,
-          background: "var(--surface-2)",
-          opacity: 0.3,
-        }}
-      />
     </div>
   );
 }
