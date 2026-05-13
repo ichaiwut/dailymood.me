@@ -137,7 +137,11 @@ const INSIGHTS_PROMPT = `Weekly mood insight generator. Input: user's recent moo
 headline: ≤60 chars punchy weekly insight.
 previewHeadline: ≤30 chars teaser version of headline.
 summary: 4-6 sentences, warm observational tone about this week. Cover overall mood trend, notable highs/lows, what influenced them, and a closing reflection. Use **bold** for key phrases. Never judgmental. Say "สัปดาห์นี้" (TH) or "this week" (EN), never "เดือนนี้" or "this month".
-patterns: 1-3 findings (title+description+tag:pattern|correlation|alert). Reference actual data. miniVizData: optional array of up to 7 numbers (1-5 scale) representing a mini trend relevant to the pattern.
+patterns: ALWAYS return exactly 3 findings:
+  1. tag "pattern": a recurring behavioral or mood pattern this week. Include miniVizData (7 numbers, 1-5 scale, one per day Mon-Sun).
+  2. tag "correlation": a tag/activity correlation with mood. Mention specific tags with # prefix.
+  3. tag "alert": an anomaly, unusual shift, or notable observation. If nothing stands out, make a gentle positive observation.
+Each pattern: title (≤40 chars) + description (1-2 sentences referencing data) + tag + optional miniVizData.
 suggestion: one actionable tip or null. Frame as gentle invitation, not instruction.
 Use "highest/lowest" not "best/worst". Use "correlates with" not "causes".`;
 
@@ -156,6 +160,195 @@ export async function generateInsights(data: string): Promise<InsightsResult> {
   });
   const r = await model.generateContent(data);
   return JSON.parse(r.response.text()) as InsightsResult;
+}
+
+// ── Forecast: predict tomorrow's mood ──
+
+import type { ForecastResult } from "@/db/schema";
+
+const FORECAST_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    predictedMood: {
+      type: SchemaType.STRING,
+      enum: ["amazing", "happy", "neutral", "sad", "angry", "anxious", "tired"],
+      format: "enum",
+    },
+    confidence: { type: SchemaType.NUMBER },
+    reasoning: { type: SchemaType.STRING },
+    factors: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          direction: { type: SchemaType.STRING, enum: ["+", "-"], format: "enum" },
+          label: { type: SchemaType.STRING },
+        },
+        required: ["direction", "label"],
+      },
+    },
+    miniTrend: { type: SchemaType.ARRAY, items: { type: SchemaType.NUMBER } },
+  },
+  required: ["predictedMood", "confidence", "reasoning", "factors", "miniTrend"],
+};
+
+const FORECAST_PROMPT = `Mood forecaster. Input: user's recent mood data JSON with day-of-week patterns, recent trends, and tag patterns.
+Predict tomorrow's likely mood. Output JSON in user's locale (th/en).
+
+predictedMood: most likely mood enum for tomorrow.
+confidence: 0.0-1.0 how confident (be realistic, usually 0.5-0.8).
+reasoning: 1-2 sentences explaining prediction in warm tone. Use "มีแนวโน้ม" (TH) or "tends to" (EN), never "จะเป็น" or "will be". Reference specific patterns from data.
+factors: 2-4 contributing factors. direction "+" for positive, "-" for negative. label: short description in user's locale.
+miniTrend: last 7 mood scores (1-5 scale) from the data.
+
+Never claim certainty. Frame as gentle observation, not prescription.`;
+
+export async function generateForecast(data: string): Promise<ForecastResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: FORECAST_SCHEMA,
+      temperature: 0.4,
+      maxOutputTokens: 400,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: FORECAST_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as ForecastResult;
+}
+
+// ── AI Coach: daily personalized tip ──
+
+export interface CoachTipResult {
+  title: string;
+  tip: string;
+  emoji: string;
+}
+
+const COACH_TIP_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    title: { type: SchemaType.STRING },
+    tip: { type: SchemaType.STRING },
+    emoji: { type: SchemaType.STRING },
+  },
+  required: ["title", "tip", "emoji"],
+};
+
+const COACH_TIP_PROMPT = `Mood coach for daily tips. Input: JSON with user's recent mood patterns and top tags.
+Generate a short, warm, actionable tip for today. Output JSON in user's locale (th/en).
+title: ≤30 chars, catchy headline.
+tip: 2-3 sentences, warm personal tone. Reference the user's actual patterns. Suggest one small action. Never clinical.
+emoji: single emoji representing the tip.`;
+
+export async function generateCoachTip(data: string): Promise<CoachTipResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: COACH_TIP_SCHEMA,
+      temperature: 0.7,
+      maxOutputTokens: 200,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: COACH_TIP_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as CoachTipResult;
+}
+
+// ── Themes: recurring topics ──
+
+export interface ThemesResult {
+  themes: { label: string; count: number; color: string }[];
+}
+
+const THEMES_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    themes: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          label: { type: SchemaType.STRING },
+          count: { type: SchemaType.NUMBER },
+          color: { type: SchemaType.STRING },
+        },
+        required: ["label", "count", "color"],
+      },
+    },
+  },
+  required: ["themes"],
+};
+
+const THEMES_PROMPT = `Journal theme extractor. Input: JSON with user's recent journal snippets and tags.
+Find the 5 most recurring themes/topics. Output JSON in user's locale (th/en).
+themes: array of 5 items, sorted by count descending.
+  label: 1-3 words describing the theme (e.g. "งาน/deadline", "ครอบครัว", "การนอน").
+  count: number of entries that mention this theme.
+  color: a hex color for the theme bar (use warm, distinct colors: #FCA45B, #85ECCB, #A673F1, #FDCB56, #9ACDE2).`;
+
+export async function generateThemes(data: string): Promise<ThemesResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: THEMES_SCHEMA,
+      temperature: 0.4,
+      maxOutputTokens: 300,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: THEMES_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as ThemesResult;
+}
+
+// ── Mood DNA: personality archetype ──
+
+export interface DnaResult {
+  archetype: string;
+  archetypeIcon: string;
+  description: string;
+}
+
+const DNA_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    archetype: { type: SchemaType.STRING },
+    archetypeIcon: { type: SchemaType.STRING },
+    description: { type: SchemaType.STRING },
+  },
+  required: ["archetype", "archetypeIcon", "description"],
+};
+
+const DNA_PROMPT = `Mood personality analyzer. Input: JSON with user's 5-axis mood profile (bright, calm, energy, social, depth, each 0-40) and average mood score.
+Determine their mood personality archetype. Output JSON in user's locale (th/en).
+archetype: a creative 2-3 word personality name (e.g. "Morning Optimist", "Steady Sage", "Creative Tide", "นักสำรวจเงียบ", "จิตวิญญาณอิสระ"). Pick from 12 archetypes based on the top 2 axes.
+archetypeIcon: single emoji that represents this archetype.
+description: 1 sentence describing this personality type in warm, affirming tone.`;
+
+export async function generateDna(data: string): Promise<DnaResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: DNA_SCHEMA,
+      temperature: 0.5,
+      maxOutputTokens: 200,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: DNA_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as DnaResult;
 }
 
 // ── Calendar AI: monthly summary + patterns ──

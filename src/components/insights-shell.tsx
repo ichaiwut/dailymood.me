@@ -2,9 +2,20 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { trackInsightsView, trackShareInsight } from "@/lib/analytics";
 import type { Tier } from "@/lib/tier";
+import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
+
+function weekKeyForOffset(offset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offset * 7);
+  const tmp = new Date(d);
+  tmp.setHours(0, 0, 0, 0);
+  tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7));
+  const week1 = new Date(tmp.getFullYear(), 0, 4);
+  const weekNum = 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  return `${tmp.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+}
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -15,7 +26,7 @@ interface Pattern {
   miniVizData?: number[];
 }
 
-interface InsightsData {
+interface WeeklyData {
   headline: string;
   previewHeadline?: string;
   summary: string;
@@ -27,6 +38,51 @@ interface InsightsData {
   tier?: string;
   tooFewEntries?: boolean;
   empty?: boolean;
+  stats?: {
+    avgMood: number;
+    avgMoodDelta: number;
+    goodDays: number;
+    patternsCount: number;
+    wellnessScore: number;
+    wellnessDelta: number;
+  };
+}
+
+interface StatusData {
+  ready: boolean;
+  entryCount: number;
+  aiQuota: { used: number; limit: number } | null;
+  tier: string;
+}
+
+interface ForecastData {
+  predictedMood: string;
+  confidence: number;
+  reasoning: string;
+  factors: { direction: "+" | "-"; label: string }[];
+  miniTrend: number[];
+  tooFewEntries?: boolean;
+  entriesNeeded?: number;
+}
+
+interface EnergyData {
+  hourly: number[];
+  peakHour: number;
+  troughHour: number;
+  tooFewEntries?: boolean;
+}
+
+interface ThemesData {
+  themes: { label: string; count: number; color: string }[];
+  tooFewEntries?: boolean;
+}
+
+interface DnaData {
+  archetype: string;
+  archetypeIcon: string;
+  description: string;
+  axes: { bright: number; calm: number; energy: number; social: number; depth: number };
+  tooFewEntries?: boolean;
 }
 
 /* ── Constants ─────────────────────────────────────────── */
@@ -35,7 +91,13 @@ const CARD: React.CSSProperties = {
   background: "#fff",
   border: "1.5px solid #F2F0F5",
   borderRadius: 22,
-  padding: 18,
+  padding: 20,
+};
+
+const TAG_ICON: Record<string, string> = {
+  pattern: "📌",
+  correlation: "↗",
+  alert: "⚠️",
 };
 
 const TAG_STYLES: Record<string, { bg: string; color: string }> = {
@@ -44,9 +106,9 @@ const TAG_STYLES: Record<string, { bg: string; color: string }> = {
   alert: { bg: "#F26B6B", color: "#fff" },
 };
 
-function truncateSummary(text: string): string {
-  const m = text.match(/^[^.!?]+[.!?]/);
-  return m ? m[0] : text.slice(0, 100);
+function parseWeekNumber(weekKey: string): number | null {
+  const m = weekKey.match(/W(\d+)$/);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 /* ── Main Component ────────────────────────────────────── */
@@ -55,46 +117,74 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
   const locale = useLocale();
   const t = useTranslations("insights");
 
-  const [data, setData] = useState<InsightsData | null>(null);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [data, setData] = useState<WeeklyData | null>(null);
+  const [status, setStatus] = useState<StatusData | null>(null);
+  const [forecast, setForecast] = useState<ForecastData | null>(null);
+  const [energy, setEnergy] = useState<EnergyData | null>(null);
+  const [themes, setThemes] = useState<ThemesData | null>(null);
+  const [dna, setDna] = useState<DnaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
+  const [aiCoach, setAiCoach] = useState(false);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
 
   useEffect(() => {
     trackInsightsView();
     let alive = true;
-    fetch(`/api/insights?locale=${locale}`)
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((json) => {
+    setLoading(true);
+    setExpanded(false);
+
+    const wk = weekKeyForOffset(weekOffset);
+    const premiumFetch = (url: string) =>
+      tier === "premium" ? fetch(url).then((r) => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
+
+    Promise.all([
+      fetch(`/api/insights/weekly?locale=${locale}&week=${wk}`).then((r) => r.ok ? r.json() : null),
+      fetch("/api/insights/status").then((r) => r.ok ? r.json() : null),
+      premiumFetch(`/api/insights/forecast?locale=${locale}`),
+      premiumFetch("/api/insights/energy-clock"),
+      premiumFetch(`/api/insights/themes?locale=${locale}`),
+      premiumFetch(`/api/insights/dna?locale=${locale}`),
+    ])
+      .then(([weeklyJson, statusJson, forecastJson, energyJson, themesJson, dnaJson]) => {
         if (!alive) return;
-        setData(json as InsightsData);
+        if (weeklyJson) setData(weeklyJson as WeeklyData);
+        if (statusJson) setStatus(statusJson as StatusData);
+        if (forecastJson) setForecast(forecastJson as ForecastData);
+        if (energyJson) setEnergy(energyJson as EnergyData);
+        if (themesJson) setThemes(themesJson as ThemesData);
+        if (dnaJson) setDna(dnaJson as DnaData);
       })
       .catch(() => setError(true))
       .finally(() => { if (alive) setLoading(false); });
+
+    // Load toggle states (only on first load)
+    if (weekOffset === 0) {
+      fetch("/api/profile").then((r) => r.ok ? r.json() : null).then((p) => {
+        if (!alive || !p) return;
+        const profile = p as Record<string, unknown>;
+        setAiCoach(profile.aiCoachEnabled === true);
+        setWeeklyDigest(profile.weeklyDigestEnabled === true);
+      }).catch(() => {});
+    }
+
     return () => { alive = false; };
-  }, [locale]);
+  }, [locale, tier, weekOffset]);
 
   const handleFeedback = useCallback(
     async (reaction: "up" | "down" | "routine") => {
       if (!data?.weekKey || !data.suggestion) return;
       const key = `${data.weekKey}:${reaction}`;
       if (feedbackSent.has(key)) return;
-
       setFeedbackSent((prev) => new Set(prev).add(key));
-
       await fetch("/api/insights/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          weekKey: data.weekKey,
-          suggestionTitle: data.suggestion.title,
-          reaction,
-        }),
+        body: JSON.stringify({ weekKey: data.weekKey, suggestionTitle: data.suggestion.title, reaction }),
       }).catch(() => {});
     },
     [data, feedbackSent],
@@ -105,12 +195,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
     trackShareInsight();
     const text = `${data.headline}\n\n${data.summary}`;
     if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ text });
-        return;
-      } catch {
-        // user cancelled or unsupported
-      }
+      try { await navigator.share({ text }); return; } catch { /* cancelled */ }
     }
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       await navigator.clipboard.writeText(text);
@@ -119,133 +204,295 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
     }
   }, [data]);
 
+  const handleToggle = useCallback(async (field: "aiCoachEnabled" | "weeklyDigestEnabled", value: boolean) => {
+    if (field === "aiCoachEnabled") setAiCoach(value);
+    else setWeeklyDigest(value);
+    await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: value }),
+    }).catch(() => {});
+  }, []);
+
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorState locale={locale} onRetry={() => window.location.reload()} />;
   if (!data || data.empty) return <EmptyState locale={locale} />;
   if (data.tooFewEntries) return <TooFewState locale={locale} t={t} />;
 
   const isLocked = data.locked;
+  const weekNum = data.weekKey ? parseWeekNumber(data.weekKey) : null;
+  const isPremium = tier === "premium";
+  const stats = data.stats;
 
   return (
     <>
-      {/* ── HEADER ─── */}
-      <header className="flex items-center justify-between pt-4 pb-5 fade-in">
-        <div>
-          <span style={{ fontSize: 13, fontWeight: 800, color: "#A673F1", letterSpacing: "0.4px" }}>DAILYMOOD AI</span>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>{t("title")}</h1>
-        </div>
-        <Link href={"/stats" as "/"} style={{ fontSize: 13, fontWeight: 600, color: "#A673F1", textDecoration: "none" }}>
-          {t("backToStats")}
-        </Link>
-      </header>
-
-      {/* ── HERO SUMMARY CARD ─── */}
-      <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
-        <div
-          style={{
-            background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 50%, #FCA45B 100%)",
-            borderRadius: 28,
-            padding: "24px 22px",
-            color: "#fff",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.85, letterSpacing: "0.5px", marginBottom: 10 }}>
-            {t("weeklySummary")}
+      {/* ── F1: STATUS BAR ─── */}
+      {status && (
+        <div className="flex items-center justify-between py-3 fade-in" style={{ fontSize: 14 }}>
+          <div className="flex items-center gap-2">
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: status.ready ? "#F0EAFF" : "#F5F5F5",
+              color: status.ready ? "#A673F1" : "var(--ink-3)",
+              padding: "4px 12px", borderRadius: 20, fontWeight: 700,
+            }}>
+              {status.ready && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7C4DFF", animation: "pulse 2s infinite" }} />}
+              {status.ready ? t("statusReady") : t("statusNeedMore", { count: String(7 - status.entryCount) })}
+            </span>
+            <span style={{ color: "var(--ink-3)" }}>
+              {t("entriesUsed", { count: String(status.entryCount) })}
+            </span>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.25, marginBottom: 8 }}>{data.headline}</div>
-          <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5 }}>
-            {expanded ? data.summary : truncateSummary(data.summary)}
-          </p>
-
-          {!isLocked && (
-            <div className="flex items-center gap-3 mt-4">
-              {!expanded ? (
-                <button
-                  onClick={() => setExpanded(true)}
-                  style={{ background: "rgba(255,255,255,0.25)", color: "#fff", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-                >
-                  {t("readFull")} ↗
-                </button>
-              ) : null}
-              <button
-                onClick={handleShare}
-                style={{ background: "rgba(255,255,255,0.25)", color: "#fff", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-              >
-                {copied ? t("copied") : t("share")}
-              </button>
+          {status.aiQuota && (
+            <div className="flex items-center gap-2" style={{ color: "var(--ink-3)" }}>
+              <span>Ask AI {status.aiQuota.used}/{status.aiQuota.limit}</span>
+              <div style={{ width: 60, height: 4, borderRadius: 2, background: "#F2F0F5", overflow: "hidden" }}>
+                <div style={{
+                  width: `${(status.aiQuota.used / status.aiQuota.limit) * 100}%`,
+                  height: "100%", borderRadius: 2,
+                  background: status.aiQuota.used / status.aiQuota.limit > 0.95 ? "#E05A5A" : "#A673F1",
+                }} />
+              </div>
             </div>
           )}
+        </div>
+      )}
 
-          {isLocked && (
-            <a
-              href="/pricing"
-              style={{
-                display: "block", marginTop: 16,
-                padding: "10px 16px",
-                background: "rgba(255,255,255,0.2)",
-                borderRadius: 14,
-                backdropFilter: "blur(4px)",
-                textAlign: "center",
-                textDecoration: "none", color: "#fff",
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{t("locked")}</div>
-              <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2 }}>{t("lockedBody")}</div>
-            </a>
+      {/* ── HEADER + WEEK NAV ─── */}
+      <header className="pb-5 fade-in">
+        <div className="flex items-start justify-between">
+          <div>
+            <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: "0.4px" }}>
+              ✨ AI INSIGHTS {weekNum != null ? `· ${locale === "th" ? `สัปดาห์ที่ ${weekNum}` : `Week ${weekNum}`}` : ""}
+            </span>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "2px 0 0" }}>
+              {t("yourWeek")}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
+            <button style={WEEK_NAV_BTN} onClick={() => setWeekOffset((o) => o - 1)}>← {t("prevWeek")}</button>
+            {weekOffset < 0 && (
+              <button style={WEEK_NAV_BTN} onClick={() => setWeekOffset((o) => o + 1)}>
+                {t("nextWeek")} →
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ── F2: HERO RECAP (2-col: text left, tiles right) ─── */}
+      <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
+        <div style={{
+          background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 40%, #FCA45B 100%)",
+          borderRadius: 28, padding: "28px 24px", color: "#fff", position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ display: "grid", gridTemplateColumns: stats ? "1.5fr 1fr" : "1fr", gap: 24, alignItems: "start" }}>
+            {/* Left: summary + buttons */}
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.85, letterSpacing: "0.5px", marginBottom: 12 }}>
+                {locale === "th" ? "สรุปสัปดาห์ · เขียนโดย AI" : "Weekly summary · by AI"}
+              </div>
+              <p
+                style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.45, margin: "0 0 20px" }}
+                dangerouslySetInnerHTML={{
+                  __html: (expanded ? data.summary : data.headline).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                }}
+              />
+
+              {!isLocked && (
+                <div className="flex items-center gap-3 flex-wrap">
+                  {!expanded && (
+                    <button onClick={() => setExpanded(true)} style={HERO_BTN}>
+                      {locale === "th" ? "อ่านฉบับเต็ม →" : "Read full →"}
+                    </button>
+                  )}
+                  <button onClick={handleShare} style={HERO_BTN}>
+                    {copied ? t("copied") : `📩 ${locale === "th" ? "อีเมล / แชร์" : "Email / Share"}`}
+                  </button>
+                </div>
+              )}
+
+              {isLocked && (
+                <a href="/pricing" style={{
+                  display: "inline-block", padding: "10px 16px",
+                  background: "rgba(255,255,255,0.2)", borderRadius: 14, backdropFilter: "blur(4px)",
+                  textAlign: "center", textDecoration: "none", color: "#fff",
+                }}>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{t("locked")}</div>
+                  <div style={{ fontSize: 14, opacity: 0.8, marginTop: 2 }}>{t("lockedBody")}</div>
+                </a>
+              )}
+            </div>
+
+            {/* Right: 2×2 stat tiles */}
+            {stats && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <GlassTile label={locale === "th" ? "คะแนนเฉลี่ย" : "Avg mood"} value={stats.avgMood.toFixed(1)} delta={stats.avgMoodDelta > 0 ? `↑ ${stats.avgMoodDelta}` : stats.avgMoodDelta < 0 ? `↓ ${Math.abs(stats.avgMoodDelta)}` : undefined} />
+                <GlassTile label={locale === "th" ? "วันที่ดี" : "Good days"} value={`${stats.goodDays}/7`} delta={stats.goodDays >= 4 ? (locale === "th" ? "มากกว่าก่อน" : "More than before") : undefined} />
+                <GlassTile label="PATTERN" value={`${locale === "th" ? "พบ" : "found"} ${stats.patternsCount}`} delta={stats.patternsCount > 0 ? `+${stats.patternsCount} ${locale === "th" ? "ใหม่" : "new"}` : undefined} />
+                <GlassTile label="WELLNESS" value={String(stats.wellnessScore)} delta={stats.wellnessDelta > 0 ? `+${stats.wellnessDelta} pts` : undefined} />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4-FEATURE GRID ─── */}
+      <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          {/* Forecast */}
+          {isPremium && forecast && !forecast.tooFewEntries ? (
+            <div style={CARD}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span style={{ fontSize: 14 }}>🔮</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>{locale === "th" ? "พยากรณ์" : "FORECAST"}</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>{t("forecastTomorrow")}</div>
+              <div className="flex items-center gap-2 mb-2">
+                <img src={moodIconUrl(forecast.predictedMood)} alt="" width={28} height={28} style={{ width: 28, height: 28 }} />
+                <span style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>{Math.round(forecast.confidence * 100)}%</span>
+              </div>
+              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.4, margin: 0 }}>{forecast.reasoning}</p>
+              {forecast.factors.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 6 }}>
+                  {forecast.factors.slice(0, 3).map((f, i) => (
+                    <div key={i} style={{ fontSize: 14, color: f.direction === "+" ? "#2DA963" : "#E05A5A" }}>
+                      {f.direction === "+" ? "⊕" : "⊖"} {f.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : isPremium && !forecast ? (
+            <div style={{ ...CARD, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+              <span style={{ fontSize: 24, marginBottom: 6 }}>🔮</span>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "พยากรณ์" : "Forecast"}</div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>{locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing..."}</div>
+            </div>
+          ) : (
+            <FeatureTeaser icon="🔮" label={t("forecast")} desc={forecast?.tooFewEntries ? t("forecastNeedMore", { count: String(forecast.entriesNeeded ?? 7) }) : t("forecast")} locked={!isPremium} locale={locale} />
+          )}
+
+          {/* Mood DNA */}
+          {isPremium && dna && !dna.tooFewEntries ? (
+            <div style={CARD}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span style={{ fontSize: 14 }}>🧬</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#1B7A5A" }}>MOOD DNA</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
+                {dna.archetypeIcon} {dna.archetype}
+              </div>
+              <RadarChart axes={dna.axes} locale={locale} />
+              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.3, margin: 0 }}>{dna.description}</p>
+            </div>
+          ) : (
+            <FeatureTeaser icon="🧬" label={t("moodDna")} desc={t("moodDnaDesc")} locked={!isPremium} locale={locale} />
+          )}
+
+          {/* Themes */}
+          {isPremium && themes && !themes.tooFewEntries && themes.themes.length > 0 ? (
+            <div style={CARD}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span style={{ fontSize: 14 }}>🔁</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>{locale === "th" ? "ธีมที่กลับมา" : "THEMES"}</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>{locale === "th" ? "ที่คุณพูดถึงบ่อย" : "What comes up most"}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {themes.themes.slice(0, 5).map((th, i) => (
+                  <div key={i} className="flex items-center gap-2" style={{ fontSize: 14 }}>
+                    <div style={{ width: 4, height: 16, borderRadius: 2, background: th.color, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontWeight: 600, color: "var(--ink)" }}>{th.label}</span>
+                    <span style={{ color: "var(--ink-3)", fontSize: 14 }}>{th.count}×</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <FeatureTeaser icon="🔁" label={t("themes")} desc={t("themesDesc")} locked={!isPremium} locale={locale} />
+          )}
+
+          {/* Energy Clock */}
+          {isPremium && energy && !energy.tooFewEntries ? (
+            <div style={CARD}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span style={{ fontSize: 14 }}>⏰</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>ENERGY CLOCK</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
+                {locale === "th" ? "รู้สึกดีที่สุด" : "Peak energy"}
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#FCA45B", marginBottom: 8 }}>
+                {energy.peakHour}:00 {locale === "th" ? "น." : "h"}
+              </div>
+              <EnergyBars hourly={energy.hourly} peakHour={energy.peakHour} />
+              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 4 }}>
+                {locale === "th" ? `ต่ำสุด ${energy.troughHour}:00 น.` : `Low ${energy.troughHour}:00`}
+              </div>
+            </div>
+          ) : (
+            <FeatureTeaser icon="⏰" label={t("energyClock")} desc={t("energyClockDesc")} locked={!isPremium} locale={locale} />
           )}
         </div>
       </section>
 
-      {/* ── PATTERN CARDS ─── */}
+      {/* ── F8: 3 PATTERN CARDS ─── */}
       {isLocked ? (
         <>
-          <LockedCard icon="🔍" title={locale === "th" ? "แพทเทิร์นอารมณ์" : "Mood patterns"} description={locale === "th" ? "AI จับแพทเทิร์นจากบันทึกของคุณ เช่น อารมณ์ดีขึ้นหลังออกกำลังกาย" : "AI detects patterns like mood improving after exercise"} delay="80ms" />
-          <LockedCard icon="🔗" title={locale === "th" ? "ความสัมพันธ์" : "Correlations"} description={locale === "th" ? "ดูว่ากิจกรรมไหนส่งผลต่ออารมณ์คุณจริง ๆ" : "See which activities actually affect your mood"} delay="120ms" />
-          <LockedCard icon="💡" title={locale === "th" ? "คำแนะนำประจำสัปดาห์" : "Weekly suggestion"} description={locale === "th" ? "AI แนะนำสิ่งที่น่าลองจากข้อมูลของคุณ" : "AI suggests things to try based on your data"} delay="160ms" />
+          <LockedCard icon="🔍" title={locale === "th" ? "แพทเทิร์นอารมณ์" : "Mood patterns"} description={locale === "th" ? "AI จับแพทเทิร์นจากบันทึกของคุณ" : "AI detects mood patterns"} delay="120ms" />
+          <LockedCard icon="🔗" title={locale === "th" ? "ความสัมพันธ์" : "Correlations"} description={locale === "th" ? "ดูว่ากิจกรรมไหนส่งผลต่ออารมณ์" : "See what affects your mood"} delay="160ms" />
+          <LockedCard icon="💡" title={locale === "th" ? "คำแนะนำ" : "Suggestions"} description={locale === "th" ? "AI แนะนำสิ่งที่น่าลอง" : "AI suggests things to try"} delay="200ms" />
         </>
       ) : (
         <>
-          {data.patterns.map((p, i) => {
-            const style = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
-            return (
-              <section key={i} className="mb-4 fade-in" style={{ animationDelay: `${80 + i * 40}ms` }}>
-                <div style={CARD}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span style={{ background: style.bg, color: style.color, fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
-                      {t(p.tag as "pattern" | "correlation" | "alert")}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{p.title}</h3>
-                  <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: p.miniVizData && p.miniVizData.length > 1 ? 16 : 0 }}>{p.description}</p>
-                  {p.miniVizData && p.miniVizData.length > 1 && <MoodBarChart data={p.miniVizData} />}
-                </div>
-              </section>
-            );
-          })}
+          {data.patterns.length > 0 && (
+            <section className="mb-5 fade-in" style={{ animationDelay: "120ms" }}>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(data.patterns.length, 3)}, 1fr)`, gap: 14, alignItems: "stretch" }}>
+                {data.patterns.slice(0, 3).map((p, i) => {
+                  const tagStyle = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
+                  const tagIcon = TAG_ICON[p.tag] ?? "🔍";
+                  const hasViz = p.miniVizData && p.miniVizData.length > 1;
+                  return (
+                    <div key={i} style={{ ...CARD, display: "flex", flexDirection: "column" }}>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span style={{ fontSize: 14 }}>{tagIcon}</span>
+                        <span style={{
+                          background: tagStyle.bg, color: tagStyle.color,
+                          fontSize: 14, fontWeight: 800, padding: "3px 8px",
+                          borderRadius: 6, letterSpacing: "0.3px", textTransform: "uppercase",
+                        }}>
+                          {t(p.tag as "pattern" | "correlation" | "alert")}
+                        </span>
+                      </div>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "8px 0 6px" }}>{p.title}</h3>
+                      <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, margin: 0, flex: hasViz ? undefined : 1 }}>{p.description}</p>
+                      {hasViz && <div style={{ marginTop: "auto", paddingTop: 16 }}><MoodBarChart data={p.miniVizData!} /></div>}
+                      {!hasViz && <ActivityTags description={p.description} />}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
-          {/* ── SUGGESTION CARD ─── */}
+          {/* ── F9a: SUGGESTION ─── */}
           {data.suggestion && (
-            <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
-              <div style={{ background: "#FAFFF8", border: "1.5px solid #DEF1D5", borderRadius: 22, padding: 18 }}>
-                <span style={{ background: "#5CBF5C", color: "#fff", fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px" }}>
-                  {t("tryThis")}
-                </span>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 4px" }}>{data.suggestion.title}</h3>
-                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 12 }}>{data.suggestion.description}</p>
-
-                <div className="flex items-center gap-2">
-                  <FeedbackPill
-                    label={`👍 ${t("thumbUp")}`}
-                    active={feedbackSent.has(`${data.weekKey}:up`)}
-                    onClick={() => handleFeedback("up")}
-                  />
-                  <FeedbackPill
-                    label={`👎 ${t("thumbDown")}`}
-                    active={feedbackSent.has(`${data.weekKey}:down`)}
-                    onClick={() => handleFeedback("down")}
-                  />
+            <section className="mb-5 fade-in" style={{ animationDelay: "160ms" }}>
+              <div style={{ background: "#FFFBF5", border: "1.5px solid #F5E6D0", borderRadius: 22, padding: 20 }}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span style={{ fontSize: 14 }}>💡</span>
+                  <span style={{
+                    background: "#FCA45B", color: "#fff", fontSize: 14, fontWeight: 800,
+                    padding: "3px 8px", borderRadius: 6, letterSpacing: "0.3px", textTransform: "uppercase",
+                  }}>
+                    SUGGESTION
+                  </span>
+                </div>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 6px" }}>{data.suggestion.title}</h3>
+                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 16 }}>{data.suggestion.description}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <FeedbackPill label={`👍 ${locale === "th" ? "ใช่" : "Yes"}`} active={feedbackSent.has(`${data.weekKey}:up`)} onClick={() => handleFeedback("up")} />
+                  <FeedbackPill label={`👎 ${locale === "th" ? "ไม่ตรง" : "Not relevant"}`} active={feedbackSent.has(`${data.weekKey}:down`)} onClick={() => handleFeedback("down")} />
                 </div>
               </div>
             </section>
@@ -253,31 +500,205 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </>
       )}
 
-      {/* ── STREAK CARD ─── */}
-      {data.streak > 0 && (
-        <section className="mb-5 fade-in" style={{ animationDelay: "240ms" }}>
-          <div
-            style={{
-              background: "#FAF7FE",
-              border: "1.5px solid #E6DBF7",
-              borderRadius: 22,
-              padding: "16px 18px",
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-            }}
-          >
-            <span style={{ fontSize: 28 }}>🔥</span>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>
-                {data.streak} {t("streak")}
+      {/* ── F10: FOOTER TOGGLES ─── */}
+      <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={CARD}>
+            <div className="flex items-start justify-between">
+              <div style={{ flex: 1 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span style={{
+                    width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "linear-gradient(135deg, #FCA45B, #A673F1)", fontSize: 16,
+                  }}>🤖</span>
+                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{t("aiCoachTitle")}</h3>
+                <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0 }}>{t("aiCoachDesc")}</p>
               </div>
-              <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{t("streakTitle")}</div>
+              <TogglePill enabled={aiCoach} disabled={!isPremium} onChange={(v) => handleToggle("aiCoachEnabled", v)} />
             </div>
           </div>
-        </section>
-      )}
+          <div style={CARD}>
+            <div className="flex items-start justify-between">
+              <div style={{ flex: 1 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span style={{
+                    width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "#E8FFF5", fontSize: 16,
+                  }}>📩</span>
+                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{t("weeklyDigestTitle")}</h3>
+                <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0 }}>{t("weeklyDigestDesc")}</p>
+              </div>
+              <TogglePill enabled={weeklyDigest} disabled={!isPremium} onChange={(v) => handleToggle("weeklyDigestEnabled", v)} />
+            </div>
+          </div>
+        </div>
+      </section>
     </>
+  );
+}
+
+/* ── Hero button style ────────────────────────────────── */
+
+const WEEK_NAV_BTN: React.CSSProperties = {
+  background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 20,
+  padding: "6px 14px", fontSize: 14, fontWeight: 700, color: "var(--ink)",
+  cursor: "pointer",
+};
+
+const HERO_BTN: React.CSSProperties = {
+  background: "rgba(255,255,255,0.25)", backdropFilter: "blur(4px)",
+  color: "#fff", border: "1.5px solid rgba(255,255,255,0.35)",
+  borderRadius: 20, padding: "7px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer",
+};
+
+/* ── Glass Tile ───────────────────────────────────────── */
+
+function GlassTile({ label, value, delta }: { label: string; value: string; delta?: string }) {
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.14)", backdropFilter: "blur(8px)",
+      borderRadius: 14, padding: "12px 14px", border: "1px solid rgba(255,255,255,0.2)",
+    }}>
+      <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.8 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>{value}</div>
+      {delta && <div style={{ fontSize: 14, fontWeight: 600, color: "#B8FFD8", marginTop: 2 }}>{delta}</div>}
+    </div>
+  );
+}
+
+/* ── Feature Teaser Card ──────────────────────────────── */
+
+function FeatureTeaser({ icon, label, desc, locked, comingSoon, locale }: {
+  icon: string; label: string; desc: string; locked?: boolean; comingSoon?: boolean; locale: string;
+}) {
+  const inner = (
+    <div style={{ ...CARD, height: "100%", display: "flex", flexDirection: "column", opacity: comingSoon ? 0.7 : 1 }}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        {locked && <span style={{ fontSize: 9, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>{label}</div>
+      <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0, flex: 1 }}>{desc}</p>
+      {comingSoon && (
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", marginTop: 8 }}>
+          {locale === "th" ? "เร็ว ๆ นี้" : "Coming soon"}
+        </div>
+      )}
+    </div>
+  );
+  if (locked && !comingSoon) {
+    return <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>{inner}</a>;
+  }
+  return inner;
+}
+
+/* ── Toggle Pill ──────────────────────────────────────── */
+
+function TogglePill({ enabled, disabled, onChange }: { enabled: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => !disabled && onChange(!enabled)}
+      style={{
+        width: 44, height: 24, borderRadius: 12, border: "none", padding: 2,
+        background: disabled ? "#E8E8E8" : enabled ? "#A673F1" : "#D8D5DD",
+        cursor: disabled ? "default" : "pointer", flexShrink: 0, marginTop: 4,
+        transition: "background 0.2s",
+      }}
+    >
+      <div style={{
+        width: 20, height: 20, borderRadius: 10, background: "#fff",
+        transform: enabled && !disabled ? "translateX(20px)" : "translateX(0)",
+        transition: "transform 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+      }} />
+    </button>
+  );
+}
+
+/* ── Radar Chart (Mood DNA) ────────────────────────────── */
+
+function RadarChart({ axes, locale }: { axes: { bright: number; calm: number; energy: number; social: number; depth: number }; locale: string }) {
+  const cx = 60, cy = 55, R = 36;
+  const keys: (keyof typeof axes)[] = ["bright", "calm", "energy", "social", "depth"];
+  const labels = locale === "th"
+    ? ["สดใส", "สงบ", "พลัง", "สังคม", "ลึก"]
+    : ["Bright", "Calm", "Energy", "Social", "Depth"];
+
+  const angleFor = (i: number) => (Math.PI * 2 * i) / 5 - Math.PI / 2;
+
+  const pts = keys.map((k, i) => {
+    const angle = angleFor(i);
+    const r = (axes[k] / 40) * R;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  });
+
+  const polygon = pts.map((p) => `${p.x},${p.y}`).join(" ");
+  const gridPts = (r: number) => keys.map((_, i) => {
+    const angle = angleFor(i);
+    return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+  }).join(" ");
+
+  const labelPos = keys.map((_, i) => {
+    const angle = angleFor(i);
+    const lr = R + 12;
+    return { x: cx + lr * Math.cos(angle), y: cy + lr * Math.sin(angle) };
+  });
+
+  return (
+    <svg viewBox="0 0 120 110" width="100%" style={{ display: "block", margin: "6px 0" }}>
+      <polygon points={gridPts(R)} fill="none" stroke="#E8E6EC" strokeWidth={0.5} />
+      <polygon points={gridPts(R * 0.5)} fill="none" stroke="#E8E6EC" strokeWidth={0.3} />
+      <polygon points={polygon} fill="rgba(133,236,203,0.4)" stroke="#1B7A5A" strokeWidth={1.2} />
+      {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={1.8} fill="#1B7A5A" />)}
+      {labelPos.map((p, i) => (
+        <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={7} fontWeight={700} fill="var(--ink-3, #999)">
+          {labels[i]}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+/* ── Energy Clock (24h radial) ─────────────────────────── */
+
+function EnergyBars({ hourly, peakHour }: { hourly: number[]; peakHour: number }) {
+  const cx = 60, cy = 60, innerR = 22, maxBarLen = 24;
+  const maxVal = Math.max(...hourly.filter((v) => v > 0), 0.01);
+
+  return (
+    <svg viewBox="0 0 120 120" width="100%" style={{ display: "block", margin: "4px 0" }}>
+      <circle cx={cx} cy={cy} r={innerR - 2} fill="none" stroke="#F2F0F5" strokeWidth={0.5} />
+      {hourly.map((v, i) => {
+        const angle = (Math.PI * 2 * i) / 24 - Math.PI / 2;
+        const barLen = v > 0 ? Math.max(3, (v / maxVal) * maxBarLen) : 2;
+        const x1 = cx + innerR * Math.cos(angle);
+        const y1 = cy + innerR * Math.sin(angle);
+        const x2 = cx + (innerR + barLen) * Math.cos(angle);
+        const y2 = cy + (innerR + barLen) * Math.sin(angle);
+        const isPeak = i === peakHour;
+        const color = v >= 0.7 ? "#FCA45B" : v >= 0.4 ? "#FDCB56" : "rgba(252,164,91,0.25)";
+        return (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke={isPeak ? "#FCA45B" : color}
+            strokeWidth={3.5} strokeLinecap="round"
+            opacity={v > 0 ? 1 : 0.3}
+          />
+        );
+      })}
+      {[0, 6, 12, 18].map((h) => {
+        const angle = (Math.PI * 2 * h) / 24 - Math.PI / 2;
+        const lx = cx + (innerR - 8) * Math.cos(angle);
+        const ly = cy + (innerR - 8) * Math.sin(angle);
+        return (
+          <text key={h} x={lx} y={ly} textAnchor="middle" dominantBaseline="central" fontSize={6} fontWeight={700} fill="var(--ink-3, #999)">
+            {h}
+          </text>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -286,8 +707,8 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 function MoodBarChart({ data }: { data: number[] }) {
   const locale = useLocale();
   const H = 56;
-  const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const DAYS_TH = ["จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส.", "อา."];
+  const DAYS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const days = locale === "th" ? DAYS_TH : DAYS_EN;
 
   function barColor(score: number): string {
@@ -302,62 +723,77 @@ function MoodBarChart({ data }: { data: number[] }) {
         {data.map((v, i) => {
           const clamped = Math.min(5, Math.max(1, v));
           const h = Math.max(6, (clamped / 5) * H);
-          return (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                height: h,
-                borderRadius: 5,
-                background: barColor(clamped),
-              }}
-            />
-          );
+          return <div key={i} style={{ flex: 1, height: h, borderRadius: 5, background: barColor(clamped) }} />;
         })}
       </div>
       {data.length <= 7 && (
         <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
           {data.map((_, i) => (
-            <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, fontWeight: 600, color: "var(--ink-3)" }}>
+            <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>
               {days[i] ?? ""}
             </div>
           ))}
         </div>
       )}
-      <div style={{ display: "flex", gap: 12, marginTop: 8, justifyContent: "center" }}>
-        {[
-          { color: "#85ECCB", label: locale === "th" ? "ดี" : "Good" },
-          { color: "#FDCB56", label: locale === "th" ? "กลางๆ" : "Okay" },
-          { color: "#FEAD8D", label: locale === "th" ? "ไม่ค่อยดี" : "Low" },
-        ].map((l) => (
-          <div key={l.color} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: l.color }} />
-            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink-3)" }}>{l.label}</span>
-          </div>
-        ))}
-      </div>
+    </div>
+  );
+}
+
+/* ── Activity Tags ────────────────────────────────────── */
+
+function ActivityTags({ description }: { description: string }) {
+  const hashtags = description.match(/#\S+/g) ?? [];
+  const quoted = (description.match(/['']([^'']+)['']|'([^']+)'/g) ?? [])
+    .map((q) => q.replace(/[''']/g, ""))
+    .filter((q) => q.length > 1 && q.length < 20);
+  const all = [...new Set([...hashtags, ...quoted.map((q) => `#${q}`)])].slice(0, 5);
+  if (all.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5" style={{ marginTop: 12 }}>
+      {all.map((tag, i) => (
+        <span key={i} style={{ background: "#FFF3E6", color: "#E08A2B", fontSize: 14, fontWeight: 700, padding: "4px 10px", borderRadius: 8 }}>
+          {tag}
+        </span>
+      ))}
     </div>
   );
 }
 
 /* ── Feedback Pill ─────────────────────────────────────── */
 
+function FeedbackPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={active}
+      style={{
+        background: active ? "#F0EAFF" : "#fff",
+        color: active ? "#A673F1" : "var(--ink-2, #666)",
+        border: `1.5px solid ${active ? "#A673F1" : "#F2F0F5"}`,
+        borderRadius: 20, padding: "7px 14px", fontSize: 14, fontWeight: 700,
+        cursor: active ? "default" : "pointer", transition: "all 0.2s",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ── Locked Card ──────────────────────────────────────── */
+
 function LockedCard({ icon, title, description, delay }: { icon: string; title: string; description: string; delay: string }) {
   const locale = useLocale();
   return (
     <section className="mb-4 fade-in" style={{ animationDelay: delay }}>
       <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-        <div style={{
-          background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
-          borderRadius: 22, padding: 18,
-        }}>
+        <div style={{ background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)", borderRadius: 22, padding: 20 }}>
           <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
             <span style={{ fontSize: 20 }}>{icon}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
           </div>
           <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{title}</h3>
-          <p style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 8 }}>{description}</p>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+          <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 8 }}>{description}</p>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
             {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
           </span>
         </div>
@@ -366,36 +802,19 @@ function LockedCard({ icon, title, description, delay }: { icon: string; title: 
   );
 }
 
-function FeedbackPill({ label, active, accent, onClick }: { label: string; active: boolean; accent?: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={active}
-      style={{
-        background: active ? (accent ? "#5CBF5C" : "#F0EAFF") : "#fff",
-        color: active ? (accent ? "#fff" : "#A673F1") : "var(--ink-2, #666)",
-        border: `1.5px solid ${active ? (accent ? "#5CBF5C" : "#A673F1") : "#F2F0F5"}`,
-        borderRadius: 20,
-        padding: "5px 12px",
-        fontSize: 12,
-        fontWeight: 600,
-        cursor: active ? "default" : "pointer",
-        transition: "all 0.2s",
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
 /* ── States ────────────────────────────────────────────── */
 
 function LoadingSkeleton() {
   return (
     <div className="space-y-4 fade-in" style={{ paddingTop: 60 }}>
-      <div style={{ height: 180, borderRadius: 28, background: "linear-gradient(135deg, #E8DDF5, #F4EEFB)", opacity: 0.6 }} />
-      <div style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.5 }} />
-      <div style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.4 }} />
+      <div style={{ height: 20, width: 200, borderRadius: 10, background: "#F0EAFF", opacity: 0.6 }} />
+      <div style={{ height: 240, borderRadius: 28, background: "linear-gradient(135deg, #E8DDF5, #F4EEFB)", opacity: 0.5 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        {[...Array(4)].map((_, i) => <div key={i} style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.4 }} />)}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+        {[...Array(3)].map((_, i) => <div key={i} style={{ height: 180, borderRadius: 22, background: "var(--surface-2)", opacity: 0.3 }} />)}
+      </div>
     </div>
   );
 }
@@ -421,9 +840,7 @@ function TooFewState({ locale, t }: { locale: string; t: (key: string) => string
       <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
         {locale === "th" ? "เกือบถึงแล้ว!" : "Almost there!"}
       </h2>
-      <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5 }}>
-        {t("tooFewEntries")}
-      </p>
+      <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5 }}>{t("tooFewEntries")}</p>
     </div>
   );
 }

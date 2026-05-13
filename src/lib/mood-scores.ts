@@ -42,6 +42,20 @@ export function computeStreak(dates: Set<string>): number {
   return streak;
 }
 
+export function computeWellnessScore(opts: {
+  avgMood: number;
+  daysWithEntries: number;
+  totalDays: number;
+  goodDays: number;
+  streak: number;
+}): number {
+  const avgNorm = Math.min(1, Math.max(0, (opts.avgMood - 1) / 4));
+  const consistency = opts.totalDays > 0 ? opts.daysWithEntries / opts.totalDays : 0;
+  const positivity = opts.daysWithEntries > 0 ? opts.goodDays / opts.daysWithEntries : 0;
+  const streakBonus = opts.streak >= 3 ? 1 : opts.streak >= 1 ? 0.5 : 0;
+  return Math.round((avgNorm * 0.4 + consistency * 0.3 + positivity * 0.2 + streakBonus * 0.1) * 100);
+}
+
 export function isoWeekKey(d: Date): string {
   const tmp = new Date(d);
   tmp.setHours(0, 0, 0, 0);

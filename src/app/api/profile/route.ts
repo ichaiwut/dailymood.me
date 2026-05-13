@@ -28,6 +28,8 @@ export async function GET() {
       reminderEnabled: users.reminderEnabled,
       reminderTime: users.reminderTime,
       reminderDays: users.reminderDays,
+      aiCoachEnabled: users.aiCoachEnabled,
+      weeklyDigestEnabled: users.weeklyDigestEnabled,
       moodPack: users.moodPack,
       createdAt: users.createdAt,
       currentPeriodEnd: users.currentPeriodEnd,
@@ -152,6 +154,12 @@ export async function PATCH(req: NextRequest) {
   }
   if (typeof body.reminderEnabled === "boolean") {
     updates.reminderEnabled = body.reminderEnabled;
+  }
+  if (typeof body.aiCoachEnabled === "boolean") {
+    updates.aiCoachEnabled = body.aiCoachEnabled;
+  }
+  if (typeof body.weeklyDigestEnabled === "boolean") {
+    updates.weeklyDigestEnabled = body.weeklyDigestEnabled;
   }
   if (typeof body.reminderTime === "string" && /^\d{2}:\d{2}$/.test(body.reminderTime as string)) {
     updates.reminderTime = body.reminderTime;

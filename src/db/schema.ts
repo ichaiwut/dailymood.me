@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   reminderEnabled: boolean("reminder_enabled").notNull().default(false),
   reminderTime: text("reminder_time").notNull().default("21:00"),
   reminderDays: text("reminder_days").notNull().default("1,2,3,4,5"),
+  aiCoachEnabled: boolean("ai_coach_enabled").notNull().default(false),
+  weeklyDigestEnabled: boolean("weekly_digest_enabled").notNull().default(false),
   createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 });
 
@@ -166,6 +168,24 @@ export const yearAiCache = pgTable("year_ai_cache", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.year] }),
 }));
+
+export const forecastCache = pgTable("forecast_cache", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  targetDate: text("target_date").notNull(),
+  result: jsonb("result").$type<ForecastResult>().notNull(),
+  inputHash: text("input_hash").notNull(),
+  generatedAt: timestamp("generated_at").notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.targetDate] }),
+}));
+
+export interface ForecastResult {
+  predictedMood: string;
+  confidence: number;
+  reasoning: string;
+  factors: { direction: "+" | "-"; label: string }[];
+  miniTrend: number[];
+}
 
 export interface YearAiResult {
   summary: string;
