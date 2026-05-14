@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useLocale } from "next-intl";
 import type { Tier } from "@/lib/tier";
 import type { AskAiSource } from "@/db/schema";
+import { AiSubTabs } from "./ai-sub-tabs";
 
 interface Thread {
   id: string;
@@ -142,7 +143,9 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const isNewThread = !activeThreadId || messages.length === 0;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", height: "calc(100vh - 72px)", overflow: "hidden" }}>
+    <div>
+      <AiSubTabs active="ask-ai" locale={locale} />
+    <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", height: "calc(100vh - 120px)", overflow: "hidden" }}>
       {/* Sidebar */}
       <div style={{ borderRight: "1.5px solid #F2F0F5", padding: "16px", overflowY: "auto", background: "#FAFAF8" }}>
         <button
@@ -253,6 +256,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

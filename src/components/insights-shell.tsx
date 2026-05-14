@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { trackInsightsView, trackShareInsight } from "@/lib/analytics";
 import type { Tier } from "@/lib/tier";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { AiSubTabs } from "./ai-sub-tabs";
 
 function weekKeyForOffset(offset: number): string {
   const d = new Date();
@@ -139,39 +140,21 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
     setExpanded(false);
 
     const wk = weekKeyForOffset(weekOffset);
-    const premiumFetch = (url: string) =>
-      tier === "premium" ? fetch(url).then((r) => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null);
 
-    Promise.all([
-      fetch(`/api/insights/weekly?locale=${locale}&week=${wk}`).then((r) => r.ok ? r.json() : null),
-      fetch("/api/insights/status").then((r) => r.ok ? r.json() : null),
-      premiumFetch(`/api/insights/forecast?locale=${locale}`),
-      premiumFetch("/api/insights/energy-clock"),
-      premiumFetch(`/api/insights/themes?locale=${locale}`),
-      premiumFetch(`/api/insights/dna?locale=${locale}`),
-    ])
-      .then(([weeklyJson, statusJson, forecastJson, energyJson, themesJson, dnaJson]) => {
-        if (!alive) return;
-        if (weeklyJson) setData(weeklyJson as WeeklyData);
-        if (statusJson) setStatus(statusJson as StatusData);
-        if (forecastJson) setForecast(forecastJson as ForecastData);
-        if (energyJson) setEnergy(energyJson as EnergyData);
-        if (themesJson) setThemes(themesJson as ThemesData);
-        if (dnaJson) setDna(dnaJson as DnaData);
+    fetch(`/api/insights/all?locale=${locale}&week=${wk}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (!alive || !d) return;
+        const all = d as Record<string, unknown>;
+        setData(all as unknown as WeeklyData);
+        if (all.status) setStatus(all.status as StatusData);
+        if (all.forecast) setForecast(all.forecast as ForecastData);
+        if (all.energy) setEnergy(all.energy as EnergyData);
+        if (all.themes) setThemes(all.themes as ThemesData);
+        if (all.dna) setDna(all.dna as DnaData);
       })
       .catch(() => setError(true))
       .finally(() => { if (alive) setLoading(false); });
-
-    if (weekOffset === 0) {
-      fetch("/api/profile").then((r) => r.ok ? r.json() : null).then((p) => {
-        if (!alive || !p) return;
-        const user = (p as Record<string, unknown>).user as Record<string, unknown> | undefined;
-        if (user) {
-          setAiCoach(user.aiCoachEnabled === true);
-          setWeeklyDigest(user.weeklyDigestEnabled === true);
-        }
-      }).catch(() => {});
-    }
 
     return () => { alive = false; };
   }, [locale, tier, weekOffset]);
@@ -227,6 +210,9 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
   return (
     <>
+      {/* ── AI Sub-tabs ─── */}
+      <AiSubTabs active="insights" locale={locale} />
+
       {/* ── F1: STATUS BAR ─── */}
       {status && (
         <div className="flex items-center justify-between py-3 fade-in" style={{ fontSize: 14 }}>
