@@ -266,28 +266,50 @@ export function CalendarShell({
       <div className="grid-2col">
       <div>{/* left column */}
 
-      {/* ── AI Summary Card ── */}
-      <AiSummaryCard
-        data={aiData?.tooFewEntries && !aiData?.summary ? null : aiData}
-        loading={tier === "premium" && aiLoading}
-        tier={tier}
-        monthLabel={monthNames[viewMonth]}
-        tooFewEntries={tier === "premium" && !!aiData?.tooFewEntries && !aiData?.summary}
-        pack={pack}
-        iconFormat={iconFormat}
-      />
-
-      {/* ── Ask AI ── */}
-      <AskAiBar
-        tier={tier}
-        year={viewYear}
-        month={viewMonth}
-        onDateSelect={(date) => setSheetDate(date)}
-        initialQuery={askAiQuery}
-      />
-
-      {/* ── Patterns Feed ── */}
-      <PatternsFeed patterns={aiData?.tooFewEntries ? [] : (aiData?.patterns ?? [])} tier={tier} onDateSelect={(date) => setSheetDate(date)} />
+      {/* ── AI Features (Premium only) ── */}
+      {tier === "premium" ? (
+        <>
+          <AiSummaryCard
+            data={aiData?.tooFewEntries && !aiData?.summary ? null : aiData}
+            loading={aiLoading}
+            tier={tier}
+            monthLabel={monthNames[viewMonth]}
+            tooFewEntries={!!aiData?.tooFewEntries && !aiData?.summary}
+            pack={pack}
+            iconFormat={iconFormat}
+          />
+          <AskAiBar
+            tier={tier}
+            year={viewYear}
+            month={viewMonth}
+            onDateSelect={(date) => setSheetDate(date)}
+            initialQuery={askAiQuery}
+          />
+          <PatternsFeed patterns={aiData?.tooFewEntries ? [] : (aiData?.patterns ?? [])} tier={tier} onDateSelect={(date) => setSheetDate(date)} />
+        </>
+      ) : (
+        <a
+          href="/profile/subscription"
+          style={{
+            display: "block", textDecoration: "none", marginBottom: 16,
+            background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+            borderRadius: 18, padding: "16px 20px",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span style={{ fontSize: 24 }}>✨</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                AI สรุป + แพทเทิร์น + ถาม AI
+              </div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                ปลดล็อกด้วย Premium
+              </div>
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>อัปเกรด →</span>
+          </div>
+        </a>
+      )}
 
       {/* ── AI Pattern Toggle ── */}
       {tier === "premium" && aiData?.patterns && aiData.patterns.length > 0 && (

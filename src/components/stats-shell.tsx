@@ -273,6 +273,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
   }, [period]);
 
   useEffect(() => {
+    if (tier !== "premium") return;
     let alive = true;
     fetch(`/api/insights?locale=${locale}&cacheOnly=1`)
       .then((r) => r.ok ? r.json() as Promise<Record<string, unknown>> : null)
@@ -282,7 +283,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
       })
       .catch(() => {});
     return () => { alive = false; };
-  }, [locale]);
+  }, [locale, tier]);
 
   const trend = stats?.moodTrend ?? [];
   const distribution = stats?.distribution ?? {};

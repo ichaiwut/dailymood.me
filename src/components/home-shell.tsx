@@ -702,6 +702,7 @@ function AiSidebarCard({ tier, locale }: { tier: Tier; locale: string }) {
   const [insight, setInsight] = useState<{ headline: string; summary: string } | null>(null);
 
   useEffect(() => {
+    if (tier !== "premium") return;
     fetch(`/api/insights?locale=${locale}&cacheOnly=1`)
       .then((r) => r.ok ? r.json() as Promise<Record<string, unknown>> : null)
       .then((json) => {
@@ -709,7 +710,7 @@ function AiSidebarCard({ tier, locale }: { tier: Tier; locale: string }) {
         setInsight({ headline: json.headline as string, summary: json.summary as string });
       })
       .catch(() => {});
-  }, [locale]);
+  }, [locale, tier]);
 
   return (
     <div className="card" style={{ padding: 20, background: "linear-gradient(155deg, #1A1320 0%, #2A1F33 100%)", color: "#fff", border: "none" }}>
