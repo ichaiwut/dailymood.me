@@ -12,23 +12,23 @@ export async function GET() {
 
   const db = getDb();
 
-  const entries = await db
-    .select({
+  const [entries, earned] = await Promise.all([
+    db.select({
       date: moodEntries.date,
       moodTypeId: moodEntries.moodTypeId,
       imageKey: moodEntries.imageKey,
       tags: moodEntries.tags,
       createdAt: moodEntries.createdAt,
     })
-    .from(moodEntries)
-    .where(eq(moodEntries.userId, userId));
+      .from(moodEntries)
+      .where(eq(moodEntries.userId, userId))
+      .limit(600),
+    db.select({ badgeId: userAchievements.badgeId, earnedAt: userAchievements.earnedAt })
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId)),
+  ]);
 
   const progress = computeBadgeProgress(entries);
-
-  const earned = await db
-    .select({ badgeId: userAchievements.badgeId, earnedAt: userAchievements.earnedAt })
-    .from(userAchievements)
-    .where(eq(userAchievements.userId, userId));
 
   const earnedMap = new Map(earned.map((e) => [e.badgeId, e.earnedAt]));
 

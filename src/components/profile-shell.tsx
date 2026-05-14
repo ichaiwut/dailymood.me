@@ -134,6 +134,7 @@ export function ProfileShell() {
 
   useEffect(() => {
     let cancel = false;
+
     fetch("/api/profile")
       .then((r) => r.json() as Promise<ProfileData>)
       .then((d) => {
@@ -145,16 +146,11 @@ export function ProfileShell() {
         setCheckinOn(d.user.reminderEnabled);
         setReminderTime(d.user.reminderTime);
         setReminderDays(d.user.reminderDays);
+        const extra = d as unknown as Record<string, unknown>;
+        if (extra.achievements) setAchievements(extra.achievements as NonNullable<typeof achievements>);
+        if (extra.packs) setPacks(extra.packs as typeof packs);
       })
       .finally(() => { if (!cancel) setLoading(false); });
-
-    fetch("/api/profile/achievements")
-      .then((r) => r.json() as Promise<NonNullable<typeof achievements>>)
-      .then((d) => { if (!cancel) setAchievements(d); });
-
-    fetch("/api/moods/packs")
-      .then((r) => r.json() as Promise<{ packs: typeof packs }>)
-      .then((d) => { if (!cancel) setPacks(d.packs); });
 
     return () => { cancel = true; };
   }, []);

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { users, moodEntries, moodTypes, moodPacks } from "@/db/schema";
+import { users, moodEntries, moodTypes, moodPacks, userAchievements } from "@/db/schema";
 import { and, eq, desc, gte, count as countFn } from "drizzle-orm";
 import { moodScore, addDays, computeStreak, scoreToEmoji, ymd } from "@/lib/mood-scores";
+import { BADGE_CATALOG, computeBadgeProgress } from "@/lib/achievements";
 
 
 export async function GET() {
@@ -42,8 +43,8 @@ export async function GET() {
 
   const thirtyDaysAgo = ymd(addDays(new Date(), -29));
 
-  // Parallel: count total + recent 30d entries + streak dates + moods
-  const [countResult, recentEntries, streakDates, moods] = await Promise.all([
+  // Parallel: all data in one round
+  const [countResult, recentEntries, streakDates, moods, badgeEntries, earnedBadges, packList] = await Promise.all([
     db.select({ n: countFn() }).from(moodEntries).where(eq(moodEntries.userId, userId)),
     db.select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId })
       .from(moodEntries)
@@ -57,6 +58,15 @@ export async function GET() {
     db.select({ id: moodTypes.id, label: moodTypes.label, labelTh: moodTypes.labelTh, color: moodTypes.color, emoji: moodTypes.emoji })
       .from(moodTypes)
       .where(eq(moodTypes.isDefault, true)),
+    db.select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId, imageKey: moodEntries.imageKey, tags: moodEntries.tags, createdAt: moodEntries.createdAt })
+      .from(moodEntries)
+      .where(eq(moodEntries.userId, userId))
+      .limit(600),
+    db.select({ badgeId: userAchievements.badgeId, earnedAt: userAchievements.earnedAt })
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId)),
+    db.select({ id: moodPacks.id, label: moodPacks.label, premium: moodPacks.premium, iconFormat: moodPacks.iconFormat })
+      .from(moodPacks),
   ]);
 
   const totalEntries = countResult[0]?.n ?? 0;
@@ -90,6 +100,22 @@ export async function GET() {
       };
     })
     .sort((a, b) => b.count - a.count);
+
+  // Compute achievements
+  const badgeProgress = computeBadgeProgress(badgeEntries);
+  const earnedMap = new Map(earnedBadges.map((e) => [e.badgeId, e.earnedAt]));
+  const badges = BADGE_CATALOG.map((badge) => {
+    const p = badgeProgress[badge.id] ?? { current: 0, target: badge.target };
+    const earnedAt = earnedMap.get(badge.id);
+    return {
+      id: badge.id, icon: badge.icon, color: badge.color,
+      target: badge.target, current: p.current,
+      progress: Math.round((p.current / p.target) * 100),
+      status: (earnedAt ? "earned" : p.current > 0 ? "in_progress" : "locked") as "earned" | "in_progress" | "locked",
+      earnedAt: earnedAt?.toISOString() ?? null,
+    };
+  });
+  const earnedCount = badges.filter((b) => b.status === "earned").length;
 
   return NextResponse.json({
     user: {
@@ -125,6 +151,14 @@ export async function GET() {
       distribution,
       hasSufficientData: total30 >= 3,
     },
+    achievements: {
+      total: badges.length,
+      earned: earnedCount,
+      inProgress: badges.filter((b) => b.status === "in_progress").length,
+      locked: badges.filter((b) => b.status === "locked").length,
+      badges,
+    },
+    packs: packList,
     tier,
   });
 }
