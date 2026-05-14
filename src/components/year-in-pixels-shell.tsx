@@ -43,9 +43,11 @@ function getMoodColor(moodId: string | undefined) {
   return DEFAULT_MOODS.find((m) => m.id === moodId)?.color ?? "var(--surface-2)";
 }
 
-function getMoodLabel(moodId: string, locale: string) {
+function getMoodLabel(moodId: string, locale: string): string | null {
+  if (!moodId) return null;
   const m = DEFAULT_MOODS.find((d) => d.id === moodId);
-  return locale === "th" ? m?.labelTh : m?.label;
+  if (!m) return null;
+  return locale === "th" ? m.labelTh : m.label;
 }
 
 interface Props {
@@ -165,7 +167,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
       ${ai.bestQuarter ? `<p><b>${isTh ? "ช่วงที่ดีที่สุด:" : "Best period:"}</b> ${ai.bestQuarter}</p>` : ""}
       ${ai.hardestPeriod ? `<p><b>${isTh ? "ช่วงที่ท้าทาย:" : "Hardest period:"}</b> ${ai.hardestPeriod}</p>` : ""}` : ""}
       <h2>${isTh ? "สถิติ" : "Stats"}</h2>
-      <div><span class="stat">😊 ${getMoodLabel(data.dominantMood, locale)} · ${data.dominantPct}%</span>
+      <div><span class="stat">😊 ${getMoodLabel(data.dominantMood, locale) ?? "—"} · ${data.dominantPct}%</span>
       <span class="stat">🔥 Streak ${data.streak.days} ${isTh ? "วัน" : "days"}</span>
       <span class="stat">📝 ${data.totalDays} ${isTh ? "ครั้ง" : "entries"}</span>
       ${data.topTrigger ? `<span class="stat">💡 "${data.topTrigger.tag}" · ${data.topTrigger.count}×</span>` : ""}</div>
@@ -273,7 +275,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
             <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>😊 {isTh ? "อารมณ์เด่น" : "Dominant"}</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{getMoodLabel(data.dominantMood, locale)} · {data.dominantPct}%</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{data.dominantMood ? `${getMoodLabel(data.dominantMood, locale) ?? "—"} · ${data.dominantPct}%` : "—"}</div>
             </div>
             <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>🔥 Streak {isTh ? "สูงสุด" : "best"}</div>
@@ -290,29 +292,111 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           </div>
 
           {/* Compare with previous year */}
-          {compareData && (
-            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "16px 18px" }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", marginBottom: 12 }}>
-                📊 {isTh ? `เปรียบเทียบ ${viewYear} กับ ${viewYear - 1}` : `${viewYear} vs ${viewYear - 1}`}
+          {compareData && compareData.totalDays === 0 ? (
+            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.6)", borderRadius: 16, padding: "28px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                {isTh ? `ยังไม่มีข้อมูลปี ${viewYear - 1}` : `No data for ${viewYear - 1}`}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {[
-                  { label: isTh ? "บันทึก" : "Entries", curr: `${data.totalDays} ${isTh ? "วัน" : "d"}`, prev: `${compareData.totalDays} ${isTh ? "วัน" : "d"}` },
-                  { label: isTh ? "อารมณ์เด่น" : "Dominant", curr: `${getMoodLabel(data.dominantMood, locale)} ${data.dominantPct}%`, prev: `${getMoodLabel(compareData.dominantMood, locale)} ${compareData.dominantPct}%` },
-                  { label: isTh ? "เดือนที่ดีสุด" : "Best month", curr: data.bestMonth ? monthFull[data.bestMonth.month - 1] : "—", prev: compareData.bestMonth ? monthFull[compareData.bestMonth.month - 1] : "—" },
-                  { label: "Streak", curr: `${data.streak.days} ${isTh ? "วัน" : "d"}`, prev: `${compareData.streak.days} ${isTh ? "วัน" : "d"}` },
-                ].map((r) => (
-                  <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,0,0,.05)" }}>
-                    <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{r.label}</span>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{r.curr}</div>
-                      <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{r.prev}</div>
-                    </div>
-                  </div>
-                ))}
+              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 4 }}>
+                {isTh ? "เริ่มบันทึกอารมณ์เพื่อดูการเปรียบเทียบ" : "Start logging to see comparisons"}
               </div>
             </div>
-          )}
+          ) : compareData ? (
+            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.6)", borderRadius: 16, padding: "20px 22px" }}>
+              {/* Header + year legend */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--purple)" }}>
+                  📊 {isTh ? `เปรียบเทียบ ${viewYear} กับ ${viewYear - 1}` : `${viewYear} vs ${viewYear - 1}`}
+                </div>
+                <div style={{ display: "flex", gap: 14, fontSize: 13, fontWeight: 700 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: "#A673F1" }} />
+                    <span style={{ color: "var(--ink)" }}>{viewYear}</span>
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: "#D4BEE4" }} />
+                    <span style={{ color: "var(--ink-3)" }}>{viewYear - 1}</span>
+                  </span>
+                </div>
+              </div>
+              {/* Metric rows */}
+              {[
+                {
+                  emoji: "📝", label: isTh ? "บันทึก" : "Entries",
+                  currVal: data.totalDays, prevVal: compareData.totalDays,
+                  maxVal: Math.max(data.totalDays, compareData.totalDays, 1),
+                  currLabel: `${data.totalDays} ${isTh ? "วัน" : "days"}`,
+                  prevLabel: `${compareData.totalDays} ${isTh ? "วัน" : "days"}`,
+                  delta: data.totalDays - compareData.totalDays as number | null,
+                  deltaUnit: isTh ? "วัน" : "days",
+                  barColor: "#A673F1",
+                },
+                {
+                  emoji: "😊", label: isTh ? "อารมณ์เด่น" : "Dominant",
+                  currVal: data.dominantPct, prevVal: compareData.dominantPct,
+                  maxVal: 100,
+                  currLabel: data.dominantMood ? `${getMoodLabel(data.dominantMood, locale) ?? "—"} ${data.dominantPct}%` : "—",
+                  prevLabel: compareData.dominantMood ? `${getMoodLabel(compareData.dominantMood, locale) ?? "—"} ${compareData.dominantPct}%` : "—",
+                  delta: null as number | null,
+                  deltaUnit: "",
+                  barColor: data.dominantMood ? getMoodColor(data.dominantMood) : "#D4BEE4",
+                },
+                {
+                  emoji: "🔥", label: isTh ? "สถิติต่อเนื่อง" : "Streak",
+                  currVal: data.streak.days, prevVal: compareData.streak.days,
+                  maxVal: Math.max(data.streak.days, compareData.streak.days, 1),
+                  currLabel: `${data.streak.days} ${isTh ? "วัน" : "days"}`,
+                  prevLabel: `${compareData.streak.days} ${isTh ? "วัน" : "days"}`,
+                  delta: data.streak.days - compareData.streak.days as number | null,
+                  deltaUnit: isTh ? "วัน" : "days",
+                  barColor: "#FCA45B",
+                },
+                {
+                  emoji: "⭐", label: isTh ? "เดือนที่ดีที่สุด" : "Best month",
+                  currVal: data.bestMonth?.avg ?? 0, prevVal: compareData.bestMonth?.avg ?? 0,
+                  maxVal: 5,
+                  currLabel: data.bestMonth ? `${monthFull[data.bestMonth.month - 1]} · ${data.bestMonth.avg}/5` : "—",
+                  prevLabel: compareData.bestMonth ? `${monthFull[compareData.bestMonth.month - 1]} · ${compareData.bestMonth.avg}/5` : "—",
+                  delta: null as number | null,
+                  deltaUnit: "",
+                  barColor: "#85ECCB",
+                },
+              ].map((r, i, arr) => {
+                const currPct = r.maxVal > 0 ? Math.max((r.currVal / r.maxVal) * 100, r.currVal > 0 ? 5 : 0) : 0;
+                const prevPct = r.maxVal > 0 ? Math.max((r.prevVal / r.maxVal) * 100, r.prevVal > 0 ? 5 : 0) : 0;
+                return (
+                  <div key={r.label} style={{ padding: "14px 0", borderTop: i > 0 ? "1px solid rgba(0,0,0,.05)" : "none" }}>
+                    {/* Label + delta badge */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-2)" }}>{r.emoji} {r.label}</span>
+                      {r.delta != null && r.delta !== 0 && (
+                        <span style={{
+                          fontSize: 12, fontWeight: 700,
+                          color: r.delta > 0 ? "#34A853" : "#D14343",
+                          background: r.delta > 0 ? "rgba(52,168,83,.1)" : "rgba(209,67,67,.1)",
+                          padding: "2px 8px", borderRadius: 6,
+                        }}>
+                          {r.delta > 0 ? "↑ +" : "↓ "}{Math.abs(r.delta)}{r.deltaUnit ? ` ${r.deltaUnit}` : ""}
+                        </span>
+                      )}
+                    </div>
+                    {/* Side-by-side bars */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "6px 10px", alignItems: "center" }}>
+                      <div style={{ height: 10, borderRadius: 5, background: "rgba(0,0,0,.04)", overflow: "hidden" }}>
+                        <div style={{ width: `${currPct}%`, height: "100%", borderRadius: 5, background: r.barColor, transition: "width 600ms ease" }} />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{r.currLabel}</span>
+                      <div style={{ height: 10, borderRadius: 5, background: "rgba(0,0,0,.04)", overflow: "hidden" }}>
+                        <div style={{ width: `${prevPct}%`, height: "100%", borderRadius: 5, background: "#D4BEE4", opacity: 0.5, transition: "width 600ms ease" }} />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-3)", whiteSpace: "nowrap" }}>{r.prevLabel}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
 
           {/* Action buttons */}
           {data.aiSummary && (

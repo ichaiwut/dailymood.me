@@ -3,6 +3,7 @@ import { getMessages } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { TopBar } from "@/components/topbar";
 import { BottomNav } from "@/components/bottom-nav";
+import { SiteFooter } from "@/components/site-footer";
 
 export default async function LocaleLayout({
   children,
@@ -20,6 +21,7 @@ export default async function LocaleLayout({
           <main className="w-container" style={{ padding: "32px 32px 100px", flex: 1, position: "relative", zIndex: 0 }}>
             {children}
           </main>
+          <SiteFooter />
           <BottomNav />
         </>
       ) : (

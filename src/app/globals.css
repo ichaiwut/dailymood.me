@@ -455,6 +455,12 @@ button { font-family: inherit; cursor: pointer; }
   .edit-bottom-bar { display: none !important; }
 }
 
+/* Desktop footer: hidden on mobile */
+.desktop-footer { display: none; }
+@media (min-width: 768px) {
+  .desktop-footer { display: flex !important; }
+}
+
 /* Ask AI sidebar: hidden on mobile, visible on desktop */
 .ask-ai-sidebar { display: none; }
 @media (min-width: 768px) {
