@@ -32,13 +32,24 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const [suggested, setSuggested] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const skipFetchRef = useRef(false);
   const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isPremium) return;
+    // Load from localStorage first (instant), then try DB
+    try {
+      const saved = localStorage.getItem("askai_threads");
+      if (saved) setThreads(JSON.parse(saved) as Thread[]);
+    } catch { /* ignore */ }
+
     fetch("/api/ask-ai/threads").then((r) => r.ok ? r.json() : { threads: [] }).then((d) => {
-      setThreads((d as { threads: Thread[] }).threads ?? []);
+      const dbThreads = (d as { threads: Thread[] }).threads ?? [];
+      if (dbThreads.length > 0) {
+        setThreads(dbThreads);
+        localStorage.setItem("askai_threads", JSON.stringify(dbThreads));
+      }
     }).catch(() => {});
     fetch(`/api/ask-ai/suggested?locale=${locale}`).then((r) => r.ok ? r.json() : null).then((d) => {
       const data = d as Record<string, unknown> | null;
@@ -48,8 +59,30 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
 
   useEffect(() => {
     if (!activeThreadId) { setMessages([]); return; }
+    if (skipFetchRef.current) { skipFetchRef.current = false; return; }
+
+    // Load from localStorage first
+    try {
+      const saved = localStorage.getItem(`askai_msgs_${activeThreadId}`);
+      if (saved) setMessages(JSON.parse(saved) as Message[]);
+    } catch { /* ignore */ }
+
     fetch(`/api/ask-ai/messages?threadId=${activeThreadId}`).then((r) => r.ok ? r.json() : { messages: [] }).then((d) => {
-      setMessages((d as { messages: Message[] }).messages ?? []);
+      const dbMsgs = (d as { messages: Message[] }).messages ?? [];
+      if (dbMsgs.length > 0) {
+        setMessages(dbMsgs);
+        // Restore feedback state from DB
+        setFeedbackSent((prev) => {
+          const next = new Set(prev);
+          for (const m of dbMsgs) {
+            if (m.feedback) {
+              next.add(m.id);
+              next.add(`${m.id}:${m.feedback}`);
+            }
+          }
+          return next;
+        });
+      }
     }).catch(() => {});
   }, [activeThreadId]);
 
@@ -76,6 +109,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
 
     let threadId = activeThreadId;
     if (!threadId) {
+      skipFetchRef.current = true;
       threadId = await createThread();
     }
 
@@ -89,14 +123,21 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         body: JSON.stringify({ threadId, content: text.trim(), locale }),
       });
       const data = (await res.json()) as { userMessage: Message; aiMessage: Message };
-      setMessages((prev) => [
+      const newMsgs = (prev: Message[]) => [
         ...prev.filter((m) => m.id !== "temp-user"),
         data.userMessage,
         data.aiMessage,
-      ]);
-      setThreads((prev) =>
-        prev.map((t) => t.id === threadId ? { ...t, title: text.trim().slice(0, 60), lastMessageAt: new Date().toISOString() } : t)
-      );
+      ];
+      setMessages((prev) => {
+        const updated = newMsgs(prev);
+        try { localStorage.setItem(`askai_msgs_${threadId}`, JSON.stringify(updated)); } catch { /* ignore */ }
+        return updated;
+      });
+      setThreads((prev) => {
+        const updated = prev.map((t) => t.id === threadId ? { ...t, title: text.trim().slice(0, 60), lastMessageAt: new Date().toISOString() } : t);
+        try { localStorage.setItem("askai_threads", JSON.stringify(updated)); } catch { /* ignore */ }
+        return updated;
+      });
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== "temp-user"));
     } finally {
@@ -105,8 +146,9 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   }, [activeThreadId, sending, locale, createThread]);
 
   const handleFeedback = useCallback(async (messageId: string, feedback: "up" | "down") => {
+    const key = `${messageId}:${feedback}`;
     if (feedbackSent.has(messageId)) return;
-    setFeedbackSent((prev) => new Set(prev).add(messageId));
+    setFeedbackSent((prev) => new Set(prev).add(messageId).add(key));
     await fetch("/api/ask-ai/messages", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -121,21 +163,87 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   }, [activeThreadId]);
 
   if (!isPremium) {
+    const isTh = locale === "th";
+    const handleCheckout = async () => {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "monthly" }),
+      });
+      const json = (await res.json()) as { url?: string };
+      if (json.url) globalThis.location.assign(json.url);
+    };
+
     return (
-      <div className="text-center py-16 fade-in">
-        <div style={{ fontSize: 48, marginBottom: 14 }}>✨</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
-          {locale === "th" ? "Ask AI เป็นฟีเจอร์ Premium" : "Ask AI is a Premium feature"}
-        </h2>
-        <p style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 20 }}>
-          {locale === "th" ? "ถามอะไรก็ได้เกี่ยวกับอารมณ์ของคุณ AI จะวิเคราะห์จากข้อมูลจริง" : "Ask anything about your mood — AI analyzes your real data"}
-        </p>
-        <a href="/pricing" style={{
-          display: "inline-block", padding: "14px 28px", borderRadius: 20,
-          background: "var(--ink)", color: "#fff", fontSize: 15, fontWeight: 700, textDecoration: "none",
-        }}>
-          {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
-        </a>
+      <div className="fade-in">
+        <AiSubTabs active="ask-ai" locale={locale} />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start", marginTop: 8 }}>
+          {/* Left: blurred chat preview */}
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4, marginBottom: 4 }}>ASK AI</div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 20px" }}>
+              {isTh ? "คุยกับข้อมูลของคุณ" : "Chat with your data"}
+            </h1>
+            <div style={{
+              background: "#fff", borderRadius: 22, padding: 20, marginBottom: 14,
+              border: "1.5px solid #F2F0F5", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+            }}>
+              <div style={{ fontSize: 14, color: "var(--ink)" }}>{isTh ? "ทำไมวันจันทร์มักจะแย่?" : "Why are Mondays usually bad?"}</div>
+            </div>
+            <div style={{
+              background: "#fff", borderRadius: 22, padding: 20, height: 120,
+              border: "1.5px solid #F2F0F5", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+            }} />
+          </div>
+
+          {/* Right: premium CTA */}
+          <div style={{
+            background: "linear-gradient(135deg, #2C2435 0%, #3D2E50 60%, #A673F1 100%)",
+            borderRadius: 22, padding: "28px 24px", color: "#fff",
+          }}>
+            <div style={{ fontSize: 24, marginBottom: 12 }}>💬</div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
+              {isTh ? "Ask AI · ถามอะไรก็ได้" : "Ask AI · Ask anything"}
+            </h2>
+            <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.5, marginBottom: 16 }}>
+              {isTh
+                ? "ถามเกี่ยวกับอารมณ์ของคุณ AI วิเคราะห์จาก entries จริงพร้อมอ้างอิง"
+                : "Ask about your mood — AI analyzes real entries with citations"}
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+              {(isTh ? [
+                "ถามได้ 100 คำถาม/เดือน",
+                "Multi-turn สนทนาต่อเนื่อง",
+                "อ้างอิง entries จริง",
+                "วิเคราะห์ pattern + trend",
+              ] : [
+                "100 questions per month",
+                "Multi-turn conversations",
+                "Real entry citations",
+                "Pattern + trend analysis",
+              ]).map((item, i) => (
+                <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0 }}>•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={handleCheckout}
+              style={{
+                width: "100%", padding: "14px 0", borderRadius: 16,
+                background: "#fff", border: "none", color: "#A673F1",
+                fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
+              }}
+            >
+              ✨ {isTh ? "ทดลองฟรี 7 วัน" : "Start 7-day free trial"}
+            </button>
+            <div style={{ fontSize: 14, opacity: 0.7, textAlign: "center" }}>
+              ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -143,53 +251,61 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const isNewThread = !activeThreadId || messages.length === 0;
 
   return (
-    <div>
-      <AiSubTabs active="ask-ai" locale={locale} />
-    <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", height: "calc(100vh - 120px)", overflow: "hidden" }}>
-      {/* Sidebar */}
-      <div style={{ borderRight: "1.5px solid #F2F0F5", padding: "16px", overflowY: "auto", background: "#FAFAF8" }}>
-        <button
-          onClick={() => { setActiveThreadId(null); setMessages([]); }}
+    <div style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "8px 16px 0", flexShrink: 0 }}>
+        <AiSubTabs active="ask-ai" locale={locale} />
+      </div>
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* Sidebar — always on desktop, toggleable on mobile */}
+        <div
+          className="ask-ai-sidebar"
           style={{
-            width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
-            background: "var(--ink)", color: "#fff", fontSize: 15, fontWeight: 700,
-            cursor: "pointer", marginBottom: 20,
+            width: 320, flexShrink: 0, borderRight: "1.5px solid #F2F0F5",
+            padding: "16px", overflowY: "auto", background: "#FAFAF8",
           }}
         >
-          + {locale === "th" ? "คำถามใหม่" : "New question"}
-        </button>
-
-        {threads.length > 0 && (
-          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", marginBottom: 10 }}>
-            {locale === "th" ? "ก่อนหน้า" : "Previous"}
-          </div>
-        )}
-
-        {threads.map((t) => (
           <button
-            key={t.id}
-            onClick={() => setActiveThreadId(t.id)}
+            onClick={() => { setActiveThreadId(null); setMessages([]); }}
             style={{
-              width: "100%", textAlign: "left", padding: "14px 14px",
-              borderRadius: 14, border: "none", cursor: "pointer", marginBottom: 4,
-              background: activeThreadId === t.id ? "#F0EAFF" : "transparent",
-              borderLeft: activeThreadId === t.id ? "3px solid #A673F1" : "3px solid transparent",
+              width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
+              background: "var(--ink)", color: "#fff", fontSize: 15, fontWeight: 700,
+              cursor: "pointer", marginBottom: 20,
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {t.title || (locale === "th" ? "คำถามใหม่" : "New question")}
-            </div>
-            <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
-              {timeAgo(t.lastMessageAt, locale)}
-            </div>
+            + {locale === "th" ? "คำถามใหม่" : "New question"}
           </button>
-        ))}
-      </div>
 
-      {/* Main chat */}
-      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          {threads.length > 0 && (
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", marginBottom: 10 }}>
+              {locale === "th" ? "ก่อนหน้า" : "Previous"}
+            </div>
+          )}
+
+          {threads.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveThreadId(t.id)}
+              style={{
+                width: "100%", textAlign: "left", padding: "14px 14px",
+                borderRadius: 14, border: "none", cursor: "pointer", marginBottom: 4,
+                background: activeThreadId === t.id ? "#F0EAFF" : "transparent",
+                borderLeft: activeThreadId === t.id ? "3px solid #A673F1" : "3px solid transparent",
+              }}
+            >
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {t.title || (locale === "th" ? "คำถามใหม่" : "New question")}
+              </div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
+                {timeAgo(t.lastMessageAt, locale)}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Main chat */}
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         {/* Messages area */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px", minHeight: 0 }}>
           {isNewThread ? (
             <EmptyState locale={locale} suggested={suggested} onAsk={sendMessage} />
           ) : (
@@ -356,12 +472,14 @@ function AiBubble({ msg, locale, feedbackSent, onFeedback }: {
         <div className="flex items-center gap-2">
           <FbBtn
             label={`👍 ${locale === "th" ? "มีประโยชน์" : "Helpful"}`}
-            active={feedbackSent.has(msg.id) || msg.feedback === "up"}
+            active={feedbackSent.has(`${msg.id}:up`) || msg.feedback === "up"}
+            disabled={feedbackSent.has(msg.id)}
             onClick={() => onFeedback(msg.id, "up")}
           />
           <FbBtn
             label={`👎 ${locale === "th" ? "ไม่ตรง" : "Not relevant"}`}
-            active={feedbackSent.has(msg.id) || msg.feedback === "down"}
+            active={feedbackSent.has(`${msg.id}:down`) || msg.feedback === "down"}
+            disabled={feedbackSent.has(msg.id)}
             onClick={() => onFeedback(msg.id, "down")}
           />
           <button
@@ -380,11 +498,11 @@ function AiBubble({ msg, locale, feedbackSent, onFeedback }: {
   );
 }
 
-function FbBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function FbBtn({ label, active, disabled, onClick }: { label: string; active: boolean; disabled?: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      disabled={active}
+      disabled={disabled || active}
       style={{
         background: active ? "#F0EAFF" : "#fff",
         color: active ? "#A673F1" : "var(--ink-2)",

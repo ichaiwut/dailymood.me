@@ -135,6 +135,8 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
   useEffect(() => {
     trackInsightsView();
+    if (tier !== "premium") { setLoading(false); return; }
+
     let alive = true;
     setLoading(true);
     setExpanded(false);
@@ -200,12 +202,16 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
   if (loading) return <LoadingSkeleton />;
   if (error) return <ErrorState locale={locale} onRetry={() => window.location.reload()} />;
+
+  const isPremium = tier === "premium";
+
+  if (!isPremium) return <FreeGate locale={locale} />;
+
   if (!data || data.empty) return <EmptyState locale={locale} />;
   if (data.tooFewEntries) return <TooFewState locale={locale} t={t} />;
 
   const isLocked = data.locked;
   const weekNum = data.weekKey ? parseWeekNumber(data.weekKey) : null;
-  const isPremium = tier === "premium";
   const stats = data.stats;
 
   return (
@@ -845,6 +851,113 @@ function ErrorState({ locale, onRetry }: { locale: string; onRetry: () => void }
       >
         {locale === "th" ? "ลองใหม่" : "Try again"}
       </button>
+    </div>
+  );
+}
+
+function FreeGate({ locale }: { locale: string }) {
+  const isTh = locale === "th";
+
+  const handleCheckout = async () => {
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: "monthly" }),
+    });
+    const json = (await res.json()) as { url?: string };
+    if (json.url) globalThis.location.assign(json.url);
+  };
+
+  return (
+    <div className="fade-in">
+      <AiSubTabs active="insights" locale={locale} />
+
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4, marginBottom: 4 }}>
+        AI INSIGHTS
+      </div>
+      <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 24px" }}>
+        {isTh ? "เปิดมุมมองที่ลึกขึ้น" : "Unlock deeper insights"}
+      </h1>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+        {/* Left: blurred preview */}
+        <div>
+          <div style={{
+            background: "#fff", borderRadius: 22, padding: 20,
+            border: "1.5px solid #F2F0F5", marginBottom: 14,
+            filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
+              {isTh ? "สรุปสัปดาห์" : "Weekly summary"}
+            </div>
+            <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+              {isTh ? "สัปดาห์นี้ คุณรู้สึก..." : "This week, you felt..."}
+            </div>
+          </div>
+          <div style={{
+            background: "#fff", borderRadius: 22, padding: 20, height: 200,
+            border: "1.5px solid #F2F0F5",
+            filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+          }} />
+        </div>
+
+        {/* Right: premium CTA card */}
+        <div style={{
+          background: "linear-gradient(135deg, #F9A870 0%, #C89BF5 50%, #A673F1 100%)",
+          borderRadius: 22, padding: "28px 24px", color: "#fff",
+          position: "relative",
+        }}>
+          <div style={{ fontSize: 24, marginBottom: 12 }}>+</div>
+          <div style={{
+            position: "absolute", top: 20, right: 20,
+            background: "rgba(255,255,255,0.2)", borderRadius: 20,
+            padding: "4px 12px", fontSize: 14, fontWeight: 700,
+          }}>
+            ✨ PREMIUM
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
+            {isTh ? "AI Insights รายสัปดาห์" : "Weekly AI Insights"}
+          </h2>
+          <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5, marginBottom: 16 }}>
+            {isTh
+              ? "วิเคราะห์ pattern · เปรียบเทียบสัปดาห์ · ถาม AI ได้ 100 คำถาม/เดือน · ข้อมูลย้อนหลังไม่จำกัด"
+              : "Pattern analysis · Weekly comparisons · 100 AI questions/month · Unlimited history"}
+          </p>
+          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+            {(isTh ? [
+              "Weekly mood report (อีเมล)",
+              "Pattern detection อัตโนมัติ",
+              "เปรียบเทียบสัปดาห์ / เดือน / ปี",
+              "Mood signature ของคุณ",
+              "Export ข้อมูลเป็น CSV/JSON",
+            ] : [
+              "Weekly mood report (email)",
+              "Automatic pattern detection",
+              "Compare week / month / year",
+              "Your mood signature",
+              "Export data as CSV/JSON",
+            ]).map((item, i) => (
+              <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
+                <span style={{ position: "absolute", left: 0 }}>•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={handleCheckout}
+            style={{
+              width: "100%", padding: "14px 0", borderRadius: 16,
+              background: "#fff", border: "none", color: "#A673F1",
+              fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
+            }}
+          >
+            ✨ {isTh ? "ทดลองฟรี 7 วัน" : "Start 7-day free trial"}
+          </button>
+          <div style={{ fontSize: 14, opacity: 0.75, textAlign: "center" }}>
+            ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
