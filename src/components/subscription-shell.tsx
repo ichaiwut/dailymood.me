@@ -369,7 +369,7 @@ function FreeState() {
             <div>
               <div className="flex items-center justify-between" style={{ fontSize: 14, marginBottom: 6 }}>
                 <span style={{ color: "var(--ink)" }}>Smart Log AI {isTh ? "วันนี้" : "today"}</span>
-                <span style={{ fontWeight: 700 }}>10 / {isTh ? "วัน" : "day"}</span>
+                <span style={{ fontWeight: 700 }}>3 / {isTh ? "วัน" : "day"}</span>
               </div>
               <div style={{ height: 6, borderRadius: 3, background: "#F2F0F5", overflow: "hidden" }}>
                 <div style={{ width: "40%", height: "100%", borderRadius: 3, background: "#FCA45B" }} />

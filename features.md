@@ -28,7 +28,7 @@
 | Storage | localStorage (24h TTL) | D1 | D1 |
 | Quick Icons | ✓ | ✓ | ✓ |
 | Mini Journal | ✓ | ✓ | ✓ |
-| AI NLP (Gemini) | — | 1 ครั้ง/วัน | ไม่จำกัด |
+| AI NLP (Gemini) | — | 3 ครั้ง/วัน | ไม่จำกัด |
 | AI Vision (Gemini) | — | — | ✓ |
 | Custom Moods | — | — | ✓ (สูงสุด 13 เพิ่มเติม) |
 

@@ -534,8 +534,8 @@ export function HomeShell({
               </div>
               <p style={{ fontSize: 14, lineHeight: 1.4, color: "#7A4DD0", fontWeight: 600 }}>
                 {locale === "th"
-                  ? "ใช้ AI ได้วันละครั้ง — อัปเกรด Pro เพื่อใช้ได้ไม่จำกัด"
-                  : "1 free AI analysis per day — upgrade to Pro for unlimited"}
+                  ? "ใช้ AI ได้ 3 ครั้ง/วัน — อัปเกรด Premium เพื่อใช้ได้ไม่จำกัด"
+                  : "3 free AI analyses per day — upgrade to Premium for unlimited"}
               </p>
             </a>
           )}

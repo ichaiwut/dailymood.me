@@ -447,9 +447,9 @@ export function SmartLogModal({
               <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                 <button onClick={onClose} className="w-btn w-btn-ghost">{locale === "th" ? "ยกเลิก" : "Cancel"}</button>
                 {!suggestion && !analyzing && (
-                  <button onClick={handleAnalyze} disabled={!hasInput} className="w-btn" style={{ background: "#fff", border: "1px solid var(--hairline)", opacity: !hasInput ? 0.4 : 1 }}>
+                  <button onClick={handleAnalyze} disabled={!hasInput || (aiRemaining !== null && aiRemaining <= 0)} className="w-btn" style={{ background: "#fff", border: "1px solid var(--hairline)", opacity: (!hasInput || (aiRemaining !== null && aiRemaining <= 0)) ? 0.4 : 1 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" /></svg>
-                    {locale === "th" ? "วิเคราะห์" : "Analyze"}
+                    {aiRemaining !== null && aiRemaining <= 0 ? (locale === "th" ? "หมดโควต้า" : "Quota reached") : (locale === "th" ? "วิเคราะห์" : "Analyze")}
                   </button>
                 )}
                 {suggestion && !analyzing && (
