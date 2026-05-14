@@ -28,7 +28,7 @@ const FEATURES = [
   { icon: "📅", title: "Calendar AI + Ask AI", titleEn: "Calendar AI + Ask AI", desc: "สรุปรายเดือน + ถามอะไรก็ได้จากข้อมูลของคุณ", descEn: "Monthly summaries + ask anything about your data" },
   { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icon Packs", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + premium icon packs" },
   { icon: "📊", title: "Year in Pixels + สถิติปี", titleEn: "Year in Pixels + Yearly Stats", desc: "ดูภาพรวมทั้งปี + Activity Impact เต็ม", descEn: "Full year overview + complete activity impact" },
-  { icon: "📤", title: "ส่งออก CSV/JSON/PDF", titleEn: "Export CSV/JSON/PDF", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
+  { icon: "📤", title: "ส่งออก CSV", titleEn: "Export CSV", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
 ];
 
 export function SubscriptionShell() {
@@ -408,7 +408,7 @@ function FreeState() {
               "สถิติปี + Activity Impact เต็ม",
               "AI Insights + พยากรณ์ + Mood DNA",
               "Calendar AI + Ask AI",
-              "Year-in-Pixels + ส่งออก CSV/PDF",
+              "Year-in-Pixels + ส่งออก CSV",
               "Custom Moods + Icon Packs พิเศษ",
               "AI Coach รายวัน + Energy Clock",
             ] : [
@@ -416,7 +416,7 @@ function FreeState() {
               "Yearly stats + full Activity Impact",
               "AI Insights + Forecast + Mood DNA",
               "Calendar AI + Ask AI",
-              "Year-in-Pixels + Export CSV/PDF",
+              "Year-in-Pixels + Export CSV",
               "Custom Moods + premium Icon Packs",
               "Daily AI Coach + Energy Clock",
             ]).map((item, i) => (

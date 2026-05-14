@@ -929,13 +929,13 @@ function FreeGate({ locale }: { locale: string }) {
               "Pattern detection อัตโนมัติ",
               "เปรียบเทียบสัปดาห์ / เดือน / ปี",
               "Mood signature ของคุณ",
-              "Export ข้อมูลเป็น CSV/JSON",
+              "Export ข้อมูลเป็น CSV",
             ] : [
               "Weekly mood report (email)",
               "Automatic pattern detection",
               "Compare week / month / year",
               "Your mood signature",
-              "Export data as CSV/JSON",
+              "Export data as CSV",
             ]).map((item, i) => (
               <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
                 <span style={{ position: "absolute", left: 0 }}>•</span>

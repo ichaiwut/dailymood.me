@@ -689,15 +689,21 @@ export function ProfileShell() {
       {/* Data */}
       <Section label={t("data")} delay="360ms">
         <SettingCard>
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => { trackExportData(); globalThis.location.assign("/api/profile/export"); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { trackExportData(); globalThis.location.assign("/api/profile/export"); } }}
-            style={{ cursor: "pointer" }}
-          >
-            <NavRow icon="📥" iconBg="#D4BEE4" title={t("exportYourData")} value="CSV" />
-          </div>
+          {data.user.isPremium ? (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => { trackExportData(); globalThis.location.assign("/api/profile/export"); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { trackExportData(); globalThis.location.assign("/api/profile/export"); } }}
+              style={{ cursor: "pointer" }}
+            >
+              <NavRow icon="📥" iconBg="#D4BEE4" title={t("exportYourData")} value="CSV" />
+            </div>
+          ) : (
+            <a href="/profile/subscription" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <NavRow icon="📥" iconBg="#D4BEE4" title={t("exportYourData")} value="PRO" />
+            </a>
+          )}
           <Divider />
           <button
             type="button"

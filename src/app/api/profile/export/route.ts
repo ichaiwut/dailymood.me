@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { getSessionInfo } from "@/lib/tier";
+import { getSessionInfo, meetsTier } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { moodEntries, moodTypes } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 
 export async function GET() {
-  const { userId } = await getSessionInfo();
+  const { userId, tier } = await getSessionInfo();
   if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
+  if (!meetsTier(tier, "premium")) return NextResponse.json({ error: "premium_required" }, { status: 403 });
 
   const db = getDb();
 

@@ -15,7 +15,7 @@ const FEATURES = [
   { icon: "📅", title: "Calendar AI + Ask AI", titleEn: "Calendar AI + Ask AI", desc: "สรุปรายเดือน + ถามอะไรก็ได้ 100 คำถาม/เดือน", descEn: "Monthly summaries + 100 questions/month" },
   { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icons", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + premium icons" },
   { icon: "📊", title: "Year in Pixels + สถิติปี", titleEn: "Year in Pixels + Yearly Stats", desc: "ภาพรวมทั้งปี + Activity Impact เต็ม", descEn: "Full year overview + complete activity impact" },
-  { icon: "📤", title: "ส่งออก CSV/JSON/PDF", titleEn: "Export CSV/JSON/PDF", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
+  { icon: "📤", title: "ส่งออก CSV", titleEn: "Export CSV", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
 ];
 
 export function PricingShell({ tier }: { tier: Tier }) {
@@ -227,7 +227,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
               { label: "Year in Pixels", free: "—", pro: "✓" },
               { label: isTh ? "สถิติรายปี" : "Yearly stats", free: "—", pro: "✓" },
               { label: "Custom Moods", free: "—", pro: "✓" },
-              { label: "Export", free: "—", pro: "CSV/JSON/PDF" },
+              { label: "Export", free: "—", pro: "CSV" },
             ].map((row, i) => (
               <tr key={i} style={{ borderTop: "1px solid #F2F0F5" }}>
                 <td style={{ padding: "10px 0", color: "var(--ink)", fontWeight: 600 }}>{row.label}</td>
