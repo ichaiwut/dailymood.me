@@ -108,7 +108,7 @@ export function TopBarClient({
                   justifyContent: "center",
                   color: "#fff",
                   fontWeight: 800,
-                  fontSize: 13,
+                  fontSize: 14,
                   border: "none",
                   cursor: "pointer",
                   overflow: "hidden",
@@ -251,7 +251,7 @@ function MobileTopbar({
                   justifyContent: "center",
                   color: "#fff",
                   fontWeight: 800,
-                  fontSize: 12,
+                  fontSize: 14,
                   border: "none",
                   overflow: "hidden",
                 }}
@@ -367,7 +367,7 @@ function LanguageToggle({ locale }: { locale: string }) {
         background: "#fff",
         fontFamily: "inherit",
         fontWeight: 700,
-        fontSize: 12,
+        fontSize: 14,
         cursor: "pointer",
         color: "var(--ink-2)",
       }}

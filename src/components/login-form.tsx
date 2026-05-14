@@ -622,7 +622,7 @@ function Divider({ label }: { label: string }) {
       <div className="relative flex justify-center">
         <span
           className="px-3"
-          style={{ fontSize: 13, background: "var(--bg)", color: "var(--ink-3)" }}
+          style={{ fontSize: 14, background: "var(--bg)", color: "var(--ink-3)" }}
         >
           {label}
         </span>

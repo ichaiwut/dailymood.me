@@ -122,7 +122,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
               {locale === "th" ? "การชำระเงินไม่สำเร็จ" : "Payment was not completed"}
             </div>
-            <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
+            <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
               {locale === "th" ? "ไม่มีการเรียกเก็บเงิน ลองใหม่ได้ทุกเมื่อ" : "You were not charged. Try again anytime."}
             </div>
           </div>
@@ -141,7 +141,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
-          <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", letterSpacing: 0.5 }}>DAILYMOOD PRO</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: "#fff", letterSpacing: 0.5 }}>DAILYMOOD PRO</span>
         </div>
 
         <h1 style={{ fontSize: 30, fontWeight: 800, color: "var(--ink)", lineHeight: 1.2, marginBottom: 8 }}>
@@ -190,7 +190,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{t(`${f.key}Title`)}</div>
-              <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 1 }}>{t(`${f.key}Sub`)}</div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{t(`${f.key}Sub`)}</div>
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
               <path d="M5 13l4 4L19 7" stroke="#A673F1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -218,7 +218,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
               border: plan === "monthly" ? "6px solid var(--primary)" : "2px solid var(--hairline-2)",
               boxSizing: "border-box",
             }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>{t("monthly")}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{t("monthly")}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
             ฿99<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>/{t("mo")}</span>
@@ -240,7 +240,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
             style={{
               position: "absolute", top: -10, right: 12,
               background: "#FCA45B", color: "#fff",
-              fontSize: 10, fontWeight: 800, letterSpacing: 0.3,
+              fontSize: 14, fontWeight: 800, letterSpacing: 0.3,
               padding: "3px 10px", borderRadius: 8,
             }}
           >
@@ -252,12 +252,12 @@ export function PricingShell({ tier }: { tier: Tier }) {
               border: plan === "yearly" ? "6px solid var(--primary)" : "2px solid var(--hairline-2)",
               boxSizing: "border-box",
             }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-2)" }}>{t("yearly")}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{t("yearly")}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
             ฿949<span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>/{t("yr")}</span>
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#A673F1", marginTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#A673F1", marginTop: 4 }}>
             ฿79/{t("mo")} · {t("save20")}
           </div>
         </button>
@@ -279,10 +279,10 @@ export function PricingShell({ tier }: { tier: Tier }) {
       >
         {loading ? (locale === "th" ? "กำลังเตรียม..." : "Loading...") : `${t("cta")} →`}
       </button>
-      <p style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "center", marginBottom: 8 }}>
+      <p style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", marginBottom: 8 }}>
         {t("ctaCaption", { price, period })}
       </p>
-      <p style={{ fontSize: 12, color: "var(--primary)", textAlign: "center", fontWeight: 600, marginBottom: 28 }}>
+      <p style={{ fontSize: 14, color: "var(--primary)", textAlign: "center", fontWeight: 600, marginBottom: 28 }}>
         {t("moreFeatures")}
       </p>
 

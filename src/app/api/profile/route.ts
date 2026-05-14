@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { users, moodEntries, moodTypes, moodPacks } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc, gte, count as countFn } from "drizzle-orm";
 import { moodScore, addDays, computeStreak, scoreToEmoji, ymd } from "@/lib/mood-scores";
 
 
@@ -28,8 +28,6 @@ export async function GET() {
       reminderEnabled: users.reminderEnabled,
       reminderTime: users.reminderTime,
       reminderDays: users.reminderDays,
-      aiCoachEnabled: users.aiCoachEnabled,
-      weeklyDigestEnabled: users.weeklyDigestEnabled,
       moodPack: users.moodPack,
       createdAt: users.createdAt,
       currentPeriodEnd: users.currentPeriodEnd,
@@ -44,26 +42,31 @@ export async function GET() {
 
   const thirtyDaysAgo = ymd(addDays(new Date(), -29));
 
-  const allEntries = await db
-    .select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId })
-    .from(moodEntries)
-    .where(eq(moodEntries.userId, userId))
-    .orderBy(desc(moodEntries.createdAt));
+  // Parallel: count total + recent 30d entries + streak dates + moods
+  const [countResult, recentEntries, streakDates, moods] = await Promise.all([
+    db.select({ n: countFn() }).from(moodEntries).where(eq(moodEntries.userId, userId)),
+    db.select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId })
+      .from(moodEntries)
+      .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, thirtyDaysAgo)))
+      .orderBy(desc(moodEntries.createdAt))
+      .limit(200),
+    db.select({ date: moodEntries.date })
+      .from(moodEntries)
+      .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, ymd(addDays(new Date(), -400)))))
+      .orderBy(desc(moodEntries.date)),
+    db.select({ id: moodTypes.id, label: moodTypes.label, labelTh: moodTypes.labelTh, color: moodTypes.color, emoji: moodTypes.emoji })
+      .from(moodTypes)
+      .where(eq(moodTypes.isDefault, true)),
+  ]);
 
-  const totalEntries = allEntries.length;
-  const uniqueDates = new Set(allEntries.map((e) => e.date));
+  const totalEntries = countResult[0]?.n ?? 0;
+  const uniqueDates = new Set(streakDates.map((e) => e.date));
   const streak = computeStreak(uniqueDates);
 
-  const recentEntries = allEntries.filter((e) => e.date >= thirtyDaysAgo);
   const scored = recentEntries.map((e) => moodScore(e.moodTypeId));
   const avgMood = scored.length > 0
     ? +(scored.reduce((a, b) => a + b, 0) / scored.length).toFixed(1)
     : null;
-
-  const moods = await db
-    .select({ id: moodTypes.id, label: moodTypes.label, labelTh: moodTypes.labelTh, color: moodTypes.color, emoji: moodTypes.emoji })
-    .from(moodTypes)
-    .where(eq(moodTypes.isDefault, true));
 
   const moodMap = new Map(moods.map((m) => [m.id, m]));
 
@@ -104,6 +107,8 @@ export async function GET() {
       reminderEnabled: user.reminderEnabled,
       reminderTime: user.reminderTime,
       reminderDays: user.reminderDays,
+      aiCoachEnabled: false,
+      weeklyDigestEnabled: false,
       moodPack: user.moodPack,
       createdAt: user.createdAt.toISOString(),
       currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
@@ -155,12 +160,9 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.reminderEnabled === "boolean") {
     updates.reminderEnabled = body.reminderEnabled;
   }
-  if (typeof body.aiCoachEnabled === "boolean") {
-    updates.aiCoachEnabled = body.aiCoachEnabled;
-  }
-  if (typeof body.weeklyDigestEnabled === "boolean") {
-    updates.weeklyDigestEnabled = body.weeklyDigestEnabled;
-  }
+  // TODO: uncomment after applying migration 0001_fair_harpoon
+  // if (typeof body.aiCoachEnabled === "boolean") updates.aiCoachEnabled = body.aiCoachEnabled;
+  // if (typeof body.weeklyDigestEnabled === "boolean") updates.weeklyDigestEnabled = body.weeklyDigestEnabled;
   if (typeof body.reminderTime === "string" && /^\d{2}:\d{2}$/.test(body.reminderTime as string)) {
     updates.reminderTime = body.reminderTime;
   }

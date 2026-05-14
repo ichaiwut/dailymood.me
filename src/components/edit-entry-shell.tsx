@@ -387,7 +387,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                 <span style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 10, background: "var(--surface-2)", fontSize: 14, fontWeight: 600, color: "var(--ink-3)", opacity: 0.6 }}>
                   <ImageIcon />
                   {t("image")}
-                  <span style={{ fontSize: 11, fontWeight: 800, color: "var(--purple)", marginLeft: 2 }}>PRO</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", marginLeft: 2 }}>PRO</span>
                 </span>
               )}
               <div style={{ flex: 1 }} />
@@ -554,7 +554,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   <span style={{ background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 700, padding: "6px 12px", borderRadius: 10, display: "flex", alignItems: "center", gap: 4 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     {t("replacePhoto")}
-                    <span style={{ fontSize: 11, fontWeight: 800, marginLeft: 2 }}>PRO</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, marginLeft: 2 }}>PRO</span>
                   </span>
                 )}
                 <button

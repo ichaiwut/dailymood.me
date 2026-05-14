@@ -99,7 +99,7 @@ export function HistoryShell() {
       {/* ── HEADER ─── */}
       <header className="flex items-center justify-between pt-4 pb-3 fade-in">
         <div>
-          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>
+          <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
             {totalEntries} {locale === "th" ? "รายการ" : "entries"}
           </span>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginTop: 2 }}>
@@ -132,7 +132,7 @@ export function HistoryShell() {
               style={{
                 padding: "8px 14px",
                 borderRadius: 100,
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 700,
                 border: "none",
                 cursor: "pointer",
@@ -162,7 +162,7 @@ export function HistoryShell() {
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <span
                     style={{
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: 800,
                       color: "#A673F1",
                       letterSpacing: "0.5px",
@@ -171,7 +171,7 @@ export function HistoryShell() {
                     {group.label}
                   </span>
                   {group.dateSuffix && (
-                    <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                    <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
                       {group.dateSuffix}
                     </span>
                   )}
@@ -246,12 +246,12 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
           <span style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>
             {moodLabel ?? "Unknown"}
           </span>
-          <span style={{ fontSize: 11, color: "var(--ink-3)" }}>{time}</span>
+          <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{time}</span>
         </div>
         {entry.note && (
           <p
             className="line-clamp-1"
-            style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}
+            style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 2 }}
           >
             {entry.note}
           </p>

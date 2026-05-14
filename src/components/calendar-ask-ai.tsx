@@ -175,7 +175,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
         </div>
         <span style={{
           background: "var(--ink)", color: "#fff",
-          fontSize: 9, fontWeight: 800,
+          fontSize: 14, fontWeight: 800,
           padding: "2px 6px", borderRadius: 4, letterSpacing: "0.3px",
           flexShrink: 0,
         }}>PRO</span>

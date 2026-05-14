@@ -26,7 +26,7 @@ export function BottomSheet({
     fallbackRef.current = setTimeout(() => {
       setClosing(false);
       onClose();
-    }, 350);
+    }, 250);
   }
 
   useEffect(() => {
@@ -53,20 +53,20 @@ export function BottomSheet({
       {/* Scrim */}
       <div
         onClick={startClose}
-        className={closing ? "scrim-close" : "scrim-open"}
         style={{
           position: "fixed",
           inset: 0,
           zIndex: 50,
-          background: "rgba(10,10,10,0.32)",
+          background: "rgba(10,10,10,0.4)",
+          backdropFilter: "blur(4px)",
+          animation: closing ? "fadeOut 200ms ease forwards" : "fadeIn 200ms ease forwards",
         }}
       />
-      {/* Panel */}
+      {/* Panel — centered modal on desktop, bottom sheet on mobile */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
-        className={closing ? "sheet-close" : "sheet-open"}
         onAnimationEnd={() => {
           if (closing) {
             clearTimeout(fallbackRef.current);
@@ -76,38 +76,47 @@ export function BottomSheet({
         }}
         style={{
           position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
           zIndex: 50,
-          borderRadius: "28px 28px 0 0",
-          background: "var(--surface)",
+          background: "var(--surface, #fff)",
           maxHeight,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          paddingBottom: "env(safe-area-inset-bottom)",
+          /* Desktop: centered modal */
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "min(480px, calc(100vw - 32px))",
+          borderRadius: 24,
+          boxShadow: "0 16px 48px rgba(0,0,0,0.16)",
+          animation: closing ? "modalOut 200ms ease forwards" : "modalIn 250ms cubic-bezier(0.16,1,0.3,1) forwards",
         }}
       >
-        {/* Drag handle */}
-        <div
-          aria-hidden="true"
+        {/* Close button */}
+        <button
+          onClick={startClose}
+          aria-label="Close"
           style={{
-            display: "flex",
-            justifyContent: "center",
-            padding: "12px 0 4px",
+            position: "absolute", top: 16, right: 16,
+            width: 32, height: 32, borderRadius: 10,
+            background: "var(--surface-2, #F5F3F0)", border: "none",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: 16, color: "var(--ink-3)",
+            zIndex: 1,
           }}
         >
-          <div
-            style={{
-              width: 44,
-              height: 5,
-              borderRadius: 100,
-              background: "#E0DDE3",
-            }}
-          />
+          ✕
+        </button>
+        <div style={{ padding: "8px 0 0" }}>
+          {children}
         </div>
-        {children}
       </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes modalIn { from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        @keyframes modalOut { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } }
+      `}</style>
     </>
   );
 }

@@ -162,13 +162,14 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
       .catch(() => setError(true))
       .finally(() => { if (alive) setLoading(false); });
 
-    // Load toggle states (only on first load)
     if (weekOffset === 0) {
       fetch("/api/profile").then((r) => r.ok ? r.json() : null).then((p) => {
         if (!alive || !p) return;
-        const profile = p as Record<string, unknown>;
-        setAiCoach(profile.aiCoachEnabled === true);
-        setWeeklyDigest(profile.weeklyDigestEnabled === true);
+        const user = (p as Record<string, unknown>).user as Record<string, unknown> | undefined;
+        if (user) {
+          setAiCoach(user.aiCoachEnabled === true);
+          setWeeklyDigest(user.weeklyDigestEnabled === true);
+        }
       }).catch(() => {});
     }
 
@@ -579,7 +580,7 @@ function FeatureTeaser({ icon, label, desc, locked, comingSoon, locale }: {
     <div style={{ ...CARD, height: "100%", display: "flex", flexDirection: "column", opacity: comingSoon ? 0.7 : 1 }}>
       <div className="flex items-center gap-1.5 mb-2">
         <span style={{ fontSize: 16 }}>{icon}</span>
-        {locked && <span style={{ fontSize: 9, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
+        {locked && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
       </div>
       <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>{label}</div>
       <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0, flex: 1 }}>{desc}</p>

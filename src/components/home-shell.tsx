@@ -252,7 +252,7 @@ export function HomeShell({
                 }}
               >
                 <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
                   {locale === "th" ? m.labelTh : m.label}
                 </span>
               </button>
@@ -298,7 +298,7 @@ export function HomeShell({
                 <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#A673F1", letterSpacing: "0.3px" }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", letterSpacing: "0.3px" }}>
               AI MOOD ASSISTANT
             </span>
           </div>
@@ -334,7 +334,7 @@ export function HomeShell({
               <img src={composerImagePreview} alt="" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 12 }} />
               <button
                 onClick={() => { setComposerImage(null); setComposerImagePreview(null); }}
-                style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 10 }}
+                style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14 }}
               >
                 ×
               </button>
@@ -344,7 +344,7 @@ export function HomeShell({
           {/* Error / Info */}
           {composerError && (
             <div className="mt-2.5" style={{ padding: "10px 14px", borderRadius: 12, background: "#F4EEFB", border: "1px solid #E6DBF7" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "#7A4DD0" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "#7A4DD0" }}>
                 {composerError}
               </p>
             </div>
@@ -359,7 +359,7 @@ export function HomeShell({
                     <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.4px" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.4px" }}>
                   {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI IS READING YOUR DAY..."}
                 </span>
               </div>
@@ -381,7 +381,7 @@ export function HomeShell({
                       color: active ? "#fff" : "var(--ink-2)",
                       padding: "5px 10px",
                       borderRadius: 100,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: 700,
                       border: active ? "none" : "1.5px solid #F0EAF7",
                     }}
@@ -398,7 +398,7 @@ export function HomeShell({
           {composerSuggestion && !composerAnalyzing && composerTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2 fade-in">
               {composerTags.map((tag, i) => (
-                <span key={i} className="flex items-center gap-1" style={{ background: "#fff", border: "1.5px solid #F0EAF7", padding: "5px 10px", borderRadius: 100, fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>
+                <span key={i} className="flex items-center gap-1" style={{ background: "#fff", border: "1.5px solid #F0EAF7", padding: "5px 10px", borderRadius: 100, fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
                   {tag}
                   <button onClick={() => setComposerTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", display: "flex" }}>
                     <svg width="8" height="8" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
@@ -432,7 +432,7 @@ export function HomeShell({
                   right: -6,
                   background: "#0A0A0A",
                   color: "#fff",
-                  fontSize: 8,
+                  fontSize: 14,
                   fontWeight: 800,
                   padding: "1px 4px",
                   borderRadius: 4,
@@ -525,14 +525,14 @@ export function HomeShell({
                 alignItems: "center",
                 justifyContent: "center",
                 color: "#fff",
-                fontSize: 9,
+                fontSize: 14,
                 fontWeight: 800,
                 flexShrink: 0,
                 letterSpacing: "0.3px",
               }}>
                 PRO
               </div>
-              <p style={{ fontSize: 12, lineHeight: 1.4, color: "#7A4DD0", fontWeight: 600 }}>
+              <p style={{ fontSize: 14, lineHeight: 1.4, color: "#7A4DD0", fontWeight: 600 }}>
                 {locale === "th"
                   ? "ใช้ AI ได้วันละครั้ง — อัปเกรด Pro เพื่อใช้ได้ไม่จำกัด"
                   : "1 free AI analysis per day — upgrade to Pro for unlimited"}
@@ -548,14 +548,14 @@ export function HomeShell({
           <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", margin: 0 }}>
             {t("todayEntries")}
           </h2>
-          <span style={{ fontSize: 13, color: "var(--ink-3)" }}>
+          <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
             {stats?.total30d ?? 0} {locale === "th" ? "entry · กิจกรรม" : "entries"}
           </span>
         </div>
 
         {/* Day axis */}
         <div className="card" style={{ padding: "20px 24px", marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--ink-3)", fontWeight: 700, marginBottom: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "var(--ink-3)", fontWeight: 700, marginBottom: 8 }}>
             {["6:00","9:00","12:00","15:00","18:00","21:00","24:00"].map(tt => <span key={tt}>{tt}</span>)}
           </div>
           <div style={{ height: 4, background: "var(--surface-2)", borderRadius: 100, position: "relative" }}>
@@ -619,13 +619,13 @@ export function HomeShell({
             <span style={{ fontSize: 14, fontWeight: 800 }}>
               {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { month: "long", year: "numeric" })}
             </span>
-            <Link href={"/calendar" as "/"} style={{ fontSize: 12, color: "var(--purple-strong)", textDecoration: "none", fontWeight: 700 }}>
+            <Link href={"/calendar" as "/"} style={{ fontSize: 14, color: "var(--purple-strong)", textDecoration: "none", fontWeight: 700 }}>
               {locale === "th" ? "ดูทั้งหมด →" : "View all →"}
             </Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 8 }}>
             {(locale === "th" ? ["อา","จ","อ","พ","พฤ","ศ","ส"] : ["Su","Mo","Tu","We","Th","Fr","Sa"]).map(d => (
-              <div key={d} style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-3)", textAlign: "center" }}>{d}</div>
+              <div key={d} style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", textAlign: "center" }}>{d}</div>
             ))}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
@@ -647,7 +647,7 @@ export function HomeShell({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 11,
+                  fontSize: 14,
                   fontWeight: 700,
                   color: filled ? "#fff" : "var(--ink-3)",
                 }}>{d}</div>
@@ -715,9 +715,9 @@ function AiSidebarCard({ tier, locale }: { tier: Tier; locale: string }) {
     <div className="card" style={{ padding: 20, background: "linear-gradient(155deg, #1A1320 0%, #2A1F33 100%)", color: "#fff", border: "none" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#FFC899" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        <span style={{ fontSize: 11, fontWeight: 800, color: "#FFC899", letterSpacing: ".05em" }}>AI · {locale === "th" ? "สัปดาห์นี้" : "This week"}</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#FFC899", letterSpacing: ".05em" }}>AI · {locale === "th" ? "สัปดาห์นี้" : "This week"}</span>
         {tier !== "premium" && (
-          <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, background: "rgba(255,255,255,.2)", color: "#FFC899", padding: "2px 8px", borderRadius: 50 }}>PRO</span>
+          <span style={{ marginLeft: "auto", fontSize: 14, fontWeight: 800, background: "rgba(255,255,255,.2)", color: "#FFC899", padding: "2px 8px", borderRadius: 50 }}>PRO</span>
         )}
       </div>
       <div style={{ fontSize: 14, lineHeight: 1.55, color: "rgba(255,255,255,.92)" }}>
@@ -733,7 +733,7 @@ function AiSidebarCard({ tier, locale }: { tier: Tier; locale: string }) {
       </div>
       <Link
         href={(tier === "premium" ? "/insights" : "/pricing") as "/"}
-        style={{ marginTop: 14, display: "inline-block", background: "rgba(255,255,255,.1)", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 100, fontWeight: 700, fontSize: 12, textDecoration: "none" }}
+        style={{ marginTop: 14, display: "inline-block", background: "rgba(255,255,255,.1)", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 100, fontWeight: 700, fontSize: 14, textDecoration: "none" }}
       >
         {tier === "premium"
           ? (locale === "th" ? "เปิด AI Insights →" : "Open AI Insights →")
@@ -782,7 +782,7 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
             {locale === "th" ? mood?.labelTh : mood?.label}
           </div>
-          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>
+          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
             {dayLabel} · {time}
           </div>
         </div>
@@ -791,7 +791,7 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
         <img src={entry.imageUrl} alt="" style={{ width: "100%", height: 80, objectFit: "cover", borderRadius: 8 }} />
       )}
       {entry.note && (
-        <p className="line-clamp-2" style={{ fontSize: 12, color: "var(--ink-2)", lineHeight: 1.4, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
+        <p className="line-clamp-2" style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.4, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
           {entry.note}
         </p>
       )}
@@ -801,7 +801,7 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
             <span
               key={j}
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 600,
                 color: "#A673F1",
                 background: "#F4EEFB",

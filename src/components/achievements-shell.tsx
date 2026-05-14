@@ -117,7 +117,7 @@ export function AchievementsShell() {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 4 }}>
             {t("yourJourney")}
           </div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", lineHeight: 1.2 }}>
@@ -138,7 +138,7 @@ export function AchievementsShell() {
               background: filter === f.key ? "var(--ink)" : "transparent",
               color: filter === f.key ? "#fff" : "var(--ink-2)",
               border: filter === f.key ? "none" : "1.5px solid var(--hairline-2)",
-              fontSize: 13, fontWeight: 600, cursor: "pointer",
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
               whiteSpace: "nowrap", flexShrink: 0,
             }}
           >
@@ -194,12 +194,12 @@ function BadgeCard({ badge, t, locale }: { badge: Badge; t: (k: string, v?: Reco
       <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
         {t(`badge_${badge.id}` as "badge_streak_7")}
       </div>
-      <div style={{ fontSize: 12, color: "var(--ink-3)", marginBottom: 8 }}>
+      <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 8 }}>
         {t(`badge_${badge.id}_desc` as "badge_streak_7_desc")}
       </div>
 
       {isEarned && badge.earnedAt && (
-        <div style={{ fontSize: 12, fontWeight: 600, color: badge.color }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: badge.color }}>
           ✓ {formatBadgeDate(badge.earnedAt, locale)}
         </div>
       )}
@@ -216,7 +216,7 @@ function BadgeCard({ badge, t, locale }: { badge: Badge; t: (k: string, v?: Reco
               transition: "width 0.5s ease",
             }} />
           </div>
-          <div style={{ fontSize: 11, color: "var(--ink-3)", fontWeight: 600 }}>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600 }}>
             {badge.progress}%
           </div>
         </div>

@@ -103,7 +103,7 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
                   )}
                   <div style={{
                     position: "absolute", bottom: 8, left: 0, right: 0, textAlign: "center",
-                    fontSize: 12, fontWeight: 600, color: th === "dark" ? "#fff" : "var(--ink)",
+                    fontSize: 14, fontWeight: 600, color: th === "dark" ? "#fff" : "var(--ink)",
                   }}>
                     {t(`theme${th.charAt(0).toUpperCase() + th.slice(1)}` as "themeLight")}
                   </div>
@@ -137,7 +137,7 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
                         <div key={c} style={{ width: 20, height: 20, borderRadius: 6, background: c }} />
                       ))}
                     </div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
                       {t(`palette${pal.charAt(0).toUpperCase() + pal.slice(1)}` as "paletteNeon")}
                     </div>
                   </button>
@@ -254,7 +254,7 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
         </SettingCard>
       </Section>
 
-      <div style={{ textAlign: "center", fontSize: 12, color: "var(--ink-3)", marginTop: 16 }}>
+      <div style={{ textAlign: "center", fontSize: 14, color: "var(--ink-3)", marginTop: 16 }}>
         {t("version")}
       </div>
 
@@ -317,7 +317,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{
-        fontSize: 11, fontWeight: 800, color: "var(--ink-3)",
+        fontSize: 14, fontWeight: 800, color: "var(--ink-3)",
         letterSpacing: 0.4, textTransform: "uppercase",
         marginBottom: 10, paddingLeft: 4,
       }}>
@@ -361,7 +361,7 @@ function ToggleRow({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
-        <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>
+        <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>
       </div>
       <button
         type="button"
@@ -403,7 +403,7 @@ function NavRow({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
-        {value && <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 1 }}>{value}</div>}
+        {value && <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{value}</div>}
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3, flexShrink: 0 }}>
         <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

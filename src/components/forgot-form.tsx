@@ -162,7 +162,7 @@ export function ForgotForm() {
       {/* Sparkles */}
       <div style={{ marginBottom: 16 }}>
         <span style={{ fontSize: 14 }}>✦</span>
-        <span style={{ fontSize: 10, marginLeft: 2 }}>✦</span>
+        <span style={{ fontSize: 14, marginLeft: 2 }}>✦</span>
         <span style={{ fontSize: 16, marginLeft: 2 }}>✦</span>
       </div>
 
@@ -177,7 +177,7 @@ export function ForgotForm() {
       {/* Form */}
       <form onSubmit={onSubmit}>
         <label className="block" style={{ marginBottom: 16 }}>
-          <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
+          <span style={{ display: "block", fontSize: 14, fontWeight: 600, color: "var(--ink-2)", marginBottom: 6 }}>
             {t("email")}
           </span>
           <input

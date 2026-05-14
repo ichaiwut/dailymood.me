@@ -36,7 +36,7 @@ const CARD: React.CSSProperties = {
 };
 
 const LABEL: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 14,
   fontWeight: 600,
   color: "var(--ink-3, #999)",
   letterSpacing: 0.5,
@@ -213,7 +213,7 @@ function MoodDonut({ distribution, period, locale }: { distribution: Record<stri
         <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3)">MOODS</text>
       </svg>
       {topMood && (
-        <div style={{ fontSize: 12, color: "var(--ink-2, #666)", textAlign: "center" }}>
+        <div style={{ fontSize: 14, color: "var(--ink-2, #666)", textAlign: "center" }}>
           {topMood.emoji} {locale === "th" ? topMood.labelTh : topMood.label} {topPct}%
         </div>
       )}
@@ -328,7 +328,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                 }}
                 style={{
                   padding: "6px 14px",
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 600,
                   borderRadius: 10,
                   border: "none",
@@ -354,7 +354,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
               padding: "8px 14px",
               background: "#F0EAFF",
               color: "#A673F1",
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: 600,
               borderRadius: 10,
               textAlign: "center",
@@ -402,11 +402,11 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                     <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
                   {t("viewInsights").toUpperCase()} · {t("week").toUpperCase()}
                 </span>
                 {tier !== "premium" && (
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
                     PRO
                   </span>
                 )}
@@ -467,7 +467,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                 <div key={s.l} className="card" style={{ padding: 18 }}>
                   <div className="w-eyebrow">{s.l}</div>
                   <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginTop: 6 }}>{s.v}</div>
-                  {s.d && <div style={{ fontSize: 12, color: s.dc, fontWeight: 600, marginTop: 2 }}>{s.d}</div>}
+                  {s.d && <div style={{ fontSize: 14, color: s.dc, fontWeight: 600, marginTop: 2 }}>{s.d}</div>}
                 </div>
               ));
             })()}
@@ -482,7 +482,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
                     {locale === "th" ? "แนวโน้มอารมณ์" : "Mood Trend"}
                   </h2>
-                  <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{periodScopeLabel[period]}</span>
+                  <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{periodScopeLabel[period]}</span>
                 </div>
                 <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} />
               </div>
@@ -503,7 +503,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                       {/* Header */}
                       <div className="flex items-center justify-between mb-3">
                         <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>{t("moodMix")}</h2>
-                        <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                        <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
                           {distTotal} {t("entries")}
                         </span>
                       </div>
@@ -559,7 +559,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                             />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 11, color: "var(--ink-3)", fontWeight: 600 }}>
+                            <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600 }}>
                               {locale === "th" ? "อารมณ์หลัก" : "Top mood"}
                             </div>
                             <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
@@ -590,13 +590,13 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                                   height={20}
                                   style={{ width: 20, height: 20, flexShrink: 0 }}
                                 />
-                                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+                                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
                                   {locale === "th" ? m.labelTh : m.label}
                                 </span>
-                                <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                                <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
                                   {count} {dayLabel}
                                 </span>
-                                <span style={{ fontSize: 13, fontWeight: 700, width: 32, textAlign: "right" }}>
+                                <span style={{ fontSize: 14, fontWeight: 700, width: 32, textAlign: "right" }}>
                                   {pct}%
                                 </span>
                               </div>
@@ -620,7 +620,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
             <div style={CARD}>
               <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
-                <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
+                <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
                   {locale === "th" ? `วิเคราะห์จาก ${stats?.total ?? 0} entries` : `Analyzed from ${stats?.total ?? 0} entries`}
                 </span>
               </div>
@@ -657,7 +657,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
               <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
                 <div className="flex items-center gap-2">
                   <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>
                     PRO
                   </span>
                 </div>

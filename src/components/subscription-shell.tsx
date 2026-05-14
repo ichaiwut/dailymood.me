@@ -15,6 +15,22 @@ interface SubData {
   memberSince: string;
 }
 
+const CARD: React.CSSProperties = {
+  background: "#fff",
+  border: "1.5px solid #F2F0F5",
+  borderRadius: 22,
+  padding: 20,
+};
+
+const FEATURES = [
+  { icon: "✨", title: "AI ไม่จำกัด", titleEn: "Unlimited AI", desc: "NLP, Vision, Insights — ใช้ได้ทุกวัน", descEn: "NLP, Vision, Insights — unlimited daily" },
+  { icon: "🔮", title: "AI Insights + พยากรณ์", titleEn: "AI Insights + Forecast", desc: "สรุปสัปดาห์ แพทเทิร์น Mood DNA พยากรณ์อารมณ์", descEn: "Weekly recap, patterns, Mood DNA, forecast" },
+  { icon: "📅", title: "Calendar AI + Ask AI", titleEn: "Calendar AI + Ask AI", desc: "สรุปรายเดือน + ถามอะไรก็ได้จากข้อมูลของคุณ", descEn: "Monthly summaries + ask anything about your data" },
+  { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icon Packs", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + premium icon packs" },
+  { icon: "📊", title: "Year in Pixels + สถิติปี", titleEn: "Year in Pixels + Yearly Stats", desc: "ดูภาพรวมทั้งปี + Activity Impact เต็ม", descEn: "Full year overview + complete activity impact" },
+  { icon: "📤", title: "ส่งออก CSV/JSON/PDF", titleEn: "Export CSV/JSON/PDF", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
+];
+
 export function SubscriptionShell() {
   const t = useTranslations("profile");
   const locale = useLocale();
@@ -25,6 +41,7 @@ export function SubscriptionShell() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [usage, setUsage] = useState<{ nlp: number; vision: number } | null>(null);
 
   useEffect(() => {
     fetch("/api/subscription")
@@ -35,6 +52,17 @@ export function SubscriptionShell() {
       .then(setData)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+
+    fetch("/api/profile")
+      .then((r) => r.ok ? r.json() : null)
+      .then((p) => {
+        const profile = p as Record<string, unknown> | null;
+        const stats = profile?.stats as Record<string, number> | undefined;
+        if (stats) {
+          setUsage({ nlp: stats.totalEntries ?? 0, vision: 0 });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const openPortal = async () => {
@@ -77,131 +105,115 @@ export function SubscriptionShell() {
   }
 
   const renewDate = data.currentPeriodEnd ? formatDate(data.currentPeriodEnd, locale) : null;
-  const memberMonths = computeMemberMonths(data.memberSince);
   const isYearly = data.planInterval === "year";
   const isCanceling = data.cancelAtPeriodEnd;
-  const isTrial = data.subscriptionStatus === "trialing";
 
   return (
-    <div className="fade-in center-880" style={{ paddingBottom: 32 }}>
+    <div className="fade-in center-880" style={{ paddingBottom: 40 }}>
       <TopBar t={t} router={router} />
 
       {!data.isPremium ? (
         <FreeState />
       ) : (
         <>
-          {/* Hero Card */}
+          {/* Title */}
+          <div className="fade-in" style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>Premium</h1>
+            <p style={{ fontSize: 14, color: "var(--ink-3)", margin: 0 }}>
+              {locale === "th"
+                ? "ใช้ AI ได้ไม่จำกัด · บันทึกย้อนหลังได้ไม่จำกัด · ส่งออกข้อมูลทุกรูปแบบ"
+                : "Unlimited AI · Unlimited history · Export in any format"}
+            </p>
+          </div>
+
+          {/* Dark subscription card */}
           <div
             className="fade-in"
             style={{
-              background: "linear-gradient(135deg, #7B4FD3 0%, #A673F1 40%, #C89BF5 100%)",
-              borderRadius: 28,
-              padding: "28px 24px 22px",
-              color: "#fff",
-              position: "relative",
-              boxShadow: "0 8px 32px rgba(123,79,211,0.3)",
-              marginBottom: 16,
+              background: "linear-gradient(135deg, #2C2435 0%, #3D2E50 100%)",
+              borderRadius: 24, padding: "22px 24px", color: "#fff",
+              marginBottom: 24,
             }}
           >
-            {/* Status row */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  background: isCanceling ? "rgba(252,164,91,0.25)" : isTrial ? "rgba(133,236,203,0.25)" : "rgba(255,255,255,0.2)",
-                  borderRadius: 20, padding: "4px 12px",
-                  fontSize: 14, fontWeight: 700, letterSpacing: 0.3,
-                }}
-              >
-                {isCanceling
-                  ? `⏳ ${t("subStatusCanceling").toUpperCase()}`
-                  : isTrial
-                    ? `🎁 ${t("subStatusTrialing").toUpperCase()}`
-                    : `✨ ${t("subStatusActive").toUpperCase()}`}
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.7, letterSpacing: 0.5 }}>
-                {t(isYearly ? "subIntervalYearly" : "subIntervalMonthly")}
-              </div>
+            <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+              <span style={{
+                background: "rgba(166,115,241,0.3)", borderRadius: 20, padding: "5px 14px",
+                fontSize: 14, fontWeight: 700,
+              }}>
+                ✨ Premium {isYearly ? "Yearly" : "Monthly"}
+              </span>
             </div>
 
-            {/* Plan title */}
-            <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.2, marginBottom: 4 }}>
-              DailyMood Pro
-            </div>
-            <div style={{ fontSize: 14, opacity: 0.85, marginBottom: 20 }}>
-              {isCanceling
-                ? t("subEndsOn", { date: renewDate ?? "" })
-                : isTrial
-                  ? t("subTrialEndsOn", { date: renewDate ?? "" })
-                  : t("subRenewsOn", { date: renewDate ?? "" })}
-            </div>
-
-            {/* Stats row */}
-            <div
-              style={{
-                display: "grid", gridTemplateColumns: "1fr 1fr",
-                background: "rgba(255,255,255,0.15)", borderRadius: 16,
-                padding: "14px 16px",
-                backdropFilter: "blur(8px)",
-              }}
-            >
+            <div className="flex items-center justify-between flex-wrap" style={{ gap: 16 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, marginBottom: 4, letterSpacing: 0.3 }}>
-                  {t("subNextCharge")}
+                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
+                  {isCanceling
+                    ? `${locale === "th" ? "สิ้นสุด" : "Ends"} · ${renewDate}`
+                    : `${locale === "th" ? "ต่ออายุอัตโนมัติ" : "Auto-renews"} · ${renewDate}`}
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 800 }}>
-                  {isCanceling ? "—" : (isYearly ? "฿949" : "฿99")}
+                <div style={{ fontSize: 14, opacity: 0.7 }}>
+                  {isYearly
+                    ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
+                    : `฿99 / ${locale === "th" ? "เดือน" : "month"}`}
                 </div>
-                {!isCanceling && renewDate && (
-                  <div style={{ fontSize: 14, opacity: 0.85, marginTop: 4, fontWeight: 500 }}>
-                    {isTrial ? (
-                      <>
-                        <div>{t("subTrialNow")}</div>
-                        <div>{t("subTrialChargeDate", { date: renewDate })}</div>
-                      </>
-                    ) : renewDate}
-                  </div>
-                )}
               </div>
-              <div style={{ borderLeft: "1px solid rgba(255,255,255,0.2)", paddingLeft: 16 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, marginBottom: 4, letterSpacing: 0.3 }}>
-                  {t("subMemberFor")}
-                </div>
-                <div style={{ fontSize: 20, fontWeight: 800 }}>
-                  {memberMonths <= 1
-                    ? t("subMonth", { n: String(memberMonths) })
-                    : t("subMonths", { n: String(memberMonths) })}
-                </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={openPortal}
+                  disabled={portalLoading}
+                  style={{
+                    background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)",
+                    borderRadius: 14, padding: "10px 18px", color: "#fff",
+                    fontSize: 14, fontWeight: 700, cursor: portalLoading ? "wait" : "pointer",
+                  }}
+                >
+                  {locale === "th" ? "จัดการการชำระเงิน" : "Manage billing"}
+                </button>
+                {!isCanceling && (
+                  <button
+                    onClick={() => setShowCancel(true)}
+                    style={{
+                      background: "transparent", border: "none",
+                      color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600,
+                      cursor: "pointer", padding: "10px 8px",
+                    }}
+                  >
+                    {locale === "th" ? "ยกเลิก" : "Cancel"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
+          {/* Portal error */}
+          {portalError && (
+            <div className="fade-in" style={{
+              padding: "14px 18px", borderRadius: 14, marginBottom: 16,
+              background: "#FDECEC", border: "1.5px solid #F5CECE",
+              fontSize: 14, fontWeight: 600, color: "#D94444", textAlign: "center",
+            }}>
+              {locale === "th" ? "ไม่สามารถเปิดหน้าจัดการได้ ลองใหม่อีกครั้ง" : "Couldn't open billing. Please try again."}
+            </div>
+          )}
+
           {/* Canceling notice */}
           {isCanceling && (
-            <div
-              className="fade-in"
-              style={{
-                padding: "14px 18px", borderRadius: 16, marginBottom: 16,
-                background: "#FEF6E8", border: "1.5px solid #F5DEB3",
-                display: "flex", alignItems: "center", gap: 10,
-              }}
-            >
+            <div className="fade-in" style={{
+              padding: "14px 18px", borderRadius: 16, marginBottom: 24,
+              background: "#FEF6E8", border: "1.5px solid #F5DEB3",
+              display: "flex", alignItems: "center", gap: 10,
+            }}>
               <span style={{ fontSize: 20 }}>⏳</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", lineHeight: 1.4 }}>
-                  {t("subCancelingBand", { date: renewDate ?? "" })}
-                </div>
+              <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+                {t("subCancelingBand", { date: renewDate ?? "" })}
               </div>
               <button
-                type="button"
                 onClick={openPortal}
                 disabled={portalLoading}
                 style={{
-                  padding: "8px 16px", borderRadius: 12,
-                  border: "none", background: "var(--primary)",
-                  fontSize: 14, fontWeight: 700, color: "#fff",
-                  cursor: portalLoading ? "wait" : "pointer",
-                  flexShrink: 0,
+                  padding: "8px 16px", borderRadius: 14, border: "none",
+                  background: "var(--primary)", fontSize: 14, fontWeight: 700,
+                  color: "#fff", cursor: portalLoading ? "wait" : "pointer", flexShrink: 0,
                 }}
               >
                 {t("subResubscribe")}
@@ -209,96 +221,80 @@ export function SubscriptionShell() {
             </div>
           )}
 
-          {/* Portal error toast */}
-          {portalError && (
-            <div
-              className="fade-in"
-              style={{
-                padding: "12px 18px", borderRadius: 14, marginBottom: 16,
-                background: "#FDECEC", border: "1.5px solid #F5CECE",
-                fontSize: 14, fontWeight: 600, color: "#D94444", textAlign: "center",
-              }}
-            >
-              {locale === "th" ? "ไม่สามารถเปิดหน้าจัดการได้ ลองใหม่อีกครั้ง" : "Couldn't open billing. Please try again."}
+          {/* What you get */}
+          <div className="fade-in" style={{ marginBottom: 24, animationDelay: "60ms" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: "0 0 14px" }}>
+              {locale === "th" ? "สิ่งที่คุณได้" : "What you get"}
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              {FEATURES.map((f, i) => (
+                <div key={i} style={CARD}>
+                  <div style={{ fontSize: 24, marginBottom: 10 }}>{f.icon}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                    {locale === "th" ? f.title : f.titleEn}
+                  </div>
+                  <div style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4 }}>
+                    {locale === "th" ? f.desc : f.descEn}
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Billing section */}
-          <Section label={t("subBilling")} delay="60ms">
-            <SettingCard>
-              <PortalButton loading={portalLoading} onClick={openPortal}>
-                <NavRow icon="💳" iconBg="#9ACDE2" title={t("subPaymentMethod")} subtitle={t("subPaymentMethodSub")} />
-              </PortalButton>
-              <Divider />
-              <PortalButton loading={portalLoading} onClick={openPortal}>
-                <NavRow icon="📋" iconBg="#85ECCB" title={t("subBillingHistory")} subtitle={t("subBillingHistorySub")} />
-              </PortalButton>
-              {!isYearly && !isCanceling && (
-                <>
-                  <Divider />
-                  <PortalButton loading={portalLoading} onClick={openPortal}>
-                    <NavRow icon="💡" iconBg="#FDCB56" title={t("subSwitchYearly")} subtitle={t("subSwitchYearlySub")} />
-                  </PortalButton>
-                </>
-              )}
-            </SettingCard>
-          </Section>
-
-          {/* Cancel section */}
-          {!isCanceling && (
-            <div className="fade-in" style={{ marginTop: 8, animationDelay: "120ms" }}>
-              <button
-                type="button"
-                onClick={() => setShowCancel(true)}
-                style={{
-                  width: "100%", padding: "14px 0", borderRadius: 16,
-                  border: "1.5px solid var(--hairline-2)", background: "transparent",
-                  fontSize: 14, fontWeight: 600, color: "var(--ink-3)",
-                  cursor: "pointer",
-                }}
-              >
-                {t("subCancelButton")}
-              </button>
-              <div style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", marginTop: 8 }}>
-                {t("subCancelFooter")}
+          {/* Usage this month */}
+          <div className="fade-in" style={{ animationDelay: "120ms" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: "0 0 14px" }}>
+              {locale === "th" ? "การใช้งานเดือนนี้" : "This month's usage"}
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={CARD}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
+                  AI SUMMARIES
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)" }}>{usage?.nlp ?? "—"}</span>
+                  <span style={{ fontSize: 14, color: "var(--ink-3)" }}>/ ∞ unlimited</span>
+                </div>
+              </div>
+              <div style={CARD}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
+                  {locale === "th" ? "รูปวิเคราะห์" : "VISION ANALYSIS"}
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)" }}>{usage?.vision ?? "—"}</span>
+                  <span style={{ fontSize: 14, color: "var(--ink-3)" }}>/ ∞ unlimited</span>
+                </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Cancel confirmation sheet */}
           <BottomSheet open={showCancel} onClose={() => setShowCancel(false)} aria-label={t("subCancelSheetTitle")}>
             <div style={{ padding: "8px 24px 36px", textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>😢</div>
+              <div style={{ fontSize: 32, marginBottom: 14 }}>😢</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>
                 {t("subCancelSheetTitle")}
               </div>
               <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 24 }}>
                 {t("subCancelSheetBody", { date: renewDate ?? "" })}
               </div>
-              <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ display: "flex", gap: 14 }}>
                 <button
-                  type="button"
-                  onClick={() => {
-                    setShowCancel(false);
-                    openPortal();
-                  }}
+                  onClick={() => { setShowCancel(false); openPortal(); }}
                   style={{
                     flex: 1, padding: "14px 0", borderRadius: 16,
                     border: "1.5px solid #F5DADA", background: "transparent",
-                    fontSize: 14, fontWeight: 600, color: "#D94444",
-                    cursor: "pointer",
+                    fontSize: 14, fontWeight: 600, color: "#D94444", cursor: "pointer",
                   }}
                 >
                   {t("subCancelSheetConfirm")}
                 </button>
                 <button
-                  type="button"
                   onClick={() => setShowCancel(false)}
                   style={{
                     flex: 1, padding: "14px 0", borderRadius: 16,
                     border: "none", background: "var(--primary)",
-                    fontSize: 14, fontWeight: 700, color: "#fff",
-                    cursor: "pointer",
+                    fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer",
                   }}
                 >
                   {t("subCancelSheetKeep")}
@@ -316,12 +312,12 @@ export function SubscriptionShell() {
 
 function TopBar({ t, router }: { t: (key: string) => string; router: ReturnType<typeof useRouter> }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0 16px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "8px 0 16px" }}>
       <button
         type="button"
         onClick={() => router.back()}
         style={{
-          width: 40, height: 40, borderRadius: 12,
+          width: 40, height: 40, borderRadius: 14,
           background: "var(--surface-2)", border: "none",
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer",
@@ -331,101 +327,136 @@ function TopBar({ t, router }: { t: (key: string) => string; router: ReturnType<
           <path d="M15 18l-6-6 6-6" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", margin: 0 }}>
-        {t("subscription")}
-      </h1>
     </div>
   );
 }
 
 function FreeState() {
-  const t = useTranslations("profile");
   const locale = useLocale();
+  const isTh = locale === "th";
+
+  const handleCheckout = async () => {
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: "monthly" }),
+    });
+    const json = (await res.json()) as { url?: string };
+    if (json.url) globalThis.location.assign(json.url);
+  };
+
   return (
-    <div className="fade-in" style={{ padding: "40px 0", textAlign: "center" }}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>✦</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
-        {t("subFreeTitle")}
+    <div className="fade-in">
+      <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 4 }}>
+        {isTh ? "บัญชีและการใช้งาน" : "Account & usage"}
       </div>
-      <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, maxWidth: 300, margin: "0 auto 24px" }}>
-        {t("subFreeBody")}
+      <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 20px" }}>
+        {isTh ? "แพ็กเกจของคุณ" : "Your plan"}
+      </h1>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
+        {/* Free card */}
+        <div style={{ ...CARD, display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600, marginBottom: 4 }}>
+            {isTh ? "แผนปัจจุบัน" : "Current plan"}
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>Free</div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 20 }}>
+            {isTh ? "เพียงพอสำหรับการเริ่มต้น" : "Enough to get started"}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
+            <div>
+              <div className="flex items-center justify-between" style={{ fontSize: 14, marginBottom: 6 }}>
+                <span style={{ color: "var(--ink)" }}>Smart Log AI {isTh ? "วันนี้" : "today"}</span>
+                <span style={{ fontWeight: 700 }}>10 / {isTh ? "วัน" : "day"}</span>
+              </div>
+              <div style={{ height: 6, borderRadius: 3, background: "#F2F0F5", overflow: "hidden" }}>
+                <div style={{ width: "40%", height: "100%", borderRadius: 3, background: "#FCA45B" }} />
+              </div>
+            </div>
+            <FreeLimitRow label={isTh ? "สถิติ" : "Stats"} value={isTh ? "สัปดาห์ + เดือน" : "Week + Month"} />
+            <FreeLimitRow label="AI Insights" value={isTh ? "แค่ preview" : "Preview only"} />
+            <FreeLockRow label="AI Vision" isTh={isTh} />
+            <FreeLockRow label="Calendar AI + Ask AI" isTh={isTh} />
+            <FreeLockRow label="Year-in-Pixels" isTh={isTh} />
+            <FreeLockRow label="Custom Moods" isTh={isTh} />
+            <FreeLockRow label={isTh ? "ส่งออกข้อมูล" : "Export"} isTh={isTh} />
+          </div>
+        </div>
+
+        {/* Premium card */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #F9A870 0%, #D4A0E8 50%, #C89BF5 100%)",
+            borderRadius: 22, padding: 20, color: "#fff",
+            display: "flex", flexDirection: "column", position: "relative",
+          }}
+        >
+          <div style={{ position: "absolute", top: 16, right: 16, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800 }}>+</div>
+          <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.9, marginBottom: 4 }}>
+            {isTh ? "อัพเกรด" : "Upgrade"}
+          </div>
+          <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Premium</div>
+          <div style={{ fontSize: 14, opacity: 0.85, marginBottom: 16 }}>
+            ฿99 / {isTh ? "เดือน" : "month"} · 7 {isTh ? "วันแรกฟรี" : "days free"}
+          </div>
+
+          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+            {(isTh ? [
+              "Smart Log AI + Vision ไม่จำกัด",
+              "สถิติปี + Activity Impact เต็ม",
+              "AI Insights + พยากรณ์ + Mood DNA",
+              "Calendar AI + Ask AI",
+              "Year-in-Pixels + ส่งออก CSV/PDF",
+              "Custom Moods + Icon Packs พิเศษ",
+              "AI Coach รายวัน + Energy Clock",
+            ] : [
+              "Unlimited Smart Log AI + Vision",
+              "Yearly stats + full Activity Impact",
+              "AI Insights + Forecast + Mood DNA",
+              "Calendar AI + Ask AI",
+              "Year-in-Pixels + Export CSV/PDF",
+              "Custom Moods + premium Icon Packs",
+              "Daily AI Coach + Energy Clock",
+            ]).map((item, i) => (
+              <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
+                <span style={{ position: "absolute", left: 0 }}>•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <button
+            onClick={handleCheckout}
+            style={{
+              width: "100%", padding: "14px 0", borderRadius: 16,
+              background: "#fff", border: "none", color: "#A673F1",
+              fontSize: 15, fontWeight: 800, cursor: "pointer",
+            }}
+          >
+            {isTh ? "เริ่มทดลองฟรี 7 วัน →" : "Start 7-day free trial →"}
+          </button>
+        </div>
       </div>
-      <a
-        href="/pricing"
-        style={{
-          display: "inline-block", padding: "14px 32px", borderRadius: 20,
-          border: "none", background: "var(--ink)", color: "#fff",
-          fontSize: 15, fontWeight: 700, textDecoration: "none",
-        }}
-      >
-        {t("subFreeUpgrade")}
-      </a>
     </div>
   );
 }
 
-function PortalButton({ loading, onClick, children }: { loading: boolean; onClick: () => void; children: React.ReactNode }) {
+function FreeLimitRow({ label, value }: { label: string; value: string }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={loading}
-      style={{ width: "100%", background: "transparent", border: "none", cursor: loading ? "wait" : "pointer", textAlign: "left" }}
-    >
-      {children}
-    </button>
-  );
-}
-
-/* ── Layout helpers ── */
-
-function Section({ label, delay, children }: { label: string; delay: string; children: React.ReactNode }) {
-  return (
-    <div className="fade-in" style={{ marginBottom: 24, animationDelay: delay }}>
-      <div style={{
-        fontSize: 14, fontWeight: 800, color: "var(--ink-3)",
-        letterSpacing: 0.4, textTransform: "uppercase",
-        marginBottom: 10, paddingLeft: 4,
-      }}>
-        {label}
-      </div>
-      {children}
+    <div className="flex items-center justify-between" style={{ fontSize: 14 }}>
+      <span style={{ color: "var(--ink)" }}>{label}</span>
+      <span style={{ fontWeight: 700, color: "var(--ink-3)" }}>{value}</span>
     </div>
   );
 }
 
-function SettingCard({ children }: { children: React.ReactNode }) {
+function FreeLockRow({ label, isTh }: { label: string; isTh: boolean }) {
   return (
-    <div style={{
-      background: "var(--surface)", borderRadius: 22,
-      border: "1.5px solid var(--hairline)", overflow: "hidden",
-    }}>
-      {children}
-    </div>
-  );
-}
-
-function Divider() {
-  return <div style={{ height: 1, background: "var(--hairline)", marginLeft: 76 }} />;
-}
-
-function NavRow({ icon, iconBg, title, subtitle }: { icon: string; iconBg: string; title: string; subtitle?: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px" }}>
-      <div style={{
-        width: 42, height: 42, borderRadius: 14,
-        background: `${iconBg}18`, display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 18, flexShrink: 0,
-      }}>
-        {icon}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
-        {subtitle && <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>}
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3, flexShrink: 0 }}>
-        <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+    <div className="flex items-center justify-between" style={{ fontSize: 14 }}>
+      <span style={{ color: "var(--ink)" }}>{label}</span>
+      <span style={{ fontWeight: 700, color: "#FCA45B" }}>🔒 {isTh ? "ล็อก" : "Locked"}</span>
     </div>
   );
 }
@@ -440,11 +471,4 @@ function formatDate(iso: string, locale: string): string {
   }
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
-}
-
-function computeMemberMonths(memberSince: string): number {
-  const start = new Date(memberSince);
-  const now = new Date();
-  const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
-  return Math.max(1, months);
 }

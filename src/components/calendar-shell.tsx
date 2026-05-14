@@ -321,7 +321,7 @@ export function CalendarShell({
                   <span style={{
                     width: 14, height: 14, borderRadius: 100, background: "#FDE8DA",
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 8, color: "#FCA45B", flexShrink: 0,
+                    fontSize: 14, color: "#FCA45B", flexShrink: 0,
                   }}>★</span>
                   {tAi("legendBest")}
                 </span>
@@ -422,7 +422,7 @@ export function CalendarShell({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 9,
+                    fontSize: 14,
                     lineHeight: 1,
                     color: "#FCA45B",
                   }}>★</span>

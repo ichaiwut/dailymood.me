@@ -83,9 +83,9 @@ export function ProfileEditShell() {
   const initials = getInitials(name || user.name, user.email);
 
   return (
-    <div className="fade-in center-720" style={{ paddingBottom: 32 }}>
+    <div className="fade-in center-720" style={{ paddingBottom: 40 }}>
       {/* Top Bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0 24px" }}>
         <button
           type="button"
           onClick={() => router.back()}
@@ -100,44 +100,52 @@ export function ProfileEditShell() {
             <path d="M15 18l-6-6 6-6" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)" }}>{t("editProfile")}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>{t("editProfile")}</div>
         <button
           type="button"
           onClick={handleSave}
           disabled={!dirty || saving}
           style={{
-            background: "transparent", border: "none",
+            background: dirty ? "var(--primary)" : "transparent",
+            color: dirty ? "#fff" : "var(--ink-3)",
+            border: dirty ? "none" : "1.5px solid var(--hairline)",
+            borderRadius: 20,
+            padding: "8px 18px",
             fontSize: 15, fontWeight: 700,
-            color: dirty ? "var(--primary)" : "var(--ink-3)",
             cursor: dirty ? "pointer" : "default",
             opacity: dirty ? 1 : 0.5,
-            padding: "8px 4px",
+            transition: "all 0.2s",
           }}
         >
           {saving ? t("saving") : t("save")}
         </button>
       </div>
 
-      {/* Avatar */}
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div style={{ position: "relative", width: 112, height: 112, margin: "0 auto 12px" }}>
+      {/* Avatar Card */}
+      <div
+        style={{
+          background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 24,
+          padding: "28px 20px", textAlign: "center", marginBottom: 16,
+        }}
+      >
+        <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 16px" }}>
           {user.image ? (
             <img
               src={user.image}
               alt=""
               referrerPolicy="no-referrer"
               style={{
-                width: 112, height: 112, borderRadius: "50%",
-                objectFit: "cover",
+                width: 120, height: 120, borderRadius: "50%",
+                objectFit: "cover", border: "3px solid #F2F0F5",
               }}
             />
           ) : (
             <div
               style={{
-                width: 112, height: 112, borderRadius: "50%",
+                width: 120, height: 120, borderRadius: "50%",
                 background: accent,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 40, fontWeight: 800, color: "#fff",
+                fontSize: 44, fontWeight: 800, color: "#fff",
               }}
             >
               {initials}
@@ -145,109 +153,87 @@ export function ProfileEditShell() {
           )}
           <div
             style={{
-              position: "absolute", bottom: 2, right: 2,
-              width: 32, height: 32, borderRadius: "50%",
-              background: "#FCA45B", border: "3px solid var(--surface)",
+              position: "absolute", bottom: 0, right: 0,
+              width: 36, height: 36, borderRadius: "50%",
+              background: "#FCA45B", border: "3px solid #fff",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14,
+              fontSize: 16, cursor: "pointer",
             }}
           >
             📷
           </div>
         </div>
+      </div>
 
-        {/* Accent Color Picker */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 6 }}>
-          {ACCENT_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setAccent(c)}
-              style={{
-                width: 32, height: 32, borderRadius: "50%",
-                background: c, border: accent === c ? "3px solid var(--ink)" : "2px solid var(--hairline)",
-                cursor: "pointer", padding: 0,
-                boxShadow: accent === c ? "0 0 0 2px var(--surface)" : "none",
-              }}
+      {/* Form Card */}
+      <div
+        style={{
+          background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 24,
+          padding: "24px 20px", marginBottom: 16,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          {/* Display Name */}
+          <div>
+            <label style={LABEL_STYLE}>{t("displayName")}</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value.slice(0, 30))}
+              style={INPUT_STYLE}
             />
-          ))}
-        </div>
-        <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{t("accentColor")}</div>
-      </div>
-
-      {/* Form Fields */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {/* Display Name */}
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
-            {t("displayName")}
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value.slice(0, 30))}
-            style={{
-              width: "100%", padding: "14px 16px", borderRadius: 16,
-              border: "1.5px solid var(--hairline-2)", background: "var(--surface-2)",
-              fontSize: 16, fontWeight: 500, color: "var(--ink)",
-              outline: "none", fontFamily: "inherit",
-            }}
-          />
-        </div>
-
-        {/* Email (read-only) */}
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
-            {t("email")}
-          </label>
-          <div
-            style={{
-              width: "100%", padding: "14px 16px", borderRadius: 16,
-              border: "1.5px solid var(--hairline)", background: "var(--surface-2)",
-              fontSize: 16, color: "var(--ink-2)",
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}
-          >
-            <span>{user.email}</span>
-            {user.emailVerified && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#85ECCB", letterSpacing: 0.3 }}>
-                {t("verified")}
-              </span>
-            )}
           </div>
-        </div>
 
-        {/* Bio */}
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
-            {t("bio")}
-          </label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value.slice(0, 160))}
-            placeholder={t("bioPlaceholder")}
-            rows={3}
-            style={{
-              width: "100%", padding: "14px 16px", borderRadius: 16,
-              border: "1.5px solid var(--hairline-2)", background: "var(--surface-2)",
-              fontSize: 16, fontWeight: 500, color: "var(--ink)",
-              outline: "none", fontFamily: "inherit", resize: "none",
-            }}
-          />
-          <div style={{ fontSize: 12, color: bio.length > 140 ? "#FCA45B" : "var(--ink-3)", textAlign: "right", marginTop: 4 }}>
-            {bio.length}/160
+          {/* Email (read-only) */}
+          <div>
+            <label style={LABEL_STYLE}>{t("email")}</label>
+            <div style={{ ...INPUT_STYLE, color: "var(--ink-2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>{user.email}</span>
+              {user.emailVerified && (
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#2DA963" }}>
+                  ✓ {t("verified")}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Bio */}
+          <div>
+            <label style={LABEL_STYLE}>{t("bio")}</label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value.slice(0, 160))}
+              placeholder={t("bioPlaceholder")}
+              rows={3}
+              style={{ ...INPUT_STYLE, resize: "none" }}
+            />
+            <div style={{ fontSize: 14, color: bio.length > 140 ? "#FCA45B" : "var(--ink-3)", textAlign: "right", marginTop: 6, fontWeight: 600 }}>
+              {bio.length}/160
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Delete Account */}
-      <div style={{ marginTop: 40, textAlign: "center" }}>
+      {/* Danger Zone */}
+      <div
+        style={{
+          background: "#FFFAF8", border: "1.5px solid #F5E0D8", borderRadius: 24,
+          padding: "20px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#D94444" }}>{t("deleteAccount")}</div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
+            {t("deleteAccountDesc") || "ลบบัญชีและข้อมูลทั้งหมดอย่างถาวร"}
+          </div>
+        </div>
         <button
           type="button"
           style={{
-            padding: "14px 32px", borderRadius: 16,
-            border: "1.5px solid #F5DADA", background: "transparent",
-            fontSize: 14, fontWeight: 600, color: "#D94444", cursor: "pointer",
+            padding: "10px 20px", borderRadius: 14,
+            border: "1.5px solid #F5DADA", background: "#fff",
+            fontSize: 14, fontWeight: 700, color: "#D94444", cursor: "pointer",
+            flexShrink: 0,
           }}
         >
           {t("deleteAccount")}
@@ -259,16 +245,29 @@ export function ProfileEditShell() {
         <div
           style={{
             position: "fixed", bottom: 100, left: "50%", transform: "translateX(-50%)",
-            background: "var(--ink)", color: "#fff", padding: "10px 24px",
-            borderRadius: 20, fontSize: 14, fontWeight: 600, zIndex: 200,
+            background: "var(--ink)", color: "#fff", padding: "12px 28px",
+            borderRadius: 20, fontSize: 15, fontWeight: 700, zIndex: 200,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
           }}
         >
-          {toast}
+          ✓ {toast}
         </div>
       )}
     </div>
   );
 }
+
+const LABEL_STYLE: React.CSSProperties = {
+  fontSize: 14, fontWeight: 700, color: "var(--ink-2)",
+  marginBottom: 8, display: "block",
+};
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: "100%", padding: "14px 16px", borderRadius: 16,
+  border: "1.5px solid #F2F0F5", background: "#FAFAFA",
+  fontSize: 16, fontWeight: 500, color: "var(--ink)",
+  outline: "none", fontFamily: "inherit",
+};
 
 function getInitials(name: string | null, email: string): string {
   if (name) {

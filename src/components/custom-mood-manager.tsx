@@ -154,7 +154,7 @@ export function CustomMoodManager() {
       </button>
 
       {error && (
-        <div style={{ fontSize: 13, color: "#D94444", marginTop: 8 }}>{error}</div>
+        <div style={{ fontSize: 14, color: "#D94444", marginTop: 8 }}>{error}</div>
       )}
 
       {/* Icon picker grid */}
@@ -164,7 +164,7 @@ export function CustomMoodManager() {
           background: "var(--surface-2)", borderRadius: 18,
           border: "1.5px solid var(--hairline)",
         }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10, letterSpacing: 0.3 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10, letterSpacing: 0.3 }}>
             {locale === "th" ? "เลือกไอคอน" : "PICK AN ICON"}
           </div>
 
@@ -182,7 +182,7 @@ export function CustomMoodManager() {
                 fontSize: 22, outline: "none",
               }}
             />
-            <span style={{ fontSize: 13, color: "var(--ink-3)" }}>
+            <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
               {locale === "th" ? "หรือเลือกจากด้านล่าง" : "or pick below"}
             </span>
           </div>
@@ -252,7 +252,7 @@ export function CustomMoodManager() {
               type="button"
               onClick={() => remove(m.id)}
               style={{
-                fontSize: 13, color: "var(--ink-3)", background: "none",
+                fontSize: 14, color: "var(--ink-3)", background: "none",
                 border: "none", cursor: "pointer", padding: "4px 8px",
               }}
             >

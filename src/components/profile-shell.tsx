@@ -242,7 +242,7 @@ export function ProfileShell() {
                 width: 26, height: 26, borderRadius: "50%",
                 background: "#FCA45B", border: "2px solid #fff",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12,
+                fontSize: 14,
               }}
             >
               ✏️
@@ -252,14 +252,14 @@ export function ProfileShell() {
             <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.2 }}>
               {data.user.name || data.user.email.split("@")[0]}
             </div>
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+            <div style={{ fontSize: 14, opacity: 0.85, marginTop: 2 }}>
               {t("memberSince", { date: memberDate })}
             </div>
             {data.user.isPremium && (
               <div
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 4,
-                  marginTop: 6, fontSize: 11, fontWeight: 700,
+                  marginTop: 6, fontSize: 14, fontWeight: 700,
                   background: "rgba(255,255,255,0.2)", borderRadius: 20,
                   padding: "3px 10px", letterSpacing: 0.3,
                 }}
@@ -280,19 +280,19 @@ export function ProfileShell() {
           }}
         >
           <Link href={"/profile/achievements" as "/"} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>{t("streak")}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>{t("streak")}</div>
             <div style={{ fontSize: 24, fontWeight: 800 }}>
               {data.stats.streak} <span style={{ fontSize: 16 }}>🔥</span>
             </div>
           </Link>
           <Link href={"/calendar" as "/"} style={{ textDecoration: "none", color: "inherit", borderLeft: "1px solid rgba(255,255,255,0.2)", borderRight: "1px solid rgba(255,255,255,0.2)" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>{t("entries")}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>{t("entries")}</div>
             <div style={{ fontSize: 24, fontWeight: 800 }}>
               {data.stats.totalEntries} <span style={{ fontSize: 16 }}>📓</span>
             </div>
           </Link>
           <Link href={"/stats" as "/"} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>{t("avgMood")}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.85, marginBottom: 4 }}>{t("avgMood")}</div>
             <div style={{ fontSize: 24, fontWeight: 800 }}>
               {data.stats.avgMood?.toFixed(1) ?? "—"} <span style={{ fontSize: 16 }}>{data.stats.avgMoodEmoji ?? "😐"}</span>
             </div>
@@ -310,7 +310,7 @@ export function ProfileShell() {
           position: "relative", overflow: "hidden",
         }}
       >
-        <div style={{ fontSize: 11, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, marginBottom: 8, textTransform: "uppercase" }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, marginBottom: 8, textTransform: "uppercase" }}>
           {t("moodSignature")}
         </div>
         {data.user.isPremium ? (
@@ -324,7 +324,7 @@ export function ProfileShell() {
                   <div key={m.moodId} style={{ width: `${m.percent}%`, background: m.color, minWidth: m.percent > 0 ? 4 : 0 }} />
                 ))}
               </div>
-              <div style={{ fontSize: 13, color: "var(--ink-2)" }}>
+              <div style={{ fontSize: 14, color: "var(--ink-2)" }}>
                 {data.moodSignature.distribution.slice(0, 3).map((m) => {
                   const label = locale === "th" && m.labelTh ? m.labelTh : m.label;
                   return `${label} ${m.percent}%`;
@@ -348,7 +348,7 @@ export function ProfileShell() {
             <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{t("achievements")}</div>
             <Link
               href={"/profile/achievements" as "/"}
-              style={{ fontSize: 13, fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}
+              style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}
             >
               {t("achievementsCount", { earned: String(achievements.earned), total: String(achievements.total) })} →
             </Link>
@@ -399,7 +399,7 @@ export function ProfileShell() {
               />
             </a>
           ) : (
-            <a href="/pricing" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <a href="/profile/subscription" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <NavRow icon="✦" iconBg="#A673F1" title={t("subscription")} value={t("freeTier")} />
             </a>
           )}
@@ -459,7 +459,7 @@ export function ProfileShell() {
                           border: active ? "none" : "1.5px solid var(--hairline-2)",
                           background: active ? "var(--primary)" : "transparent",
                           color: active ? "#fff" : "var(--ink-2)",
-                          fontSize: 13, fontWeight: 600, cursor: "pointer",
+                          fontSize: 14, fontWeight: 600, cursor: "pointer",
                         }}
                       >
                         {locale === "th" ? day.th : day.en}
@@ -615,7 +615,7 @@ export function ProfileShell() {
                           width: 22, height: 22, borderRadius: "50%",
                           background: "var(--primary)",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 11, color: "#fff", fontWeight: 700,
+                          fontSize: 14, color: "#fff", fontWeight: 700,
                         }}>
                           ✓
                         </div>
@@ -624,7 +624,7 @@ export function ProfileShell() {
                       {pack.premium && (
                         <div style={{
                           position: "absolute", top: 8, left: 10,
-                          fontSize: 11, fontWeight: 800, color: "#A673F1",
+                          fontSize: 14, fontWeight: 800, color: "#A673F1",
                           background: "#F0EDFA", borderRadius: 6,
                           padding: "2px 6px", letterSpacing: 0.3,
                         }}>
@@ -672,12 +672,12 @@ export function ProfileShell() {
                         {pack.label}
                       </div>
                       {isSelected && (
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--primary)", marginTop: 2 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)", marginTop: 2 }}>
                           {t("moodPackCurrent")}
                         </div>
                       )}
                       {locked && (
-                        <div style={{ fontSize: 12, color: "#A673F1", fontWeight: 600, marginTop: 2 }}>
+                        <div style={{ fontSize: 14, color: "#A673F1", fontWeight: 600, marginTop: 2 }}>
                           {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
                         </div>
                       )}
@@ -753,7 +753,7 @@ export function ProfileShell() {
       </div>
 
       {/* Version */}
-      <div className="fade-in" style={{ textAlign: "center", fontSize: 12, color: "var(--ink-3)", animationDelay: "450ms" }}>
+      <div className="fade-in" style={{ textAlign: "center", fontSize: 14, color: "var(--ink-3)", animationDelay: "450ms" }}>
         {t("version")} · {t("madeWith")}
       </div>
 
@@ -902,7 +902,7 @@ export function ProfileShell() {
             <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
               {t("sendFeedback")}
             </div>
-            <div style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 16 }}>
+            <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 16 }}>
               {t("feedbackHint")}
             </div>
             {feedbackSent ? (
@@ -935,7 +935,7 @@ export function ProfileShell() {
                     fontFamily: "inherit", resize: "none",
                   }}
                 />
-                <div style={{ fontSize: 12, color: "var(--ink-3)", textAlign: "right", marginTop: 4, marginBottom: 16 }}>
+                <div style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "right", marginTop: 4, marginBottom: 16 }}>
                   {feedbackText.length}/1000
                 </div>
                 <button
@@ -996,10 +996,10 @@ function PremiumTeaser({ text }: { text: string }) {
           }}>
             ✦
           </div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>PRO</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>PRO</div>
         </div>
         <div style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.5, marginBottom: 12 }}>{text}</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#A673F1" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
           {loc === "th" ? "อัปเกรด →" : "Upgrade →"}
         </div>
       </div>
@@ -1011,7 +1011,7 @@ function Section({ label, delay, children }: { label: string; delay: string; chi
   return (
     <div className="fade-in" style={{ marginBottom: 24, animationDelay: delay }}>
       <div style={{
-        fontSize: 11, fontWeight: 800, color: "var(--ink-3)",
+        fontSize: 14, fontWeight: 800, color: "var(--ink-3)",
         letterSpacing: 0.4, textTransform: "uppercase",
         marginBottom: 10, paddingLeft: 4,
       }}>
@@ -1055,7 +1055,7 @@ function ToggleRow({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
-        <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>
+        <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{subtitle}</div>
       </div>
       <button
         type="button"
@@ -1097,7 +1097,7 @@ function NavRow({
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{title}</div>
-        {value && <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 1 }}>{value}</div>}
+        {value && <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>{value}</div>}
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.3, flexShrink: 0 }}>
         <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
