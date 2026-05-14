@@ -162,6 +162,58 @@ export async function generateInsights(data: string): Promise<InsightsResult> {
   return JSON.parse(r.response.text()) as InsightsResult;
 }
 
+// ── Ask AI Chat: multi-turn conversation ──
+
+import type { ChatResponse, AskAiSource } from "@/db/schema";
+
+const CHAT_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    answer: { type: SchemaType.STRING },
+    sources: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          kind: { type: SchemaType.STRING, enum: ["entry", "tag", "pattern"], format: "enum" },
+          ref: { type: SchemaType.STRING },
+          snippet: { type: SchemaType.STRING },
+        },
+        required: ["kind", "ref", "snippet"],
+      },
+    },
+    entriesUsed: { type: SchemaType.NUMBER },
+  },
+  required: ["answer", "sources", "entriesUsed"],
+};
+
+const CHAT_PROMPT = `Mood journal AI assistant. You answer questions about the user's mood data.
+Input: JSON with the user's mood entries, conversation history, and current question.
+
+answer: 2-4 sentences in user's locale (th/en). Warm, observational tone. Reference specific dates, moods, and tags from the data. Use **bold** for key findings. Never clinical or judgmental. Use "ดูเหมือน" not "คุณเป็น". If data doesn't support an answer, say so honestly.
+sources: 2-5 evidence items from the data that support your answer. kind="entry" for specific date entries, kind="tag" for tag patterns, kind="pattern" for behavioral patterns. ref=date or tag name. snippet=brief description.
+entriesUsed: number of entries you analyzed.
+
+For follow-up questions, consider the conversation history. Build on previous answers, don't repeat.
+Do NOT answer questions unrelated to the user's mood/wellbeing data.`;
+
+export async function generateChatResponse(data: string): Promise<ChatResponse> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: CHAT_SCHEMA,
+      temperature: 0.6,
+      maxOutputTokens: 800,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: CHAT_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as ChatResponse;
+}
+
 // ── Forecast: predict tomorrow's mood ──
 
 import type { ForecastResult } from "@/db/schema";

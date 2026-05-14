@@ -230,6 +230,40 @@ export interface AskAiResult {
   matchingDates: string[];
 }
 
+export const askAiThreads = pgTable("ask_ai_threads", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  lastMessageAt: timestamp("last_message_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  userIdx: index("ask_ai_threads_user_idx").on(t.userId),
+}));
+
+export const askAiMessages = pgTable("ask_ai_messages", {
+  id: text("id").primaryKey(),
+  threadId: text("thread_id").notNull().references(() => askAiThreads.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  sourcesJson: jsonb("sources_json").$type<AskAiSource[]>(),
+  feedback: text("feedback"),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  threadIdx: index("ask_ai_messages_thread_idx").on(t.threadId),
+}));
+
+export interface AskAiSource {
+  kind: "entry" | "tag" | "pattern";
+  ref: string;
+  snippet: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  sources: AskAiSource[];
+  entriesUsed: number;
+}
+
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;

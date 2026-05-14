@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { href: "/", label: "navHome", match: (p: string) => p === "/" || p === "" },
   { href: "/calendar", label: "navCalendar", match: (p: string) => p.startsWith("/calendar") },
   { href: "/stats", label: "navStats", match: (p: string) => p.startsWith("/stats") },
-  { href: "/insights", label: "navInsights", match: (p: string) => p.startsWith("/insights") },
+  { href: "/insights", label: "navInsights", match: (p: string) => p.startsWith("/insights") || p.startsWith("/ask-ai") },
 ] as const;
 
 export function TopBarClient({
