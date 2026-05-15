@@ -505,6 +505,8 @@ button { font-family: inherit; cursor: pointer; }
   /* Entry detail: reset order so DOM order wins (left content first, sidebar after) */
   .entry-detail-left { order: 0 !important; }
   .entry-detail-right { order: 1 !important; }
+  /* Pricing mobile */
+  .pricing-features { grid-template-columns: 1fr !important; }
   /* Subscription mobile */
   .sub-features { grid-template-columns: 1fr !important; }
   .sub-2col { grid-template-columns: 1fr !important; }
@@ -526,6 +528,9 @@ button { font-family: inherit; cursor: pointer; }
 @media (min-width: 768px) {
   .main-content { padding: 32px 32px 100px; }
 }
+
+/* Pricing features grid */
+.pricing-features { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
 /* Stats: trend + mood mix 2-col */
 .stats-2col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; }

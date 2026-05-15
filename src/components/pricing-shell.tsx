@@ -115,7 +115,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
         }}>
           ✦ DAILYMOOD PREMIUM
         </div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", lineHeight: 1.25, marginBottom: 10 }}>
+        <h1 style={{ fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 800, color: "var(--ink)", lineHeight: 1.25, marginBottom: 10 }}>
           {isTh ? "เข้าใจตัวเองลึกขึ้น" : "Understand yourself deeper"}
           <br />
           <span style={{
@@ -176,7 +176,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
       <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 16 }}>
         {isTh ? "ทุกอย่างที่คุณได้" : "Everything you get"}
       </h2>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 32 }}>
+      <div className="pricing-features" style={{ marginBottom: 32 }}>
         {FEATURES.map((f, i) => (
           <div key={i} style={{
             background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 18,
@@ -209,7 +209,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
         <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 16 }}>
           {isTh ? "Free vs Premium" : "Free vs Premium"}
         </h3>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, tableLayout: "fixed" }}>
           <thead>
             <tr>
               <th style={{ textAlign: "left", padding: "8px 0", color: "var(--ink-3)", fontWeight: 600 }}></th>
