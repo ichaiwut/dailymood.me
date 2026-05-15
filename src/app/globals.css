@@ -455,14 +455,112 @@ button { font-family: inherit; cursor: pointer; }
   .edit-bottom-bar { display: none !important; }
 }
 
-/* Desktop footer: hidden on mobile */
-.desktop-footer { display: none; }
-@media (min-width: 768px) {
-  .desktop-footer { display: flex !important; }
+/* Mood picker: 4-col grid on mobile (override inline flex) */
+@media (max-width: 767px) {
+  .hero-card { padding: 20px 16px !important; }
+  .mood-picker {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+  .mood-picker > button {
+    min-width: 0 !important;
+    flex: none !important;
+    padding: 12px 4px 8px !important;
+    overflow: hidden;
+  }
+  .mood-picker > button span {
+    white-space: normal !important;
+    font-size: 12px !important;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+}
+/* Entries: full-width stacked on mobile (override inline 3-col) */
+@media (max-width: 767px) {
+  .entries-feed { grid-template-columns: 1fr !important; }
+  /* Achievements mobile */
+  .achievements-layout { display: grid !important; grid-template-columns: 1fr !important; gap: 20px !important; }
+  .achievements-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .achievements-ring { width: 120px !important; height: 120px !important; }
+  .achievements-ring svg { width: 120px !important; height: 120px !important; }
+  .achievements-ring-pct { font-size: 28px !important; }
+  .achievements-ring-wrap { margin-bottom: 16px !important; }
+  .achievements-filters { display: flex !important; gap: 6px !important; overflow-x: auto; margin-bottom: 4px !important; }
+  .achievements-filters > button { width: auto !important; border-bottom: none !important; border-radius: 10px !important; padding: 8px 14px !important; font-size: 14px !important; white-space: nowrap; background: var(--surface-2) !important; }
+  .achievements-filters > button[data-active="true"] { background: var(--ink) !important; color: #fff !important; }
+  /* Insights mobile */
+  .ins-hero-2col { grid-template-columns: 1fr !important; }
+  .ins-4col { grid-template-columns: repeat(2, 1fr) !important; }
+  .ins-patterns { grid-template-columns: 1fr !important; }
+  .ins-toggles { grid-template-columns: 1fr !important; }
+  .ins-free-gate { grid-template-columns: 1fr !important; }
+  .ins-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  .ins-status { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+  /* Entry detail: reset order so DOM order wins (left content first, sidebar after) */
+  .entry-detail-left { order: 0 !important; }
+  .entry-detail-right { order: 1 !important; }
+  /* Subscription mobile */
+  .sub-features { grid-template-columns: 1fr !important; }
+  .sub-2col { grid-template-columns: 1fr !important; }
+  /* Stats: stack trend + mood mix on mobile */
+  .stats-2col { grid-template-columns: 1fr !important; gap: 14px !important; }
+  .stats-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  /* Year-in-pixels mobile fixes */
+  .yip-stat-chips { grid-template-columns: repeat(2, 1fr) !important; }
+  .yip-stats-bottom { grid-template-columns: 1fr !important; }
+  .yip-actions { flex-direction: column !important; }
+  .yip-actions > * { width: 100%; justify-content: center; }
+  .yip-header-row { flex-direction: column !important; gap: 12px !important; }
+  .yip-nav-btns { width: 100%; justify-content: space-between; }
+  .yip-ai-card { padding: 18px 16px 16px !important; border-radius: 16px !important; }
 }
 
-/* Ask AI sidebar: hidden on mobile, visible on desktop */
+/* Main content padding: tighter on mobile */
+.main-content { padding: 16px 16px 100px; }
+@media (min-width: 768px) {
+  .main-content { padding: 32px 32px 100px; }
+}
+
+/* Stats: trend + mood mix 2-col */
+.stats-2col { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; }
+
+/* Insights grids */
+.ins-hero-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
+.ins-hero-2col { grid-template-columns: 1.5fr 1fr; }
+.ins-4col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ins-patterns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: stretch; }
+.ins-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ins-free-gate { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+/* Achievements layout */
+.achievements-layout { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
+.achievements-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-content: start; }
+
+/* Footer: desktop only (hidden on mobile where bottom nav covers it) */
+.desktop-footer { display: none; }
+@media (min-width: 768px) {
+  .desktop-footer { display: flex; }
+}
+
+/* Ask AI sidebar + mobile history toggle */
 .ask-ai-sidebar { display: none; }
+.ask-ai-history-btn { display: none; }
 @media (min-width: 768px) {
   .ask-ai-sidebar { display: block !important; }
+}
+@media (max-width: 767px) {
+  .ask-ai-history-btn { display: inline-flex !important; }
+  .ask-ai-sidebar-open {
+    display: block !important;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100% !important; z-index: 10;
+  }
+  .ask-ai-wrap { margin: -16px -16px -100px !important; }
+  .ask-ai-back-btn { display: inline-flex !important; }
 }

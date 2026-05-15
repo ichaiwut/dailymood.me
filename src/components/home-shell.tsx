@@ -205,6 +205,12 @@ export function HomeShell({
   }, [refreshKey]);
 
   const streak = stats?.streak ?? 0;
+  const _hour = new Date().getHours();
+  const greetTime = locale === "th"
+    ? (_hour < 12 ? "สวัสดีตอนเช้า" : _hour < 17 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น")
+    : (_hour < 12 ? "Good morning" : _hour < 17 ? "Good afternoon" : "Good evening");
+  const todayStr = new Date().toDateString();
+  const todayEntries = entries?.filter(e => new Date(e.createdAt).toDateString() === todayStr) ?? [];
 
   return (
     <>
@@ -215,6 +221,7 @@ export function HomeShell({
       {/* ── GREETING HERO + MOOD PICKER ─── */}
       <section className="mb-6 fade-in" style={{ animationDelay: "40ms" }}>
         <div
+          className="hero-card"
           style={{
             borderRadius: 18,
             padding: "32px 36px",
@@ -224,13 +231,13 @@ export function HomeShell({
             marginBottom: 24,
           }}
         >
-          <div className="w-eyebrow" style={{ color: "var(--purple-strong)", marginBottom: 6 }}>
-            {locale === "th" ? "สวัสดี" : "Hello"} · {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" })}
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", marginBottom: 6 }}>
+            {greetTime} · {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" })}
           </div>
           <h1 style={{ fontSize: 30, fontWeight: 800, margin: "4px 0 18px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>
             {locale === "th" ? "วันนี้คุณรู้สึกยังไง?" : "How are you feeling?"}
           </h1>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="no-scrollbar">
+          <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="mood-picker no-scrollbar">
             {DEFAULT_MOODS.map((m, i) => (
               <button
                 key={m.id}
@@ -238,17 +245,17 @@ export function HomeShell({
                 style={{
                   minWidth: 72,
                   flex: "0 0 auto",
-                  padding: "14px 6px 10px",
+                  padding: "14px 8px 10px",
                   borderRadius: 14,
-                  background: i === 0 ? "#fff" : "rgba(255,255,255,.5)",
-                  border: i === 0 ? "2px solid var(--peach)" : "2px solid transparent",
+                  background: "#fff",
+                  border: i === 0 ? "2px solid var(--peach)" : "1.5px solid rgba(0,0,0,.06)",
                   cursor: "pointer",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: 6,
                   fontFamily: "inherit",
-                  boxShadow: i === 0 ? "0 8px 20px -8px rgba(252,164,91,.55)" : "none",
+                  boxShadow: i === 0 ? "0 6px 16px -6px rgba(252,164,91,.5)" : "0 1px 3px rgba(0,0,0,.04)",
                 }}
               >
                 <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
@@ -549,22 +556,28 @@ export function HomeShell({
             {t("todayEntries")}
           </h2>
           <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
-            {stats?.total30d ?? 0} {locale === "th" ? "entry · กิจกรรม" : "entries"}
+            {todayEntries.length} entry{todayEntries.length !== 1 ? "s" : ""} {locale === "th" ? "· กิจกรรม" : ""}
           </span>
         </div>
 
         {/* Day axis */}
-        <div className="card" style={{ padding: "20px 24px", marginBottom: 14 }}>
+        <div className="card" style={{ padding: "16px 20px", marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "var(--ink-3)", fontWeight: 700, marginBottom: 8 }}>
-            {["6:00","9:00","12:00","15:00","18:00","21:00","24:00"].map(tt => <span key={tt}>{tt}</span>)}
+            {["6:00","9:00","12:00","15:00","18:00","21:00"].map(tt => <span key={tt}>{tt}</span>)}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)" }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "var(--purple)", padding: "1px 8px", borderRadius: 100 }}>
+                {locale === "th" ? "ตอนนี้" : "Now"}
+              </span>
+            </span>
           </div>
           <div style={{ height: 4, background: "var(--surface-2)", borderRadius: 100, position: "relative" }}>
-            {entries && entries.slice(0, 3).map((e, i) => {
+            {todayEntries.slice(0, 5).map((e, i) => {
               const h = new Date(e.createdAt).getHours();
-              const p = Math.min(95, Math.max(5, ((h - 6) / 18) * 100));
+              const p = Math.min(92, Math.max(3, ((h - 6) / 15) * 100));
               const mood = DEFAULT_MOODS.find(m => m.id === e.moodTypeId);
               return (
-                <div key={i} style={{ position: "absolute", left: `${p}%`, top: -6, width: 16, height: 16, borderRadius: "50%", background: mood?.color ?? "var(--ink-3)", border: "2px solid #fff", boxShadow: "0 2px 6px rgba(0,0,0,.15)" }} />
+                <div key={i} style={{ position: "absolute", left: `${p}%`, top: -6, width: 16, height: 16, borderRadius: "50%", background: mood?.color ?? "var(--ink-3)", border: "2px solid #fff", boxShadow: "0 2px 6px rgba(0,0,0,.15)", transform: "translateX(-50%)" }} />
               );
             })}
           </div>
@@ -572,14 +585,14 @@ export function HomeShell({
 
         {/* Entries grid (3-col desktop, scroll mobile) */}
         {entries === null ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }} className="entries-feed">
             {[0, 1, 2].map((i) => (
               <div key={i} className="card" style={{ height: 140, opacity: 0.5 }} />
             ))}
           </div>
-        ) : entries.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-            {entries.slice(0, 6).map((entry) => (
+        ) : todayEntries.length > 0 ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }} className="entries-feed">
+            {todayEntries.map((entry) => (
               <EntryCard key={entry.id} entry={entry} locale={locale} blur={hidePreview} pack={pack} iconFormat={iconFormat} />
             ))}
           </div>
@@ -748,11 +761,6 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
   const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
   const date = new Date(entry.createdAt);
   const time = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
-  const dayLabel = date.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
 
   return (
     <Link
@@ -767,50 +775,51 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
         gap: 10,
       }}
     >
-      <div className="flex items-center gap-2.5 mb-2">
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div
-          className="shrink-0 grid place-items-center"
           style={{
             width: 40,
             height: 40,
-            borderRadius: 12,
+            borderRadius: "50%",
             background: mood?.color ?? "#F4F2F7",
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
           }}
         >
           {mood ? <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={24} height={24} /> : null}
         </div>
-        <div className="min-w-0">
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
             {locale === "th" ? mood?.labelTh : mood?.label}
           </div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
-            {dayLabel} · {time}
-          </div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{time}</div>
         </div>
+        <span style={{ fontSize: 18, color: "var(--ink-3)", letterSpacing: 1, flexShrink: 0, lineHeight: 1 }}>⋯</span>
       </div>
-      {entry.imageUrl && (
-        <img src={entry.imageUrl} alt="" style={{ width: "100%", height: 80, objectFit: "cover", borderRadius: 8 }} />
-      )}
       {entry.note && (
-        <p className="line-clamp-2" style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.4, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
+        <p className="line-clamp-2" style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.5, margin: 0, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
           {entry.note}
         </p>
       )}
+      {entry.imageUrl && (
+        <img src={entry.imageUrl} alt="" style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 10 }} />
+      )}
       {entry.tags && entry.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2" style={{ filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
           {entry.tags.slice(0, 3).map((tag, j) => (
             <span
               key={j}
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                color: "#A673F1",
-                background: "#F4EEFB",
+                color: "var(--ink-2)",
+                background: "var(--surface-2)",
                 borderRadius: 8,
-                padding: "1px 6px",
+                padding: "2px 10px",
               }}
             >
-              {tag}
+              # {tag}
             </span>
           ))}
         </div>

@@ -161,7 +161,7 @@ export function TimelineFeed({
                   </span>
                 )}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }} className="entries-feed">
                 {group.entries.map((entry) => (
                   <EntryCard key={entry.id} entry={entry} locale={locale} pack={pack} iconFormat={iconFormat} />
                 ))}

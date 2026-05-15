@@ -18,7 +18,7 @@ export default async function LocaleLayout({
       {isLoggedIn ? (
         <>
           <TopBar />
-          <main className="w-container" style={{ padding: "32px 32px 100px", flex: 1, position: "relative", zIndex: 0 }}>
+          <main className="w-container main-content" style={{ flex: 1, position: "relative", zIndex: 0 }}>
             {children}
           </main>
           <SiteFooter />

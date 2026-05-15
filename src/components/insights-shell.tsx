@@ -221,7 +221,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
       {/* ── F1: STATUS BAR ─── */}
       {status && (
-        <div className="flex items-center justify-between py-3 fade-in" style={{ fontSize: 14 }}>
+        <div className="flex items-center justify-between py-3 fade-in ins-status" style={{ fontSize: 14 }}>
           <div className="flex items-center gap-2">
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 6,
@@ -253,12 +253,12 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
       {/* ── HEADER + WEEK NAV ─── */}
       <header className="pb-5 fade-in">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between ins-header">
           <div>
             <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: "0.4px" }}>
               ✨ AI INSIGHTS {weekNum != null ? `· ${locale === "th" ? `สัปดาห์ที่ ${weekNum}` : `Week ${weekNum}`}` : ""}
             </span>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "2px 0 0" }}>
+            <h1 style={{ fontSize: "clamp(22px, 5vw, 26px)", fontWeight: 800, color: "var(--ink)", margin: "2px 0 0" }}>
               {t("yourWeek")}
             </h1>
           </div>
@@ -279,7 +279,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 40%, #FCA45B 100%)",
           borderRadius: 28, padding: "28px 24px", color: "#fff", position: "relative", overflow: "hidden",
         }}>
-          <div style={{ display: "grid", gridTemplateColumns: stats ? "1.5fr 1fr" : "1fr", gap: 24, alignItems: "start" }}>
+          <div className={`ins-hero-grid ${stats ? "ins-hero-2col" : ""}`}>
             {/* Left: summary + buttons */}
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.85, letterSpacing: "0.5px", marginBottom: 12 }}>
@@ -332,7 +332,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
       {/* ── 4-FEATURE GRID ─── */}
       <section className="mb-5 fade-in" style={{ animationDelay: "80ms" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        <div className="ins-4col">
           {/* Forecast */}
           {isPremium && forecast && !forecast.tooFewEntries ? (
             <div style={CARD}>
@@ -440,7 +440,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         <>
           {data.patterns.length > 0 && (
             <section className="mb-5 fade-in" style={{ animationDelay: "120ms" }}>
-              <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(data.patterns.length, 3)}, 1fr)`, gap: 14, alignItems: "stretch" }}>
+              <div className="ins-patterns">
                 {data.patterns.slice(0, 3).map((p, i) => {
                   const tagStyle = TAG_STYLES[p.tag] ?? TAG_STYLES.pattern;
                   const tagIcon = TAG_ICON[p.tag] ?? "🔍";
@@ -495,7 +495,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
       {/* ── F10: FOOTER TOGGLES ─── */}
       <section className="mb-5 fade-in" style={{ animationDelay: "200ms" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className="ins-toggles">
           <div style={CARD}>
             <div className="flex items-start justify-between">
               <div style={{ flex: 1 }}>
@@ -879,7 +879,7 @@ function FreeGate({ locale }: { locale: string }) {
         {isTh ? "เปิดมุมมองที่ลึกขึ้น" : "Unlock deeper insights"}
       </h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+      <div className="ins-free-gate">
         {/* Left: blurred preview */}
         <div>
           <div style={{

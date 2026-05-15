@@ -91,96 +91,91 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
   const yearNum = parseInt(entry.date.slice(0, 4), 10);
 
   return (
-    <div className="w-container fade-in" style={{ paddingTop: 20, paddingBottom: 60 }}>
+    <div className="fade-in" style={{ paddingBottom: 60 }}>
       {/* ── Top bar ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <button onClick={() => router.back()} style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-          ← {th ? "ไทม์ไลน์" : "Timeline"}
+          ← {th ? "กลับ" : "Back"}
         </button>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link href={`/entry/${id}/edit` as "/"} className="w-btn" style={{ background: "var(--ink)", color: "#fff", fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            ✏️ {th ? "แก้ไข" : "Edit"}
-          </Link>
+        <Link href={`/entry/${id}/edit` as "/"} style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+          ✏️ {th ? "แก้ไข" : "Edit"}
+        </Link>
+      </div>
+
+      {/* ── Mood Hero ── */}
+      <div style={{
+        borderRadius: 22, padding: "28px 24px 24px", marginBottom: 20,
+        background: `linear-gradient(145deg, ${moodColor}30 0%, ${moodColor}15 100%)`,
+        position: "relative",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {mood && (
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: moodColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={40} height={40} />
+            </div>
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1 }}>{moodLabel}</div>
+            <div style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>
+              {weekday} · {timeLabel} {th ? "น." : ""} · {period}
+            </div>
+          </div>
         </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 16 }}>
+          <span style={{ fontSize: "clamp(48px, 10vw, 72px)", fontWeight: 800, color: "var(--ink)", lineHeight: 0.9, letterSpacing: "-0.03em" }}>{dayNum}</span>
+          <span style={{ fontSize: "clamp(28px, 6vw, 44px)", fontWeight: 800, color: "var(--ink-2)", fontStyle: "italic", letterSpacing: "-0.02em" }}>{monthShort}</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: "var(--ink-3)", marginLeft: 4 }}>{yearNum}</span>
+        </div>
+        {entry.entryNumber && (
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-3)", marginTop: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>
+            {th ? "บันทึกที่" : "Entry #"} {entry.entryNumber}
+          </div>
+        )}
       </div>
 
       {/* ── 2-Column Layout ── */}
       <div className="grid-2col" style={{ alignItems: "start" }}>
 
         {/* ═══ LEFT COLUMN ═══ */}
-        <div>
-          {/* Date hero */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 15, color: "var(--ink-3)", marginBottom: 8 }}>
-              {weekday} · {timeLabel} {th ? "น." : ""} · {period}
-            </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: "clamp(72px, 12vw, 100px)", fontWeight: 800, color: "var(--ink)", lineHeight: 0.9, letterSpacing: "-0.03em" }}>{dayNum}</span>
-              <span style={{ fontSize: "clamp(48px, 8vw, 68px)", fontWeight: 800, color: "var(--ink-2)", fontStyle: "italic", letterSpacing: "-0.02em" }}>{monthShort}</span>
-            </div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink-2)", marginTop: 8 }}>
-              {yearNum}{entry.entryNumber ? ` · ${th ? "บันทึกที่" : "Entry #"} ${entry.entryNumber}` : ""}
-            </div>
-          </div>
-
-          {/* Mood pill */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "10px 20px 10px 10px", borderRadius: 100, background: "#fff", border: `2px solid ${moodColor}`, marginBottom: 24 }}>
-            {mood && (
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: moodColor, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={26} height={26} />
-              </div>
-            )}
-            <div style={{ lineHeight: 1.2 }}>
-              <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{th ? "อารมณ์" : "Mood"}</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{moodLabel}</div>
-            </div>
-          </div>
-
-          <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
+        <div className="entry-detail-left" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* Note */}
           {entry.note && (
-            <>
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>{th ? "บันทึก" : "Note"}</div>
-                <p style={{ fontSize: 17, lineHeight: 1.7, color: "var(--ink)", margin: 0 }}>{entry.note}</p>
-              </div>
-              <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
-            </>
+            <div style={{ background: "var(--surface)", border: "1.5px solid var(--hairline)", borderRadius: 18, padding: "18px 20px" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>{th ? "บันทึก" : "Note"}</div>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: "var(--ink)", margin: 0 }}>{entry.note}</p>
+            </div>
           )}
 
           {/* Image */}
           {entry.imageUrl && (
-            <>
-              <div style={{ marginBottom: 24 }}>
-                <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 300, objectFit: "contain", borderRadius: 16, background: "var(--surface-2)" }} />
-              </div>
-              <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
-            </>
+            <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 320, objectFit: "cover", borderRadius: 18, background: "var(--surface-2)" }} />
           )}
 
           {/* AI Insight */}
           {entry.aiSummary && (
-            <>
-              <div style={{ marginBottom: 24, borderLeft: "3px solid var(--purple)", paddingLeft: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" /></svg>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)" }}>AI {th ? "สังเกตเห็น" : "Insight"}</span>
+            <div style={{
+              borderRadius: 18, padding: "18px 20px",
+              background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 60%, #FFF4EB 100%)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
                 </div>
-                <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#7A4DD0", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
               </div>
-              <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
-            </>
+              <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+            </div>
           )}
 
           {/* Tags */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>{th ? "แท็กของบันทึก" : "Entry tags"}</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>{th ? "แท็กของบันทึก" : "Entry tags"}</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {entry.tags && entry.tags.length > 0 ? (
                 entry.tags.map((tag, i) => (
-                  <span key={i} style={{ padding: "8px 16px", borderRadius: 100, border: "1.5px solid var(--hairline)", background: "#fff", fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
-                    #{tag}
+                  <span key={i} style={{ padding: "8px 16px", borderRadius: 100, background: "var(--surface-2)", fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+                    # {tag}
                   </span>
                 ))
               ) : (
@@ -189,48 +184,39 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
             </div>
           </div>
 
-          <div style={{ height: 1, background: "var(--hairline)", marginBottom: 24 }} />
-
           {/* Delete */}
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{ fontSize: 14, fontWeight: 700, color: confirmDelete ? "#fff" : "#D14343", background: confirmDelete ? "#D14343" : "none", border: confirmDelete ? "none" : "none", cursor: "pointer", padding: confirmDelete ? "8px 20px" : 0, borderRadius: 100 }}
-          >
-            {deleting ? "..." : confirmDelete ? (th ? "ยืนยันลบ" : "Confirm delete") : `× ${th ? "ลบบันทึกนี้" : "Delete this entry"}`}
-          </button>
+          <div style={{ paddingTop: 8 }}>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{
+                fontSize: 14, fontWeight: 700, cursor: "pointer", borderRadius: 100,
+                color: confirmDelete ? "#fff" : "var(--ink-3)",
+                background: confirmDelete ? "#D14343" : "none",
+                border: confirmDelete ? "none" : "none",
+                padding: confirmDelete ? "8px 20px" : 0,
+              }}
+            >
+              {deleting ? "..." : confirmDelete ? (th ? "ยืนยันลบ" : "Confirm delete") : `× ${th ? "ลบบันทึกนี้" : "Delete this entry"}`}
+            </button>
+          </div>
         </div>
 
         {/* ═══ RIGHT COLUMN ═══ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Mood hero card */}
-          <div style={{
-            borderRadius: 22,
-            padding: "32px 24px 24px",
-            background: moodColor,
-            textAlign: "center",
-            position: "relative",
-            overflow: "hidden",
-          }}>
-            <div style={{ position: "absolute", top: 12, left: 14, fontSize: 14, fontWeight: 700, color: "rgba(0,0,0,.3)" }}>{weekday}</div>
-            {mood && <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={80} height={80} style={{ margin: "0 auto 12px", display: "block" }} />}
-            <div style={{ fontSize: 18, fontWeight: 800, color: "rgba(0,0,0,.5)" }}>{moodLabel}</div>
-          </div>
+        <div className="entry-detail-right" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
           {/* Nearby days — timeline style */}
           {nearby.length > 0 && (
             <div className="card" style={{ padding: 18 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 14 }}>{th ? "วันใกล้เคียง" : "Nearby days"}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 14 }}>{th ? "วันใกล้เคียง" : "Nearby days"}</div>
               <div style={{ position: "relative", paddingLeft: 44 }}>
-                {/* Vertical line */}
                 <div style={{ position: "absolute", left: 17, top: 8, bottom: 8, width: 2, background: "var(--hairline)" }} />
-                {nearby.map((n, idx) => {
+                {nearby.map((n) => {
                   const nm = DEFAULT_MOODS.find((m) => m.id === n.moodTypeId);
                   const nd = new Date(n.date + "T12:00:00");
                   const isCur = n.date === entry.date;
                   return (
                     <div key={n.date} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", position: "relative" }}>
-                      {/* Dot on timeline */}
                       <div style={{ position: "absolute", left: -40, top: 12, width: 28, display: "flex", justifyContent: "center" }}>
                         {nm ? (
                           <img src={moodIconUrl(nm.id, pack, iconFormat)} alt="" width={isCur ? 28 : 22} height={isCur ? 28 : 22} style={{ borderRadius: "50%", border: isCur ? "2px solid var(--ink)" : "none" }} />
@@ -239,17 +225,12 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
                         )}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: isCur ? 800 : 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 10 }}>
-                          {nd.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "short" })} {nd.toLocaleDateString(th ? "th-TH" : "en-US", { day: "numeric", month: "short" })}
-                          {isCur && (
-                            <>
-                              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: "50%", background: "var(--ink)" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} /></span>
-                              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--peach)" }}>{n.date === new Date().toISOString().slice(0, 10) ? (th ? "วันนี้" : "Today") : (th ? "วันนี้" : "This entry")}</span>
-                            </>
-                          )}
+                        <div style={{ fontSize: 14, fontWeight: isCur ? 800 : 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
+                          {nd.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
+                          {isCur && <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "var(--peach)", padding: "1px 8px", borderRadius: 100 }}>{th ? "บันทึกนี้" : "This"}</span>}
                         </div>
                         <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
-                          {n.note ? n.note.slice(0, 30) + (n.note.length > 30 ? "..." : "") : (n.moodTypeId ? (th ? nm?.labelTh : nm?.label) : (th ? "ยังไม่มีบันทึก" : "No entry"))}
+                          {n.note ? n.note.slice(0, 40) + (n.note.length > 40 ? "..." : "") : (n.moodTypeId ? (th ? nm?.labelTh : nm?.label) : (th ? "ยังไม่มีบันทึก" : "No entry"))}
                         </div>
                       </div>
                     </div>
@@ -259,10 +240,10 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
             </div>
           )}
 
-          {/* This day last year */}
+          {/* This day last month */}
           {lastYear && (
             <div className="card" style={{ padding: 18 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>{th ? "วันนี้เมื่อเดือนที่แล้ว" : "This day last month"}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>{th ? "วันนี้เมื่อเดือนที่แล้ว" : "This day last month"}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 {(() => { const lm = DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId); return lm ? <img src={moodIconUrl(lm.id, pack, iconFormat)} alt="" width={32} height={32} /> : null; })()}
                 <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { signOut } from "next-auth/react";
@@ -234,8 +234,9 @@ function MobileTopbar({
           </div>
         ) : (
           <div className="flex items-center justify-between gap-3">
-            <Link href={"/" as "/"} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Link href={"/" as "/"} style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: "var(--ink)" }}>
               <DMLogo />
+              <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em" }}>DailyMood</span>
             </Link>
             <div ref={menuRef} className="relative">
               <button
@@ -271,15 +272,16 @@ function MobileTopbar({
   );
 }
 
-function DMLogo() {
+function DMLogo({ size = 26 }: { size?: number }) {
+  const gid = useId().replace(/:/g, "");
   return (
-    <svg width={26} height={26} viewBox="0 0 32 32">
+    <svg width={size} height={size} viewBox="0 0 32 32">
       <defs>
-        <linearGradient id="dmlg" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
         </linearGradient>
       </defs>
-      <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#dmlg)" />
+      <rect x="2" y="2" width="28" height="28" rx="9" fill={`url(#${gid})`} />
       <circle cx="12" cy="14" r="1.6" fill="#1A1320" />
       <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
       <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />

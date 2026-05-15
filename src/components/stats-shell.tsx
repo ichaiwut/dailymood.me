@@ -314,8 +314,8 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
     <>
       {/* ── HEADER ─── */}
       <section className="mb-5 fade-in" style={{ paddingTop: 8 }}>
-        <div className="flex items-center justify-between">
-          <h1 style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.02em" }}>{t("title")}</h1>
+        <div className="flex items-center justify-between stats-header">
+          <h1 style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.02em" }}>{t("title")}</h1>
           <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2 }}>
             {PERIODS.map((p) => (
               <button
@@ -476,7 +476,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
 
           {/* ── TREND LINE + MOOD MIX (side by side like design) ─── */}
           <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 14 }}>
+            <div className="stats-2col">
               {/* Mood Line Chart */}
               <div style={CARD}>
                 <div className="flex items-center justify-between mb-3">

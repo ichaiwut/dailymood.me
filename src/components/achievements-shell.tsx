@@ -64,7 +64,7 @@ export function AchievementsShell() {
 
   return (
     <div className="fade-in" style={{ paddingBottom: 40 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 32, alignItems: "start" }}>
+      <div className="achievements-layout" style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 32, alignItems: "start" }}>
         {/* Left sidebar */}
         <div>
           <button
@@ -80,7 +80,7 @@ export function AchievementsShell() {
             </svg>
             {locale === "th" ? "โปรไฟล์" : "Profile"}
           </button>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>
+          <h1 style={{ fontSize: "clamp(22px, 5vw, 28px)", fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>
             {locale === "th" ? "ความสำเร็จ" : "Achievements"}
           </h1>
           <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 24 }}>
@@ -88,8 +88,8 @@ export function AchievementsShell() {
           </div>
 
           {/* Progress Ring */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
-            <div style={{ position: "relative", width: 160, height: 160 }}>
+          <div className="achievements-ring-wrap" style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
+            <div className="achievements-ring" style={{ position: "relative", width: 160, height: 160 }}>
               <svg width="160" height="160" viewBox="0 0 160 160">
                 <circle cx="80" cy="80" r="68" fill="none" stroke="#F2F0F5" strokeWidth="10" />
                 <circle
@@ -104,17 +104,18 @@ export function AchievementsShell() {
                 position: "absolute", inset: 0,
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               }}>
-                <div style={{ fontSize: 36, fontWeight: 800, color: "var(--ink)" }}>{pct}%</div>
+                <div className="achievements-ring-pct" style={{ fontSize: 36, fontWeight: 800, color: "var(--ink)" }}>{pct}%</div>
                 <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{locale === "th" ? "ปลดล็อคแล้ว" : "Unlocked"}</div>
               </div>
             </div>
           </div>
 
           {/* Filter list */}
-          <div style={{ borderRadius: 16, overflow: "hidden" }}>
+          <div className="achievements-filters" style={{ borderRadius: 16, overflow: "hidden" }}>
             {filters.map((f) => (
               <button
                 key={f.key}
+                data-active={filter === f.key ? "true" : undefined}
                 onClick={() => setFilter(f.key)}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -123,17 +124,18 @@ export function AchievementsShell() {
                   color: filter === f.key ? "#fff" : "var(--ink)",
                   fontSize: 15, fontWeight: filter === f.key ? 700 : 500,
                   borderBottom: "1px solid var(--hairline)",
+                  fontFamily: "inherit",
                 }}
               >
                 <span>{f.label}</span>
-                <span style={{ fontWeight: 700, opacity: filter === f.key ? 1 : 0.5 }}>{f.count}</span>
+                <span style={{ fontWeight: 700, opacity: filter === f.key ? 1 : 0.5, marginLeft: 4 }}>{f.count}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Right: Badge grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, alignContent: "start" }}>
+        <div className="achievements-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, alignContent: "start" }}>
           {filtered.map((badge) => (
             <BadgeCard key={badge.id} badge={badge} t={t} locale={locale} />
           ))}

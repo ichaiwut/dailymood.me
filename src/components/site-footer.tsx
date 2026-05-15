@@ -9,7 +9,6 @@ export async function SiteFooter() {
     <footer className="desktop-footer" style={{
       borderTop: "1px solid var(--hairline, #F2F0F5)",
       padding: "16px 32px",
-      display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
       fontSize: 14,

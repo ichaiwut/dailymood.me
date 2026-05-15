@@ -113,13 +113,26 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
         .ys-reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
         .ys-reveal.visible{opacity:1;transform:none}
         .ys-w{max-width:960px;margin:0 auto;padding:0 24px}
-        @media(max-width:767px){.ys-2col{grid-template-columns:1fr!important}}
+        @media(max-width:767px){
+          .ys-w{padding:0 16px}
+          .ys-2col{grid-template-columns:1fr!important}
+          .ys-hero-section{padding-top:8px!important;padding-bottom:24px!important}
+          .ys-strip span{width:10px!important;height:14px!important;border-radius:2px!important}
+          .ys-month-card{padding:32px 20px!important}
+          .ys-pixel-card{padding:14px!important}
+        }
       `}</style>
 
       {/* ═══ HERO ═══ */}
       <div className="ys-w">
         <Reveal>
-          <section style={{ paddingTop: "clamp(100px, 18vh, 180px)", paddingBottom: 48 }}>
+          <section className="ys-hero-section" style={{ paddingTop: "clamp(100px, 18vh, 180px)", paddingBottom: 48 }}>
+            <Link
+              href={"/year-in-pixels" as "/"}
+              style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 600, color: "var(--ink-3)", textDecoration: "none", marginBottom: 16 }}
+            >
+              ← {th ? "Year in Pixels" : "Year in Pixels"}
+            </Link>
             <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--purple)", marginBottom: 20 }}>
               Year Story
             </div>
@@ -131,7 +144,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
                 {ai.yearTheme}
               </p>
             )}
-            <div style={{ display: "flex", gap: 3, marginTop: 40, overflow: "hidden" }}>
+            <div className="ys-strip" style={{ display: "flex", gap: 3, marginTop: 40, overflow: "hidden" }}>
               {pixelStrip.map((c, i) => (
                 <span key={i} style={{ width: 14, height: 20, borderRadius: 3, background: c, flexShrink: 0 }} />
               ))}
@@ -222,7 +235,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
         {data.bestMonth && (
           <Reveal>
             <section style={{ paddingTop: "clamp(40px, 6vh, 72px)", paddingBottom: "clamp(32px, 4vh, 48px)" }}>
-              <div style={{ borderLeft: "4px solid #E8923E", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
+              <div className="ys-month-card" style={{ borderLeft: "4px solid #E8923E", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
                 <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "#C77B3F", marginBottom: 12 }}>
                   {th ? "เดือนที่ดีที่สุด" : "Best month"}
                 </div>
@@ -244,7 +257,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
         {data.hardMonth && (
           <Reveal>
             <section style={{ paddingBottom: "clamp(40px, 6vh, 72px)" }}>
-              <div style={{ borderLeft: "4px solid var(--purple)", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
+              <div className="ys-month-card" style={{ borderLeft: "4px solid var(--purple)", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
                 <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "#7A4DD0", marginBottom: 12 }}>
                   {th ? "เดือนที่ท้าทาย" : "Toughest month"}
                 </div>
@@ -321,7 +334,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
             <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink-3)", marginBottom: 20 }}>
               {th ? "ทุกวันของปี" : "Every day of the year"}
             </div>
-            <div style={{ background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 16, padding: "clamp(16px, 3vw, 28px)", overflowX: "auto" }}>
+            <div className="ys-pixel-card" style={{ background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 16, padding: "clamp(16px, 3vw, 28px)", overflowX: "auto" }}>
               <div style={{ minWidth: 580, display: "grid", gridTemplateColumns: "40px repeat(31, 1fr)", gap: 2 }}>
                 {Array.from({ length: 12 }, (_, mi) => {
                   const m = mi + 1;

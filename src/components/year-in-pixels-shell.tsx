@@ -59,6 +59,7 @@ interface Props {
 export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: Props) {
   const locale = useLocale();
   const t = useTranslations("yearPixels");
+  const tc = useTranslations("calendar");
   const isTh = locale === "th";
   const monthLabels = isTh ? MONTH_LABELS_TH : MONTH_LABELS_EN;
   const monthFull = isTh ? MONTH_FULL_TH : MONTH_FULL_EN;
@@ -179,7 +180,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
 
   if (!isPremium) {
     return (
-      <div className="w-container fade-in" style={{ paddingTop: 40, paddingBottom: 80 }}>
+      <div className="fade-in" style={{ paddingTop: 24, paddingBottom: 80 }}>
         <div style={{ textAlign: "center", padding: "60px 20px" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>🎨</div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>Year in Pixels</h1>
@@ -200,14 +201,35 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
   }
 
   return (
-    <div className="w-container fade-in" style={{ paddingTop: 32, paddingBottom: 80 }}>
+    <div className="fade-in" style={{ paddingTop: 16, paddingBottom: 80 }}>
+      {/* View Toggle — same as calendar page */}
+      <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2, marginBottom: 20 }}>
+        <Link
+          href={"/calendar" as "/"}
+          style={{ flex: 1, padding: "8px 0", fontSize: 14, fontWeight: 600, borderRadius: 10, border: "none", textDecoration: "none", textAlign: "center", background: "transparent", color: "var(--ink-3)" }}
+        >
+          {tc("tabCalendar")}
+        </Link>
+        <Link
+          href={"/calendar" as "/"}
+          style={{ flex: 1, padding: "8px 0", fontSize: 14, fontWeight: 600, borderRadius: 10, border: "none", textDecoration: "none", textAlign: "center", background: "transparent", color: "var(--ink-3)" }}
+        >
+          {tc("tabTimeline")}
+        </Link>
+        <div
+          style={{ flex: 1, padding: "8px 0", fontSize: 14, fontWeight: 600, borderRadius: 10, textAlign: "center", background: "#fff", color: "var(--ink)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
+        >
+          {tc("tabYear")}
+        </div>
+      </div>
+
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 24 }}>
+      <div className="yip-header-row" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.5px", marginBottom: 4 }}>
             YEAR IN PIXELS · {viewYear}
           </div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", margin: 0, lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 800, color: "var(--ink)", margin: 0, lineHeight: 1.2 }}>
             {isTh ? "ภาพรวมทั้งปี" : "Full Year Overview"}
           </h1>
           {data && (
@@ -216,7 +238,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
             </p>
           )}
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="yip-nav-btns" style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={() => setViewYear((y) => y - 1)} className="w-btn w-btn-ghost" style={{ fontSize: 14 }}>
             ← {viewYear - 1}
           </button>
@@ -232,7 +254,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
       {/* AI Summary Card */}
       {data && (
         <div
-          className="fade-in"
+          className="fade-in yip-ai-card"
           style={{
             borderRadius: 22,
             padding: "24px 24px 20px",
@@ -272,7 +294,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           )}
 
           {/* Mini stat chips */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
+          <div className="yip-stat-chips" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
             <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>😊 {isTh ? "อารมณ์เด่น" : "Dominant"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{data.dominantMood ? `${getMoodLabel(data.dominantMood, locale) ?? "—"} · ${data.dominantPct}%` : "—"}</div>
@@ -400,7 +422,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
 
           {/* Action buttons */}
           {data.aiSummary && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="yip-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <Link
                 href={`/year-in-pixels/story?year=${viewYear}` as "/"}
                 className="w-btn"
@@ -542,7 +564,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           )}
 
           {/* Stats cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginTop: 20 }}>
+          <div className="yip-stats-bottom" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginTop: 20 }}>
             {data.bestMonth && (
               <div className="card" style={{ padding: 20 }}>
                 <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 4 }}>

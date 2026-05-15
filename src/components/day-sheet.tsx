@@ -79,7 +79,13 @@ export function DaySheet({
   const feTime = fe ? new Date(fe.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) : null;
 
   return (
-    <div className="card fade-in" style={{ padding: "28px 28px 32px", overflow: "hidden" }}>
+    <div className="card fade-in" style={{ padding: "28px 28px 32px", overflow: "hidden", position: "relative" }}>
+      <button
+        onClick={onClose}
+        style={{ position: "absolute", top: 16, right: 16, width: 32, height: 32, borderRadius: 10, background: "var(--surface-2)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="var(--ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+      </button>
 
       {/* Loading */}
       {entries === null ? (

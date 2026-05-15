@@ -34,6 +34,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const [sending, setSending] = useState(false);
   const skipFetchRef = useRef(false);
   const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
+  const [showHistory, setShowHistory] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -178,7 +179,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
       <div className="fade-in">
         <AiSubTabs active="ask-ai" locale={locale} />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start", marginTop: 8 }}>
+        <div className="ins-free-gate" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start", marginTop: 8 }}>
           {/* Left: blurred chat preview */}
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4, marginBottom: 4 }}>ASK AI</div>
@@ -251,21 +252,40 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const isNewThread = !activeThreadId || messages.length === 0;
 
   return (
-    <div style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "8px 16px 0", flexShrink: 0 }}>
+    <div className="ask-ai-wrap" style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "8px 16px 0", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
         <AiSubTabs active="ask-ai" locale={locale} />
+        {threads.length > 0 && (
+          <button
+            className="ask-ai-history-btn"
+            onClick={() => setShowHistory(!showHistory)}
+            style={{ display: "none", padding: "6px 12px", borderRadius: 10, border: "1.5px solid #F2F0F5", background: showHistory ? "#F0EAFF" : "#fff", color: "var(--ink)", fontSize: 14, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+          >
+            📋 {threads.length}
+          </button>
+        )}
       </div>
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* Sidebar — always on desktop, toggleable on mobile */}
         <div
-          className="ask-ai-sidebar"
+          className={`ask-ai-sidebar ${showHistory ? "ask-ai-sidebar-open" : ""}`}
           style={{
             width: 320, flexShrink: 0, borderRight: "1.5px solid #F2F0F5",
             padding: "16px", overflowY: "auto", background: "#FAFAF8",
           }}
         >
           <button
-            onClick={() => { setActiveThreadId(null); setMessages([]); }}
+            className="ask-ai-back-btn"
+            onClick={() => setShowHistory(false)}
+            style={{
+              display: "none", alignItems: "center", gap: 4, background: "none", border: "none",
+              cursor: "pointer", fontSize: 14, fontWeight: 600, color: "var(--ink-3)", padding: 0, marginBottom: 12,
+            }}
+          >
+            ← {locale === "th" ? "กลับ" : "Back"}
+          </button>
+          <button
+            onClick={() => { setActiveThreadId(null); setMessages([]); setShowHistory(false); }}
             style={{
               width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
               background: "var(--ink)", color: "#fff", fontSize: 15, fontWeight: 700,
@@ -284,7 +304,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
           {threads.map((t) => (
             <button
               key={t.id}
-              onClick={() => setActiveThreadId(t.id)}
+              onClick={() => { setActiveThreadId(t.id); setShowHistory(false); }}
               style={{
                 width: "100%", textAlign: "left", padding: "14px 14px",
                 borderRadius: 14, border: "none", cursor: "pointer", marginBottom: 4,

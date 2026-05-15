@@ -226,7 +226,7 @@ export function SubscriptionShell() {
             <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: "0 0 14px" }}>
               {locale === "th" ? "สิ่งที่คุณได้" : "What you get"}
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+            <div className="sub-features" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
               {FEATURES.map((f, i) => (
                 <div key={i} style={CARD}>
                   <div style={{ fontSize: 24, marginBottom: 10 }}>{f.icon}</div>
@@ -246,7 +246,7 @@ export function SubscriptionShell() {
             <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: "0 0 14px" }}>
               {locale === "th" ? "การใช้งานเดือนนี้" : "This month's usage"}
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div className="sub-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div style={CARD}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
                   AI SUMMARIES
@@ -350,11 +350,11 @@ function FreeState() {
       <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 4 }}>
         {isTh ? "บัญชีและการใช้งาน" : "Account & usage"}
       </div>
-      <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 20px" }}>
+      <h1 style={{ fontSize: "clamp(22px, 5vw, 26px)", fontWeight: 800, color: "var(--ink)", margin: "0 0 20px" }}>
         {isTh ? "แพ็กเกจของคุณ" : "Your plan"}
       </h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
+      <div className="sub-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
         {/* Free card */}
         <div style={{ ...CARD, display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600, marginBottom: 4 }}>
