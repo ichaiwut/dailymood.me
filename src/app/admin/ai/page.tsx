@@ -42,7 +42,7 @@ export default async function AdminAiPage() {
         .from(aiUsage)
         .leftJoin(users, eq(aiUsage.userId, users.id))
         .where(gte(aiUsage.date, d30))
-        .groupBy(aiUsage.userId)
+        .groupBy(aiUsage.userId, users.email)
         .orderBy(desc(sql`sum(${aiUsage.nlpCount} + ${aiUsage.visionCount})`))
         .limit(10),
       db
