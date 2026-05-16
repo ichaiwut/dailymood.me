@@ -17,6 +17,8 @@ interface ProfileData {
     email: string;
     emailVerified: boolean;
     image: string | null;
+    imageUrl: string | null;
+    imageKey: string | null;
     locale: string;
     isPremium: boolean;
     bio: string | null;
@@ -208,9 +210,9 @@ export function ProfileShell() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
           <Link href={"/profile/edit" as "/"} style={{ position: "relative", flexShrink: 0 }}>
-            {data.user.image ? (
+            {(data.user.imageUrl || data.user.image) ? (
               <img
-                src={data.user.image}
+                src={data.user.imageUrl || data.user.image!}
                 alt=""
                 referrerPolicy="no-referrer"
                 style={{

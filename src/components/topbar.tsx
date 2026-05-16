@@ -1,16 +1,39 @@
 import { auth } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
 import { TopBarClient } from "./topbar-client";
+import { getDb } from "@/lib/cf";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getSignedReadUrl } from "@/lib/r2";
 
 export async function TopBar() {
   const session = await auth();
+
+  let avatarUrl: string | null = session?.user?.image ?? null;
+  if (session?.user?.id) {
+    try {
+      const db = getDb();
+      const [row] = await db
+        .select({ imageKey: users.imageKey, image: users.image })
+        .from(users)
+        .where(eq(users.id, session.user.id))
+        .limit(1);
+      if (row?.imageKey) {
+        avatarUrl = await getSignedReadUrl(row.imageKey);
+      } else if (row?.image) {
+        avatarUrl = row.image;
+      }
+    } catch {
+      // image_key column may not exist yet — fall back to session image
+    }
+  }
 
   return (
     <>
       {session?.user ? (
         <TopBarClient
           name={session.user.name ?? null}
-          image={session.user.image ?? null}
+          image={avatarUrl}
           email={session.user.email ?? null}
         />
       ) : (

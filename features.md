@@ -61,7 +61,7 @@
 
 #### Profile & Account
 - [x] Profile Overview (`/profile`) — hero card (purple→peach gradient, avatar initials with accent color, name, email, member-since, premium badge), hero stats row (streak 🔥, entries 📓, avg mood 😄 — tappable deep-links), mood signature card (stacked bar of mood distribution over 30 days + headline + top 3 %s), achievements preview row (horizontal scroll, 6 visible), settings shortcut list (notifications, language, privacy, export, subscription — color-tinted icon tiles), footer (help/sign out/version). API: `GET /api/profile`, `PATCH /api/profile`
-- [x] Edit Profile (`/profile/edit`) — avatar with accent color picker (6 colors), display name (≤30 chars), email (read-only with verified badge), bio (≤160 chars), delete account button
+- [x] Edit Profile (`/profile/edit`) — avatar upload (Premium, 2MB limit, client-side WebP optimize via `optimizeImage()`, R2 storage at `avatars/{userId}/{ulid}.webp`, signed read URLs, remove button), accent color picker (6 colors), display name (≤30 chars), email (read-only with verified badge), bio (≤160 chars), delete account button. API: `POST /api/profile/avatar`, `DELETE /api/profile/avatar`
 - [x] Settings (`/profile/settings`) — Reminders (daily check-in toggle, time, days), Appearance (theme Light/Dark/Auto, mood palette Neon/Tempered/Mono), Language (EN/TH radio), Privacy (hide previews, anonymous insights toggles), Custom moods (Premium), Data (export, clear all entries), About (help, feedback, terms)
 - [x] Achievements (`/profile/achievements`) — hero progress ring (% unlocked), filter pills (All/Earned/In progress/Locked with counts), 2-col badge grid (earned=colored border+date, in-progress=dashed+progress bar, locked=grayscale). 12 badges: streak 7/30/100/365, entries 50/100/500, early bird, night owl, tag master, zen 30, photo journal. DB: `user_achievements` table, auto-earn on check. API: `GET /api/profile/achievements`
 
@@ -149,6 +149,8 @@
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
 | GET | `/api/profile` | auth | Profile data: user info, stats (streak, totalEntries, avgMood), mood signature (30-day mood distribution), tier |
 | PATCH | `/api/profile` | auth | Update profile: name, bio, accentColor, locale |
+| POST | `/api/profile/avatar` | premium | Upload avatar: FormData image (≤2MB), optimize client-side, R2 upload, delete old, update users.imageKey |
+| DELETE | `/api/profile/avatar` | auth | Remove custom avatar: delete R2 object, set users.imageKey to null |
 | GET | `/api/profile/achievements` | auth | Achievements: badge progress, earned dates. Auto-earns newly completed badges |
 | GET | `/api/subscription` | auth | Subscription state: isPremium, currentPeriodEnd, cancelAtPeriodEnd, planInterval, memberSince |
 | POST | `/api/stripe/checkout` | auth | Create Stripe Checkout session (monthly/yearly) |
@@ -157,7 +159,7 @@
 
 ## Database Schema (Drizzle on PostgreSQL)
 
-- `users` — id, email, image, **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, locale, **bio**, **accentColor**, createdAt
+- `users` — id, email, image, **imageKey** (R2 avatar key, Premium upload), **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, locale, **bio**, **accentColor**, createdAt
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
@@ -171,7 +173,7 @@
 - `user_achievements` — (userId, badgeId) PK, earnedAt — tracks when user earned each badge
 - `mood_packs` — id PK, label, premium (boolean), createdAt — mood icon pack registry (icons stored on R2 at `{packId}/{moodId}.svg`)
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Railway)
 

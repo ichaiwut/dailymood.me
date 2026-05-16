@@ -1,18 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { useRouter as useNextRouter } from "next/navigation";
+import { optimizeImage } from "@/lib/client-image";
 
 const ACCENT_COLORS = [
   "#A673F1", "#FCA45B", "#85ECCB", "#FDCB56", "#9ACDE2", "#D4BEE4",
 ];
+
+const MAX_AVATAR_MB = 2;
+const MAX_AVATAR_BYTES = MAX_AVATAR_MB * 1024 * 1024;
 
 interface UserData {
   name: string | null;
   email: string;
   emailVerified: boolean;
   image: string | null;
+  imageUrl: string | null;
+  imageKey: string | null;
+  isPremium: boolean;
   bio: string | null;
   accentColor: string | null;
 }
@@ -20,6 +28,7 @@ interface UserData {
 export function ProfileEditShell() {
   const t = useTranslations("profile");
   const router = useRouter();
+  const nextRouter = useNextRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,9 +38,22 @@ export function ProfileEditShell() {
   const [bio, setBio] = useState("");
   const [accent, setAccent] = useState("#A673F1");
 
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const blobUrlRef = useRef<string | null>(null);
+
+  useEffect(() => () => {
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+  }, []);
+
   useEffect(() => {
     fetch("/api/profile")
-      .then((r) => r.json() as Promise<{ user: UserData }>)
+      .then((r) => {
+        if (!r.ok) throw new Error("fetch_failed");
+        return r.json() as Promise<{ user: UserData }>;
+      })
       .then((d) => {
         const u = d.user;
         setUser(u);
@@ -39,6 +61,7 @@ export function ProfileEditShell() {
         setBio(u.bio || "");
         setAccent(u.accentColor || "#A673F1");
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
@@ -69,6 +92,78 @@ export function ProfileEditShell() {
     }
   };
 
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setAvatarError("");
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError(t("avatarTooLarge"));
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const optimized = await optimizeImage(file);
+
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      const blobUrl = URL.createObjectURL(optimized);
+      blobUrlRef.current = blobUrl;
+      setAvatarPreview(blobUrl);
+
+      const form = new FormData();
+      form.append("image", optimized);
+      const res = await fetch("/api/profile/avatar", { method: "POST", body: form });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        if (data.error === "premium_required") {
+          setAvatarError(t("avatarPremiumOnly"));
+        } else if (data.error === "image_too_large") {
+          setAvatarError(t("avatarTooLarge"));
+        }
+        setAvatarPreview(null);
+        return;
+      }
+
+      const { imageKey } = await res.json() as { imageKey: string };
+      setUser((prev) => prev ? { ...prev, imageKey, imageUrl: blobUrl } : prev);
+      nextRouter.refresh();
+    } catch {
+      setAvatarPreview(null);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    setAvatarUploading(true);
+    try {
+      const res = await fetch("/api/profile/avatar", { method: "DELETE" });
+      if (res.ok) {
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+        setAvatarPreview(null);
+        setUser((prev) => prev ? { ...prev, imageKey: null, imageUrl: prev.image } : prev);
+        nextRouter.refresh();
+      }
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  const handleCameraClick = () => {
+    if (!user?.isPremium) {
+      setAvatarError(t("avatarPremiumOnly"));
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   if (loading) {
     return (
       <div style={{ padding: "24px 0" }}>
@@ -81,6 +176,8 @@ export function ProfileEditShell() {
   if (!user) return null;
 
   const initials = getInitials(name || user.name, user.email);
+  const displayAvatar = avatarPreview || user.imageUrl || user.image;
+  const hasCustomAvatar = !!(avatarPreview || user.imageKey);
 
   return (
     <div className="fade-in center-720" style={{ paddingBottom: 40 }}>
@@ -128,15 +225,17 @@ export function ProfileEditShell() {
           padding: "28px 20px", textAlign: "center", marginBottom: 16,
         }}
       >
-        <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 16px" }}>
-          {user.image ? (
+        <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 12px" }}>
+          {displayAvatar ? (
             <img
-              src={user.image}
+              src={displayAvatar}
               alt=""
               referrerPolicy="no-referrer"
               style={{
                 width: 120, height: 120, borderRadius: "50%",
                 objectFit: "cover", border: "3px solid #F2F0F5",
+                opacity: avatarUploading ? 0.5 : 1,
+                transition: "opacity 0.2s",
               }}
             />
           ) : (
@@ -146,23 +245,73 @@ export function ProfileEditShell() {
                 background: accent,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 44, fontWeight: 800, color: "#fff",
+                opacity: avatarUploading ? 0.5 : 1,
               }}
             >
               {initials}
             </div>
           )}
-          <div
+          {avatarUploading && (
+            <div
+              style={{
+                position: "absolute", inset: 0, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "rgba(0,0,0,0.3)",
+              }}
+            >
+              <div style={{ width: 28, height: 28, border: "3px solid #fff", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleCameraClick}
+            disabled={avatarUploading}
             style={{
               position: "absolute", bottom: 0, right: 0,
               width: 36, height: 36, borderRadius: "50%",
               background: "#FCA45B", border: "3px solid #fff",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, cursor: "pointer",
+              fontSize: 16, cursor: avatarUploading ? "default" : "pointer",
+              padding: 0,
             }}
           >
             📷
-          </div>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarSelect}
+            style={{ display: "none" }}
+          />
         </div>
+
+        {avatarError && (
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#D94444", marginBottom: 8 }}>
+            {avatarError}
+          </div>
+        )}
+
+        {hasCustomAvatar && !avatarUploading && (
+          <button
+            type="button"
+            onClick={handleAvatarRemove}
+            style={{
+              background: "transparent", border: "1.5px solid var(--hairline)",
+              borderRadius: 16, padding: "6px 16px",
+              fontSize: 14, fontWeight: 600, color: "var(--ink-3)",
+              cursor: "pointer",
+            }}
+          >
+            {t("avatarRemove")}
+          </button>
+        )}
+
+        {!user.isPremium && !hasCustomAvatar && (
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", marginTop: 4 }}>
+            {t("avatarPremiumOnly")}
+          </div>
+        )}
       </div>
 
       {/* Form Card */}
@@ -224,7 +373,7 @@ export function ProfileEditShell() {
         <div>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#D94444" }}>{t("deleteAccount")}</div>
           <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
-            {t("deleteAccountDesc") || "ลบบัญชีและข้อมูลทั้งหมดอย่างถาวร"}
+            {t("deleteAccountDesc")}
           </div>
         </div>
         <button
@@ -253,6 +402,12 @@ export function ProfileEditShell() {
           ✓ {toast}
         </div>
       )}
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

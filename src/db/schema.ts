@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   emailVerified: timestamp("email_verified"),
   passwordHash: text("password_hash"),
   image: text("image"),
+  imageKey: text("image_key"),
   locale: text("locale").default("en"),
   isPremium: boolean("is_premium").notNull().default(false),
   moodPack: text("mood_pack").notNull().default("set_486038"),
