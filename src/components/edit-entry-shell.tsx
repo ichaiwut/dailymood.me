@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
@@ -255,7 +256,8 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
   const timeLabel = timeVal || "00:00";
 
   return (
-    <div className="fade-in" style={{ paddingBottom: 80 }}>
+    <>
+    <div className="fade-in edit-entry-page" style={{ paddingBottom: 80 }}>
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", marginBottom: 6 }}>
@@ -269,7 +271,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
       <div className="grid-2col" style={{ alignItems: "start" }}>
 
         {/* ═══ LEFT COLUMN — Form ═══ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20, overflow: "hidden" }}>
 
           {/* ── Mood Picker ── */}
           <div>
@@ -313,8 +315,8 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 10 }}>
               {t("dateTime")}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 14, padding: "10px 14px" }}>
+            <div className="edit-datetime-grid" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 14, padding: "10px 14px", minWidth: 0 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "var(--ink-3)", flexShrink: 0 }}>
                   <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.8" />
                   <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -324,10 +326,10 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   value={dateVal}
                   max={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setDateVal(e.target.value)}
-                  style={{ flex: 1, background: "none", border: "none", fontSize: 14, fontWeight: 600, color: "var(--ink)", outline: "none" }}
+                  style={{ flex: 1, minWidth: 0, background: "none", border: "none", fontSize: 14, fontWeight: 600, color: "var(--ink)", outline: "none" }}
                 />
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 14, padding: "10px 14px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 14, padding: "10px 14px", minWidth: 0 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "var(--ink-3)", flexShrink: 0 }}>
                   <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
                   <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -336,7 +338,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   type="time"
                   value={timeVal}
                   onChange={(e) => setTimeVal(e.target.value)}
-                  style={{ flex: 1, background: "none", border: "none", fontSize: 14, fontWeight: 600, color: "var(--ink)", outline: "none" }}
+                  style={{ flex: 1, minWidth: 0, background: "none", border: "none", fontSize: 14, fontWeight: 600, color: "var(--ink)", outline: "none" }}
                 />
               </div>
             </div>
@@ -374,7 +376,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               }}
             />
             {/* Toolbar */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10 }}>
+            <div className="edit-toolbar" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
               <ToolbarBtn icon={<BoldIcon />} label={t("boldToggle")} onClick={handleBoldToggle} />
               <VoiceButton onTranscript={(s) => setNote((p) => (p ? p + " " : "") + s)} />
               {isPremium ? (
@@ -390,7 +392,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", marginLeft: 2 }}>PRO</span>
                 </span>
               )}
-              <div style={{ flex: 1 }} />
+              <div className="edit-toolbar-spacer" style={{ flex: 1 }} />
               <button
                 onClick={handleReanalyze}
                 disabled={!note.trim() || analyzing || aiCooldown}
@@ -566,6 +568,37 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               </div>
             </div>
           )}
+
+          {/* ── Danger Zone (mobile — visible only on mobile, sidebar hidden) ── */}
+          <div className="edit-mobile-only" style={{ marginTop: 4 }}>
+            <div className="card" style={{ padding: 18, border: "1.5px solid #FCA5A5" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#DC2626", marginBottom: 6 }}>
+                {t("dangerZone")}
+              </div>
+              <p style={{ fontSize: 14, color: "var(--ink-2)", margin: "0 0 12px" }}>
+                {t("dangerZoneNote")}
+              </p>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 16px",
+                  borderRadius: 10,
+                  background: "none",
+                  border: "1.5px solid #FCA5A5",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#DC2626",
+                  cursor: "pointer",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                {t("deleteEntry")}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ═══ RIGHT COLUMN — Sidebar ═══ */}
@@ -703,35 +736,39 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         </div>
       </div>
 
-      {/* ── Mobile Bottom Bar ── */}
-      <div className="edit-bottom-bar">
-        <div style={{ display: "flex", gap: 12, width: "100%", maxWidth: 768, margin: "0 auto" }}>
-          <button
-            onClick={() => router.back()}
-            style={{ height: 48, padding: "0 20px", background: "#fff", border: "1.5px solid var(--hairline)", borderRadius: 100, fontWeight: 700, fontSize: 14, color: "var(--ink)" }}
-          >
-            {t("cancel")}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1"
-            style={{ height: 48, background: "#0A0A0A", color: "#fff", border: "none", borderRadius: 100, fontWeight: 700, fontSize: 14, opacity: saving ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-          >
-            {saving ? t("saving") : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                {t("saveChanges")}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+    </div>
+
+      {/* ── Mobile Bottom Bar — portal to escape main's stacking context ── */}
+      {typeof document !== "undefined" && createPortal(
+        <div className="edit-bottom-bar">
+          <div style={{ display: "flex", gap: 12, width: "100%", maxWidth: 768, margin: "0 auto" }}>
+            <button
+              onClick={() => router.back()}
+              style={{ height: 48, padding: "0 20px", background: "#fff", border: "1.5px solid var(--hairline)", borderRadius: 100, fontWeight: 700, fontSize: 14, color: "var(--ink)" }}
+            >
+              {t("cancel")}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1"
+              style={{ height: 48, background: "#0A0A0A", color: "#fff", border: "none", borderRadius: 100, fontWeight: 700, fontSize: 14, opacity: saving ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            >
+              {saving ? t("saving") : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  {t("saveChanges")}
+                </>
+              )}
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
 
       {/* ── Toast ── */}
       {toast && (
         <div
-          className="fade-in"
           style={{
             position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 60,
             background: "var(--ink)", color: "#fff", padding: "10px 20px", borderRadius: 100,
@@ -743,8 +780,8 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
       )}
 
       {/* ── Delete Confirm Overlay ── */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center fade-in" style={{ background: "rgba(0,0,0,0.4)" }}>
+      {showDeleteConfirm && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
           <div style={{ background: "#fff", borderRadius: 24, padding: "28px 24px", width: "min(340px, 90vw)", textAlign: "center" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
               {t("deleteConfirmTitle")}
@@ -770,9 +807,10 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }
 

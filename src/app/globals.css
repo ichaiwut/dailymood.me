@@ -442,17 +442,24 @@ button { font-family: inherit; cursor: pointer; }
   .auth-form { padding: 32px 20px !important; }
   .admin-layout { grid-template-columns: 1fr !important; }
   .admin-sidebar { display: none; }
-  .edit-sidebar { display: none; }
+  .edit-sidebar { display: none !important; }
 }
 .edit-bottom-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
+  position: fixed; bottom: 104px; left: 0; right: 0;
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 20px 24px;
-  background: linear-gradient(transparent, var(--bg) 30%);
-  z-index: 30;
+  padding: 12px 20px;
+  background: var(--bg);
+  z-index: 45;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
 }
 @media (min-width: 768px) {
   .edit-bottom-bar { display: none !important; }
+  .edit-mobile-only { display: none !important; }
+}
+@media (max-width: 767px) {
+  .edit-entry-page { padding-bottom: 200px !important; }
+  .edit-datetime-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+  .edit-toolbar-spacer { flex-basis: 100% !important; height: 0 !important; }
 }
 
 /* Mood picker: 4-col grid on mobile (override inline flex) */
