@@ -92,7 +92,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             emailVerified: new Date(), // OAuth providers vouch for email
           });
           token.sub = id;
-          notifyAdmin(`🆕 สมัครใหม่ (Google): ${user.email}`);
+          notifyAdmin(`🆕 มีคนสมัครใหม่ (Google)`);
         }
       }
       return token;

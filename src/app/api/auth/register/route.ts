@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
   await sendVerifyEmail({ to: email, token, locale });
 
-  notifyAdmin(`🆕 สมัครใหม่: ${email}`);
+  notifyAdmin(`🆕 มีคนสมัครใหม่`);
 
   return NextResponse.json({ ok: true });
 }

@@ -53,8 +53,7 @@ export async function POST(req: NextRequest) {
         const amount = session.amount_total
           ? `${(session.amount_total / 100).toLocaleString()} ${session.currency?.toUpperCase() ?? "THB"}`
           : "-";
-        const who = session.customer_details?.email ?? userId;
-        notifyAdmin(`💳 ชำระเงิน: ${planLabel} ${amount} — ${who}`);
+        notifyAdmin(`💳 มีคนสั่งซื้อ: ${planLabel} ${amount}`);
       }
       break;
     }
