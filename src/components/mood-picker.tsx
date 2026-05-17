@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { R2_PUBLIC_URL } from "@/lib/moods";
 import { useTranslations, useLocale } from "next-intl";
 import { SmartLogModal } from "./smart-log-modal";
 import { MoodTimeline } from "./mood-timeline";
@@ -21,6 +22,8 @@ interface GuestEntry {
   timestamp: number;
 }
 
+type CustomMood = { id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null };
+
 export function MoodPicker({ tier }: Props) {
   const t = useTranslations("home");
   const locale = useLocale();
@@ -29,8 +32,18 @@ export function MoodPicker({ tier }: Props) {
   const [saving, setSaving] = useState(false);
   const [showSmart, setShowSmart] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [customMoods, setCustomMoods] = useState<CustomMood[]>([]);
 
-  const selectedMood = DEFAULT_MOODS.find((m) => m.id === selected);
+  useEffect(() => {
+    if (tier === "guest") return;
+    fetch("/api/moods").then((r) => r.ok ? r.json() : { moods: [] }).then((d) => {
+      const moods = (d as { moods: (CustomMood & { isDefault: boolean })[] }).moods;
+      setCustomMoods(moods.filter((m) => !m.isDefault));
+    });
+  }, [tier]);
+
+  const allMoods = [...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods];
+  const selectedMood = allMoods.find((m) => m.id === selected);
 
   async function handleSave() {
     if (!selected || saving) return;
@@ -72,13 +85,13 @@ export function MoodPicker({ tier }: Props) {
         </p>
 
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
-          {DEFAULT_MOODS.map((mood) => {
+          {allMoods.map((mood) => {
             const isActive = selected === mood.id;
             return (
               <button
                 key={mood.id}
                 onClick={() => setSelected(mood.id)}
-                aria-label={locale === "th" ? mood.labelTh : mood.label}
+                aria-label={(locale === "th" ? mood.labelTh : mood.label) ?? mood.label}
                 className="flex flex-col items-center gap-1.5 group"
               >
                 <span
@@ -87,14 +100,16 @@ export function MoodPicker({ tier }: Props) {
                     width: 56,
                     height: 56,
                     fontSize: 30,
-                    background: `${mood.color}26`, /* 15% tint */
+                    background: `${mood.color}26`,
                     boxShadow: isActive
                       ? `0 0 0 3px var(--bg), 0 0 0 5.5px ${mood.color}`
                       : "none",
                     transform: isActive ? "scale(1.04)" : "scale(1)",
                   }}
                 >
-                  {mood.emoji}
+                  {mood.iconKey
+                    ? <img src={`${R2_PUBLIC_URL}/${mood.iconKey}`} alt="" width={30} height={30} />
+                    : mood.emoji}
                 </span>
                 <span
                   className="text-[11px] sm:text-xs font-medium"
@@ -103,7 +118,7 @@ export function MoodPicker({ tier }: Props) {
                     fontWeight: isActive ? 700 : 500,
                   }}
                 >
-                  {locale === "th" ? mood.labelTh : mood.label}
+                  {(locale === "th" ? mood.labelTh : mood.label) ?? mood.label}
                 </span>
               </button>
             );

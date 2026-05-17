@@ -31,25 +31,31 @@ interface Stats {
   total30d: number;
 }
 
+export type CustomMoodItem = { id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null };
+
 export function HomeShell({
   tier,
   pack = DEFAULT_MOOD_PACK,
   iconFormat = "svg",
   hidePreview = false,
+  initialCustomMoods = [],
 }: {
   tier: Tier;
   pack?: string;
   iconFormat?: string;
   hidePreview?: boolean;
+  initialCustomMoods?: CustomMoodItem[];
 }) {
   const t = useTranslations("home");
   const locale = useLocale();
   const icon = (moodId: string) => moodIconUrl(moodId, pack, iconFormat);
+  const customIcon = (m: { id: string; iconKey: string | null }) =>
+    m.iconKey ? `${R2_PUBLIC_URL}/${m.iconKey}` : icon(m.id);
 
   const [logMoodId, setLogMoodId] = useState<string | null>(null);
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [customMoods, setCustomMoods] = useState<{ id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[]>([]);
+  const [customMoods, setCustomMoods] = useState<CustomMoodItem[]>(initialCustomMoods);
 
   // Inline AI composer state
   const [composerText, setComposerText] = useState("");
@@ -239,7 +245,7 @@ export function HomeShell({
             {locale === "th" ? "วันนี้คุณรู้สึกยังไง?" : "How are you feeling?"}
           </h1>
           <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="mood-picker no-scrollbar">
-            {DEFAULT_MOODS.map((m, i) => (
+            {[...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods].map((m, i) => (
               <button
                 key={m.id}
                 onClick={() => setLogMoodId(m.id)}
@@ -259,9 +265,9 @@ export function HomeShell({
                   boxShadow: i === 0 ? "0 6px 16px -6px rgba(252,164,91,.5)" : "0 1px 3px rgba(0,0,0,.04)",
                 }}
               >
-                <img src={icon(m.id)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
+                <img src={customIcon(m)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
                 <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
-                  {locale === "th" ? m.labelTh : m.label}
+                  {(locale === "th" ? m.labelTh : m.label) ?? m.label}
                 </span>
               </button>
             ))}
@@ -377,7 +383,7 @@ export function HomeShell({
           {/* Mood pills (after AI result OR AI blocked) */}
           {(composerSuggestion || composerAiBlocked) && !composerAnalyzing && (
             <div className="flex flex-wrap gap-1.5 mt-3 fade-in">
-              {DEFAULT_MOODS.map((m) => {
+              {[...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods].map((m) => {
                 const active = m.id === composerMoodId;
                 return (
                   <button
@@ -394,8 +400,8 @@ export function HomeShell({
                       border: active ? "none" : "1.5px solid #F0EAF7",
                     }}
                   >
-                    <img src={icon(m.id)} alt="" width={16} height={16} />
-                    {locale === "th" ? m.labelTh : m.label}
+                    <img src={customIcon(m)} alt="" width={16} height={16} />
+                    {(locale === "th" ? m.labelTh : m.label) ?? m.label}
                   </button>
                 );
               })}

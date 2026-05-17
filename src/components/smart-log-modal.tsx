@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
@@ -54,10 +54,21 @@ export function SmartLogModal({
   iconFormat = "svg",
   preSelectedMoodId,
   presetDate,
-  customMoods = [],
+  customMoods: customMoodsProp,
 }: Props) {
   const t = useTranslations("smart");
   const locale = useLocale();
+  const [fetchedCustomMoods, setFetchedCustomMoods] = useState<{ id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[]>([]);
+  const customMoods = customMoodsProp ?? fetchedCustomMoods;
+
+  useEffect(() => {
+    if (customMoodsProp) return;
+    fetch("/api/moods").then((r) => r.ok ? r.json() : { moods: [] }).then((d) => {
+      const moods = (d as { moods: { id: string; emoji: string; label: string; labelTh: string | null; color: string; isDefault: boolean; iconKey: string | null }[] }).moods;
+      setFetchedCustomMoods(moods.filter((m) => !m.isDefault));
+    });
+  }, [customMoodsProp]);
+
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -398,7 +409,7 @@ export function SmartLogModal({
                   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
                     <div style={{ display: "flex", gap: 6 }}>
-                      {allMoods.slice(0, 7).map((m) => (
+                      {allMoods.map((m) => (
                         <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                           <img src={iconSrc(m)} alt="" width={24} height={24} />
                         </button>

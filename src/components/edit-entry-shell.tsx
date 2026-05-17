@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { AiDisclaimer } from "./ai-disclaimer";
@@ -59,6 +59,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
   const [suggestion, setSuggestion] = useState<AiSuggestion | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiCooldown, setAiCooldown] = useState(false);
+  const [customMoods, setCustomMoods] = useState<{ id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -96,6 +97,10 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         setTimeVal(d.toISOString().slice(11, 16));
       })
       .finally(() => setLoading(false));
+    fetch("/api/moods").then((r) => r.ok ? r.json() : { moods: [] }).then((d) => {
+      const moods = (d as { moods: { id: string; emoji: string; label: string; labelTh: string | null; color: string; isDefault: boolean; iconKey: string | null }[] }).moods;
+      setCustomMoods(moods.filter((m) => !m.isDefault));
+    });
   }, [id]);
 
   const handleReanalyze = useCallback(async () => {
@@ -245,7 +250,8 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
 
   if (loading) return <LoadingSkeleton />;
 
-  const mood = DEFAULT_MOODS.find((m) => m.id === moodId);
+  const allMoods = [...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods];
+  const mood = allMoods.find((m) => m.id === moodId);
   const moodColor = mood?.color ?? "#F4F2F7";
   const moodLabel = th ? mood?.labelTh : mood?.label;
   const suggestedTags = suggestion?.tags.filter((st) => !tags.includes(st)) ?? [];
@@ -280,8 +286,9 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               {t("feeling")}
             </div>
             <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }} className="no-scrollbar">
-              {DEFAULT_MOODS.map((m) => {
+              {allMoods.map((m) => {
                 const active = m.id === moodId;
+                const src = m.iconKey ? `${R2_PUBLIC_URL}/${m.iconKey}` : moodIconUrl(m.id, pack, iconFormat);
                 return (
                   <button
                     key={m.id}
@@ -295,13 +302,13 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                       minWidth: 72,
                       padding: "12px 8px",
                       borderRadius: 16,
-                      background: active ? moodColor : "var(--surface)",
+                      background: active ? (m.color ?? moodColor) : "var(--surface)",
                       border: active ? "none" : "1px solid var(--hairline)",
                       cursor: "pointer",
                       transition: "all 0.15s",
                     }}
                   >
-                    <img src={moodIconUrl(m.id, pack, iconFormat)} alt="" width={32} height={32} />
+                    <img src={src} alt="" width={32} height={32} />
                     <span style={{ fontSize: 14, fontWeight: active ? 800 : 600, color: "var(--ink)", whiteSpace: "nowrap" }}>
                       {th ? m.labelTh : m.label}
                     </span>
