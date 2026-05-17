@@ -6,6 +6,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import type { CalendarAiResult } from "@/db/schema";
 import type { Tier } from "@/lib/tier";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface Props {
   data: CalendarAiResult | null;
@@ -139,6 +140,10 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
           <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
+
+      <div style={{ marginTop: 12 }}>
+        <AiDisclaimer variant="analysis" />
+      </div>
     </div>
   );
 }

@@ -693,5 +693,12 @@
   },
   "yearPixels": {
     "title": "Full Year Overview"
+  },
+  "aiDisclaimer": {
+    "chat": "AI may be wrong. Not medical or psychological advice.",
+    "analysis": "Treat as observations, not a diagnosis.",
+    "ask": "AI may be wrong — use as a guide only.",
+    "story": "AI-generated story — some details may be inaccurate.",
+    "parse": "Please review before saving."
   }
 }

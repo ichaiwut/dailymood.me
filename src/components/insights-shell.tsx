@@ -6,6 +6,7 @@ import { trackInsightsView, trackShareInsight } from "@/lib/analytics";
 import type { Tier } from "@/lib/tier";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { AiSubTabs } from "./ai-sub-tabs";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 function weekKeyForOffset(offset: number): string {
   const d = new Date();
@@ -530,6 +531,10 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           </div>
         </div>
       </section>
+
+      <div style={{ textAlign: "center", padding: "0 16px 16px" }}>
+        <AiDisclaimer variant="analysis" />
+      </div>
     </>
   );
 }

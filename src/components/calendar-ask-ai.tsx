@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Tier } from "@/lib/tier";
 import type { AskAiResult } from "@/db/schema";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface Props {
   tier: Tier;
@@ -354,6 +355,9 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
               ))}
             </div>
           )}
+          <div style={{ marginTop: 10 }}>
+            <AiDisclaimer variant="ask" />
+          </div>
         </div>
       )}
 

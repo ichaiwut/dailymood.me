@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { SmartLogModal } from "./smart-log-modal";
+import { AiDisclaimer } from "./ai-disclaimer";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { Link } from "@/i18n/navigation";
@@ -412,6 +413,13 @@ export function HomeShell({
                   </button>
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* AI disclaimer (after AI result) */}
+          {composerSuggestion && !composerAnalyzing && composerSuggestion.aiSource !== "manual" && (
+            <div className="mt-2 fade-in">
+              <AiDisclaimer variant="parse" />
             </div>
           )}
 

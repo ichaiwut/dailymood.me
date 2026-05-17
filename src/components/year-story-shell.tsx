@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -322,6 +323,9 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
                 style={{ fontSize: "clamp(20px, 3vw, 28px)", lineHeight: 1.7, color: "rgba(255,255,255,.5)", fontWeight: 600 }}
                 dangerouslySetInnerHTML={{ __html: ai.summary.replace(/\*\*(.*?)\*\*/g, "<b style='color:rgba(255,255,255,.82);font-weight:800'>$1</b>") }}
               />
+              <div style={{ marginTop: 28 }}>
+                <AiDisclaimer variant="story" style={{ color: "rgba(255,255,255,.4)" }} />
+              </div>
             </Reveal>
           </div>
         </div>

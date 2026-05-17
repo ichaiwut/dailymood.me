@@ -8,6 +8,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { moodScore, scoreToEmoji } from "@/lib/mood-scores";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import type { Tier } from "@/lib/tier";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -444,6 +445,11 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
+              {insight && tier === "premium" && (
+                <div style={{ marginTop: 12 }}>
+                  <AiDisclaimer variant="analysis" />
+                </div>
+              )}
             </div>
           </section>
 

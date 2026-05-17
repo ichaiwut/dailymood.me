@@ -5,6 +5,7 @@ import { useLocale } from "next-intl";
 import type { Tier } from "@/lib/tier";
 import type { AskAiSource } from "@/db/schema";
 import { AiSubTabs } from "./ai-sub-tabs";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface Thread {
   id: string;
@@ -387,8 +388,8 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               ↑
             </button>
           </div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", marginTop: 8 }}>
-            {locale === "th" ? "AI อ่านได้แค่ข้อมูลของคุณ · ไม่ใช่คำแนะนำทางการแพทย์" : "AI reads only your data · Not medical advice"}
+          <div style={{ textAlign: "center", marginTop: 8 }}>
+            <AiDisclaimer variant="chat" />
           </div>
         </div>
       </div>

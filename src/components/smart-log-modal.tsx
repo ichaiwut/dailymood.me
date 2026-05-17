@@ -7,6 +7,7 @@ import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -424,6 +425,9 @@ export function SmartLogModal({
                       <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
                     </div>
                   )}
+                  <div style={{ marginTop: 12 }}>
+                    <AiDisclaimer variant="parse" />
+                  </div>
                 </div>
               )}
 

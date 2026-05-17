@@ -114,7 +114,10 @@
 - [x] Mood Pack Manager (`/admin/packs`) — CRUD for mood icon packs. Create pack (ID + label + premium flag), edit label/premium, delete (resets users to default). Upload 7 SVG icons per pack to R2 (`{packId}/{moodId}.svg`). Icon preview grid. DB: `mood_packs` table (id, label, premium, createdAt). API: `GET/POST /api/admin/packs`, `GET/PATCH/DELETE /api/admin/packs/[id]`, `POST /api/admin/packs/[id]/upload`. User-facing: `GET /api/moods/packs` returns dynamic pack list.
 
 #### Admin Notifications
-- [x] LINE OA — Push message to admin LINE account on new user signup (Credentials + Google) and successful Stripe checkout. Fire-and-forget via `notifyAdmin()` in `src/lib/line.ts`. Env vars (Railway production only): `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`
+- [x] LINE OA — Push message to admin LINE account on new user signup (Credentials + Google) and successful Stripe checkout. **No user PII** — generic event signals only (`มีคนสมัครใหม่`, `มีคนสั่งซื้อ` + plan/amount). Fire-and-forget via `notifyAdmin()` in `src/lib/line.ts`. Env vars (Railway production only): `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`
+
+#### AI Disclaimers
+- [x] AI disclaimer component (`src/components/ai-disclaimer.tsx`) — 5 context-aware variants (chat / analysis / ask / story / parse), i18n via `aiDisclaimer` namespace, 14px muted text inline below AI output. Used on `/ask-ai` (chat), `/insights` (analysis), `/stats` AI summary card (analysis), `/calendar` AI summary + ask result (analysis/ask), `/year-in-pixels/story` AI narrative (story), Smart Log Modal suggestion (parse), home composer AI suggestion (parse), entry detail AI insight (analysis).
 
 #### Localization
 - [x] i18n — TH/EN (next-intl)

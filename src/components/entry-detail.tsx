@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface EntryData {
   id: string;
@@ -165,6 +166,9 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
                 <span style={{ fontSize: 13, fontWeight: 800, color: "#7A4DD0", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
               </div>
               <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+              <div style={{ marginTop: 10 }}>
+                <AiDisclaimer variant="analysis" />
+              </div>
             </div>
           )}
 
