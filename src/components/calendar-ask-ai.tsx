@@ -287,6 +287,10 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
         )}
       </div>
 
+      <div style={{ marginTop: 8 }}>
+        <AiDisclaimer variant="ask" />
+      </div>
+
       {/* Usage counter + cooldown */}
       {expanded && (askCount > 0 || cooldown) && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 14, color: "var(--ink-3)" }}>
@@ -355,9 +359,6 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
               ))}
             </div>
           )}
-          <div style={{ marginTop: 10 }}>
-            <AiDisclaimer variant="ask" />
-          </div>
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { EntryMiniCard, type SheetEntry } from "./entry-mini-card";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface DaySheetProps {
   selectedDate: string;
@@ -159,6 +160,9 @@ export function DaySheet({
                     <div style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink-2)" }}>
                       <span style={{ fontWeight: 700, color: "var(--purple)" }}>AI: </span>
                       {e.aiSummary}
+                      <div style={{ marginTop: 6 }}>
+                        <AiDisclaimer variant="analysis" />
+                      </div>
                     </div>
                   </div>
                 )}

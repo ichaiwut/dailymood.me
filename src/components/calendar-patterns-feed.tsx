@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { CalendarAiResult } from "@/db/schema";
 import type { Tier } from "@/lib/tier";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface Props {
   patterns: CalendarAiResult["patterns"];
@@ -110,6 +111,9 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
             )}
           </div>
         ))}
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <AiDisclaimer variant="analysis" />
       </div>
     </div>
   );

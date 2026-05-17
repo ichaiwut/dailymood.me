@@ -8,6 +8,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 interface EntryData {
   id: string;
@@ -443,6 +444,9 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   ))}
                 </div>
               )}
+              <div style={{ marginTop: 10 }}>
+                <AiDisclaimer variant="parse" />
+              </div>
             </div>
           )}
 
@@ -646,6 +650,9 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 10, display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ink-3)" }} />
                 {t("aiInsightNote")}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <AiDisclaimer variant="analysis" />
               </div>
             </div>
           )}

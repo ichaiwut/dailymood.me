@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { AiDisclaimer } from "./ai-disclaimer";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -282,10 +283,13 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
             <>
               <p style={{ fontSize: 18, fontWeight: 700, color: "var(--ink)", lineHeight: 1.6, marginBottom: 6 }} dangerouslySetInnerHTML={{ __html: data.aiSummary.summary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
               {data.aiSummary.yearTheme && (
-                <div style={{ fontSize: 14, color: "var(--purple)", fontWeight: 700, marginBottom: 20 }}>
+                <div style={{ fontSize: 14, color: "var(--purple)", fontWeight: 700, marginBottom: 10 }}>
                   🏷️ {data.aiSummary.yearTheme}
                 </div>
               )}
+              <div style={{ marginBottom: 20 }}>
+                <AiDisclaimer variant="analysis" />
+              </div>
             </>
           ) : (
             <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 20 }}>

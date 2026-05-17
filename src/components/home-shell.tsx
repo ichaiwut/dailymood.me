@@ -416,13 +416,6 @@ export function HomeShell({
             </div>
           )}
 
-          {/* AI disclaimer (after AI result) */}
-          {composerSuggestion && !composerAnalyzing && composerSuggestion.aiSource !== "manual" && (
-            <div className="mt-2 fade-in">
-              <AiDisclaimer variant="parse" />
-            </div>
-          )}
-
           {/* Bottom bar: voice + camera + action button */}
           <div className="flex items-center gap-2 mt-3">
             <VoiceButton onTranscript={(s) => setComposerText((p) => (p ? p + " " : "") + s)} />
@@ -517,6 +510,10 @@ export function HomeShell({
                 </svg>
               </button>
             ) : null}
+          </div>
+
+          <div className="mt-3">
+            <AiDisclaimer variant="analysis" />
           </div>
 
           {/* Upgrade nudge for free users */}

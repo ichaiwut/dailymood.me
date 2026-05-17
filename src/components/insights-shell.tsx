@@ -252,6 +252,27 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </div>
       )}
 
+      <div
+        className="fade-in"
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 10,
+          padding: "12px 16px",
+          borderRadius: 14,
+          background: "#FAF7FE",
+          border: "1px solid #E6DBF7",
+          marginBottom: 12,
+        }}
+      >
+        <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>✨</span>
+        <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink-2)", margin: 0 }}>
+          {locale === "th"
+            ? "ข้อมูลทั้งหมดในหน้านี้ AI วิเคราะห์จากบันทึกของคุณ เป็นแค่มุมมองหนึ่ง อาจไม่ตรงทุกครั้ง และไม่ใช่คำแนะนำสุขภาพ"
+            : "Everything on this page is AI-analyzed from your entries. It's just one perspective — it may not always be accurate and is not health advice."}
+        </p>
+      </div>
+
       {/* ── HEADER + WEEK NAV ─── */}
       <header className="pb-5 fade-in">
         <div className="flex items-start justify-between ins-header">
@@ -532,9 +553,6 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </div>
       </section>
 
-      <div style={{ textAlign: "center", padding: "0 16px 16px" }}>
-        <AiDisclaimer variant="analysis" />
-      </div>
     </>
   );
 }
