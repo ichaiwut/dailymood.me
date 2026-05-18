@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { SmartLogModal } from "./smart-log-modal";
 import { DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { trackFeatureUse } from "@/lib/analytics";
 
 export function BottomNav({
   tier = "free",
@@ -25,12 +26,12 @@ export function BottomNav({
   return (
     <>
       <nav className="bottom-nav" aria-label="Main navigation">
-        <Link href={"/" as "/"} className="nav-item" data-active={isActive("/") ? "true" : undefined}>
+        <Link href={"/" as "/"} className="nav-item" data-active={isActive("/") ? "true" : undefined} onClick={() => trackFeatureUse("nav_home")}>
           <HomeIcon active={isActive("/")} />
           <span>{t("navHome")}</span>
         </Link>
 
-        <Link href={"/calendar" as "/"} className="nav-item" data-active={isActive("/calendar") ? "true" : undefined}>
+        <Link href={"/calendar" as "/"} className="nav-item" data-active={isActive("/calendar") ? "true" : undefined} onClick={() => trackFeatureUse("nav_calendar")}>
           <CalIcon active={isActive("/calendar")} />
           <span>{t("navCalendar")}</span>
         </Link>
@@ -39,19 +40,19 @@ export function BottomNav({
           type="button"
           className="fab"
           aria-label="Quick log"
-          onClick={() => setShowSmart(true)}
+          onClick={() => { trackFeatureUse("nav_fab"); setShowSmart(true); }}
         >
           <svg viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
         </button>
 
-        <Link href={"/stats" as "/"} className="nav-item" data-active={isActive("/stats") ? "true" : undefined}>
+        <Link href={"/stats" as "/"} className="nav-item" data-active={isActive("/stats") ? "true" : undefined} onClick={() => trackFeatureUse("nav_stats")}>
           <StatsIcon active={isActive("/stats")} />
           <span>{t("navStats")}</span>
         </Link>
 
-        <Link href={"/profile" as "/"} className="nav-item" data-active={isActive("/profile") ? "true" : undefined}>
+        <Link href={"/profile" as "/"} className="nav-item" data-active={isActive("/profile") ? "true" : undefined} onClick={() => trackFeatureUse("nav_profile")}>
           <UserIcon active={isActive("/profile")} />
           <span>{t("navProfile")}</span>
         </Link>

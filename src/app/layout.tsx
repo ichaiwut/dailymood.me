@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Urbanist, Noto_Sans_Thai } from "next/font/google";
 import { getLocale } from "next-intl/server";
+import { PageViewTracker } from "@/components/page-view-tracker";
 import "./globals.css";
 
 const GA_ID = "G-MQKCJQP4NP";
@@ -44,8 +45,9 @@ export default async function RootLayout({
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
             <Script id="gtag-init" strategy="afterInteractive">{`
               window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-              gtag('js',new Date());gtag('config','${GA_ID}');
+              gtag('js',new Date());gtag('config','${GA_ID}',{'send_page_view':false});
             `}</Script>
+            <PageViewTracker />
           </>
         )}
         {children}

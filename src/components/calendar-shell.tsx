@@ -14,6 +14,7 @@ import type { TimelineEntry } from "./timeline-feed";
 import { Link } from "@/i18n/navigation";
 import type { Tier } from "@/lib/tier";
 import type { CalendarAiResult } from "@/db/schema";
+import { trackCalendarView } from "@/lib/analytics";
 
 type CalView = "calendar" | "timeline";
 
@@ -218,7 +219,7 @@ export function CalendarShell({
         {(["calendar", "timeline"] as CalView[]).map((v) => (
           <button
             key={v}
-            onClick={() => setCalView(v)}
+            onClick={() => { if (v !== calView) { setCalView(v); trackCalendarView(v); } }}
             style={{
               flex: 1,
               padding: "8px 0",

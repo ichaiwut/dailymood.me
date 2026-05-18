@@ -104,6 +104,24 @@ export function trackUpgradeClick(source: string) {
   trackEvent({ action: "upgrade_click", category: "conversion", label: source });
 }
 
+// ── Entry actions ──
+
+export function trackEntryDelete() {
+  trackEvent({ action: "entry_delete", category: "engagement" });
+}
+
+// ── Ask AI ──
+
+export function trackAskAiMessage() {
+  trackEvent({ action: "ask_ai_message", category: "engagement" });
+}
+
+// ── Conversion funnel (continued) ──
+
+export function trackCheckoutCancelled() {
+  trackEvent({ action: "checkout_cancelled", category: "conversion" });
+}
+
 // ── Premium gating ──
 
 export function trackPremiumGate(feature: string) {

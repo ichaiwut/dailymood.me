@@ -9,6 +9,7 @@ import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { trackMoodLog, trackEntryDelete } from "@/lib/analytics";
 
 interface EntryData {
   id: string;
@@ -176,6 +177,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         }),
       });
       if (!res.ok) { setError(t("errGeneric")); return; }
+      trackMoodLog("edit");
       router.replace(`/entry/${id}` as const);
     } finally {
       setSaving(false);
@@ -186,7 +188,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
     setDeleting(true);
     try {
       const res = await fetch(`/api/log/${id}`, { method: "DELETE" });
-      if (res.ok) { router.replace("/" as const); }
+      if (res.ok) { trackEntryDelete(); router.replace("/" as const); }
       else { setError(t("errGeneric")); }
     } finally {
       setDeleting(false);

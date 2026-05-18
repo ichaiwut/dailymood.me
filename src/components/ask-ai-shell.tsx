@@ -6,6 +6,7 @@ import type { Tier } from "@/lib/tier";
 import type { AskAiSource } from "@/db/schema";
 import { AiSubTabs } from "./ai-sub-tabs";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { trackAskAiMessage } from "@/lib/analytics";
 
 interface Thread {
   id: string;
@@ -130,6 +131,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         data.userMessage,
         data.aiMessage,
       ];
+      trackAskAiMessage();
       setMessages((prev) => {
         const updated = newMsgs(prev);
         try { localStorage.setItem(`askai_msgs_${threadId}`, JSON.stringify(updated)); } catch { /* ignore */ }

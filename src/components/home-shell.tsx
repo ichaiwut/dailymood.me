@@ -9,6 +9,7 @@ import { AiDisclaimer } from "./ai-disclaimer";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { Link } from "@/i18n/navigation";
+import { trackMoodLog } from "@/lib/analytics";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -176,6 +177,7 @@ export function HomeShell({
       setComposerImagePreview(null);
       if (tier === "premium") setComposerAiBlocked(false);
       setComposerError(null);
+      trackMoodLog("smart_log");
       setRefreshKey((k) => k + 1);
       setToast(locale === "th" ? "บันทึกแล้ว ✓" : "Saved ✓");
       setTimeout(() => setToast(null), 2500);

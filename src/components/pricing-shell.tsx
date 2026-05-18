@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import type { Tier } from "@/lib/tier";
-import { trackPricingView, trackPlanSelect, trackCheckoutStart, trackCheckoutSuccess } from "@/lib/analytics";
+import { trackPricingView, trackPlanSelect, trackCheckoutStart, trackCheckoutSuccess, trackCheckoutCancelled } from "@/lib/analytics";
 
 type Plan = "monthly" | "yearly";
 
@@ -37,6 +37,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
       globalThis.history.replaceState(null, "", "/pricing");
     }
     if (searchParams.get("cancelled") === "1") {
+      trackCheckoutCancelled();
       setCancelled(true);
       globalThis.history.replaceState(null, "", "/pricing");
     }
