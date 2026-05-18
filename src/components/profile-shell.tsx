@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { trackExportData, trackUpgradeClick } from "@/lib/analytics";
+import { trackExportData, trackUpgradeClick, trackFeatureUse } from "@/lib/analytics";
 import { signOut } from "next-auth/react";
 import { CustomMoodManager } from "./custom-mood-manager";
 import { R2_PUBLIC_URL, DEFAULT_MOOD_PACK } from "@/lib/moods";
@@ -588,6 +588,7 @@ export function ProfileShell() {
                           body: JSON.stringify({ moodPack: pack.id }),
                         }).then((r) => {
                           if (!r.ok) { setSelectedPack(prev); return; }
+                          trackFeatureUse("mood_pack_change");
                           clearTimeout(toastTimer.current);
                           setToast(locale === "th" ? `เปลี่ยนเป็น ${pack.label} แล้ว ✓` : `Switched to ${pack.label} ✓`);
                           toastTimer.current = setTimeout(() => setToast(null), 3000);
