@@ -376,6 +376,20 @@ export function ProfileShell() {
         </div>
       )}
 
+      {/* Saved Articles */}
+      <Link
+        href={"/profile/saved-articles" as "/"}
+        className="fade-in"
+        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: "var(--surface)", borderRadius: 16, border: "1px solid var(--hairline)", marginBottom: 20, textDecoration: "none", color: "inherit", animationDelay: "130ms" }}
+      >
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: "#FFF4EB", display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>♥</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "บทความที่บันทึกไว้" : "Saved articles"}</div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{locale === "th" ? "อ่านซ้ำบทความที่ชอบ" : "Re-read your favorites"}</div>
+        </div>
+        <span style={{ fontSize: 14, color: "var(--ink-3)" }}>→</span>
+      </Link>
+
       </aside>
       {/* ── MAIN CONTENT ── */}
       <div>

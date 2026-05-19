@@ -291,35 +291,6 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
             </div>
           </div>
 
-          {/* Reading Reaction */}
-          <div style={{ background: tone.bgHue, borderRadius: 18, padding: "22px 26px", marginBottom: 32 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 2 }}>{t("reactionTitle")}</div>
-                <div style={{ fontSize: 14, color: "var(--ink-2)" }}>{t("reactionSubtitle")}</div>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {REACTION_MOODS.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => reactMood(m.id)}
-                    style={{
-                      width: 48, height: 48, borderRadius: "50%", fontSize: 24,
-                      background: reactionMood === m.id ? m.color : "#fff",
-                      border: reactionMood === m.id ? "none" : "1px solid var(--hairline)",
-                      cursor: "pointer", display: "grid", placeItems: "center",
-                      boxShadow: reactionMood === m.id ? `0 6px 14px -4px ${m.color}` : "none",
-                      transform: reactionMood === m.id ? "scale(1.08)" : "none",
-                      transition: "all .15s ease",
-                    }}
-                  >
-                    {m.emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
 
           {/* Tags */}
           {article.tags && article.tags.length > 0 && (
