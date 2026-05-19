@@ -8,6 +8,8 @@ const NAV = [
   { href: "/admin/users", label: "ผู้ใช้", icon: "👥" },
   { href: "/admin/entries", label: "บันทึก", icon: "📝" },
   { href: "/admin/packs", label: "Mood Packs", icon: "🎨" },
+  { href: "/admin/articles", label: "บทความ", icon: "📰" },
+  { href: "/admin/article-categories", label: "หมวดหมู่", icon: "🏷️" },
   { href: "/admin/ai", label: "การใช้ AI", icon: "🤖" },
   { href: "/admin/feedback", label: "ความคิดเห็น", icon: "💬" },
 ];

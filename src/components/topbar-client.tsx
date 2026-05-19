@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/calendar", label: "navCalendar", match: (p: string) => p.startsWith("/calendar") },
   { href: "/stats", label: "navStats", match: (p: string) => p.startsWith("/stats") },
   { href: "/insights", label: "navInsights", match: (p: string) => p.startsWith("/insights") || p.startsWith("/ask-ai") },
+  { href: "/articles", label: "navArticles", match: (p: string) => p.startsWith("/articles") },
 ] as const;
 
 export function TopBarClient({
@@ -322,6 +323,9 @@ function UserMenu({
         {email && <div className="truncate text-xs" style={{ color: "var(--ink-3)" }}>{email}</div>}
       </div>
       <div className="py-1.5">
+        <Link href={"/articles" as "/"} role="menuitem" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm transition hover:bg-black/5" style={{ color: "var(--ink)" }}>
+          {tc("articles")}
+        </Link>
         <Link href="/settings" role="menuitem" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm transition hover:bg-black/5" style={{ color: "var(--ink)" }}>
           {tc("settings")}
         </Link>

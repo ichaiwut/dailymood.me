@@ -268,7 +268,52 @@ export interface ChatResponse {
   entriesUsed: number;
 }
 
+export const articleCategories = pgTable("article_categories", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  labelTh: text("label_th").notNull(),
+  labelEn: text("label_en").notNull(),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+});
+
+export const articles = pgTable("articles", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  categoryId: text("category_id").references(() => articleCategories.id, { onDelete: "set null" }),
+  titleTh: text("title_th").notNull(),
+  titleEn: text("title_en").notNull(),
+  excerptTh: text("excerpt_th").notNull(),
+  excerptEn: text("excerpt_en").notNull(),
+  bodyTh: text("body_th").notNull().default(""),
+  bodyEn: text("body_en").notNull().default(""),
+  coverImageKey: text("cover_image_key"),
+  tone: text("tone").notNull().default("peach"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  viewCount: integer("view_count").notNull().default(0),
+  readingTimeMinutes: integer("reading_time_minutes").notNull().default(3),
+  published: boolean("published").notNull().default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  slugIdx: index("articles_slug_idx").on(t.slug),
+  categoryIdx: index("articles_category_idx").on(t.categoryId),
+  publishedIdx: index("articles_published_idx").on(t.published, t.publishedAt),
+}));
+
+export const articleBookmarks = pgTable("article_bookmarks", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.articleId] }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;
 export type AiUsage = typeof aiUsage.$inferSelect;
+export type Article = typeof articles.$inferSelect;
+export type ArticleCategory = typeof articleCategories.$inferSelect;
+export type ArticleBookmark = typeof articleBookmarks.$inferSelect;

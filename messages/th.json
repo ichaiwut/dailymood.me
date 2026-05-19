@@ -10,7 +10,8 @@
     "cancel": "ยกเลิก",
     "loading": "กำลังโหลด...",
     "privacy": "ความเป็นส่วนตัว",
-    "terms": "ข้อตกลง"
+    "terms": "ข้อตกลง",
+    "articles": "บทความ"
   },
   "home": {
     "hi": "สวัสดี",
@@ -91,7 +92,8 @@
     "actionSmartLog": "Smart Log",
     "actionJournal": "บันทึก",
     "actionMeditate": "ทำสมาธิ",
-    "actionBreath": "หายใจ"
+    "actionBreath": "หายใจ",
+    "navArticles": "บทความ"
   },
   "smart": {
     "title": "บันทึกอารมณ์",
@@ -693,6 +695,41 @@
   },
   "yearPixels": {
     "title": "ภาพรวมทั้งปี"
+  },
+  "articles": {
+    "eyebrow": "คลังบทความ · อัปเดตทุกสัปดาห์",
+    "pageTitle": "อ่านสักนิด — ดูแลใจให้ดี",
+    "pageSubtitle": "เคล็ดลับสุขภาพใจสั้นๆ จากนักจิตวิทยาและทีม DailyMood · อ่านจบใน 5 นาที",
+    "allCategories": "ทั้งหมด",
+    "search": "ค้นหา",
+    "searchPlaceholder": "ค้นหาบทความ...",
+    "featured": "บทความแนะนำ",
+    "minUnit": "นาที",
+    "readMore": "อ่านต่อ",
+    "backToArticles": "กลับไปบทความ",
+    "emptyTitle": "ยังไม่มีบทความ",
+    "emptyBody": "กลับมาอ่านใหม่เร็วๆ นี้",
+    "notFoundTitle": "ไม่พบบทความ",
+    "notFoundBody": "บทความนี้อาจถูกลบหรือยังไม่ได้เผยแพร่",
+    "save": "บันทึก",
+    "share": "แชร์",
+    "linkCopied": "คัดลอกลิงก์แล้ว",
+    "views": "อ่านแล้ว",
+    "tocTitle": "สารบัญ",
+    "progress": "ความคืบหน้า",
+    "outroEyebrow": "คีย์สำคัญ · จดบันทึก",
+    "outroBody": "ลองนำสิ่งที่อ่านไปใช้จริงในวันนี้ เริ่มจากการบันทึกความรู้สึกของตัวเอง",
+    "outroCta": "เริ่มบันทึก mood แรกของวันนี้ →",
+    "reactionTitle": "อ่านจบแล้วรู้สึกยังไงบ้าง?",
+    "reactionSubtitle": "บันทึกอารมณ์ตอนนี้ เพื่อให้ AI รู้ว่าบทความแบบไหนช่วยคุณได้",
+    "journalPromptTitle": "เก็บเป็น journal prompt",
+    "journalPromptDesc": "บันทึกบทความนี้เป็น prompt ในไดอารี่ของคุณ AI จะใช้เป็น context",
+    "journalPromptBtn": "+ เพิ่มเข้า journal",
+    "practiceActive": "เพิ่มแล้ว · กำลังฝึก 7 วัน",
+    "practiceRunning": "คำถามที่จะปรากฏในหน้า Today ของคุณ:",
+    "practiceExtracting": "กำลังสร้างคำถาม...",
+    "practiceMaxReached": "ฝึกได้สูงสุด 2 บทความพร้อมกัน ลองหยุดอันเก่าก่อน",
+    "relatedTitle": "อ่านต่อ"
   },
   "aiDisclaimer": {
     "chat": "AI อาจตอบผิด อย่ายึดเป็นคำแนะนำสุขภาพ",

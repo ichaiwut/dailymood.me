@@ -233,6 +233,7 @@ export function HomeShell({
   const todayStr = new Date().toDateString();
   const todayEntries = entries?.filter(e => new Date(e.createdAt).toDateString() === todayStr) ?? [];
 
+
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 24 }} className="home-grid">

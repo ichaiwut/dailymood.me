@@ -10,7 +10,8 @@
     "cancel": "Cancel",
     "loading": "Loading...",
     "privacy": "Privacy",
-    "terms": "Terms"
+    "terms": "Terms",
+    "articles": "Articles"
   },
   "home": {
     "hi": "Hi",
@@ -91,7 +92,8 @@
     "actionSmartLog": "Smart Log",
     "actionJournal": "Journal",
     "actionMeditate": "Meditate",
-    "actionBreath": "Breathe"
+    "actionBreath": "Breathe",
+    "navArticles": "Read"
   },
   "smart": {
     "title": "Log Mood",
@@ -693,6 +695,41 @@
   },
   "yearPixels": {
     "title": "Full Year Overview"
+  },
+  "articles": {
+    "eyebrow": "Articles · Updated weekly",
+    "pageTitle": "Read a little — take care of your mind",
+    "pageSubtitle": "Short mental health tips from psychologists and the DailyMood team · 5-min reads",
+    "allCategories": "All",
+    "search": "Search",
+    "searchPlaceholder": "Search articles...",
+    "featured": "Featured",
+    "minUnit": "min",
+    "readMore": "Read more",
+    "backToArticles": "Back to articles",
+    "emptyTitle": "No articles yet",
+    "emptyBody": "Check back soon for new content.",
+    "notFoundTitle": "Article not found",
+    "notFoundBody": "This article may have been removed or is not yet published.",
+    "save": "Save",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "views": "views",
+    "tocTitle": "Contents",
+    "progress": "Progress",
+    "outroEyebrow": "Key takeaway · Journal",
+    "outroBody": "Try applying what you've read today. Start by logging how you feel right now.",
+    "outroCta": "Log your first mood today →",
+    "reactionTitle": "How do you feel after reading?",
+    "reactionSubtitle": "Log your mood so AI can learn which content helps you.",
+    "journalPromptTitle": "Save as journal prompt",
+    "journalPromptDesc": "Save this article as a prompt in your journal. AI will use it as context.",
+    "journalPromptBtn": "+ Add to journal",
+    "practiceActive": "Added · Practicing for 7 days",
+    "practiceRunning": "Questions that will appear on your Today page:",
+    "practiceExtracting": "Creating questions...",
+    "practiceMaxReached": "You can practice up to 2 articles at a time. Try stopping an existing one first.",
+    "relatedTitle": "Read next"
   },
   "aiDisclaimer": {
     "chat": "AI can be wrong — don't take it as health advice.",
