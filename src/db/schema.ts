@@ -84,6 +84,9 @@ export const moodEntries = pgTable("mood_entries", {
   sentiment: real("sentiment"),
   aiSummary: text("ai_summary"),
   aiSource: text("ai_source").notNull().default("manual"),
+  location: text("location"),
+  locationLat: real("location_lat"),
+  locationLng: real("location_lng"),
   date: text("date").notNull(),
   createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 }, (t) => ({

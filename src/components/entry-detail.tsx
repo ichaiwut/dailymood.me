@@ -16,6 +16,9 @@ interface EntryData {
   aiSummary?: string | null;
   aiSource: string;
   imageUrl?: string | null;
+  location?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
   isPremium?: boolean;
   entryNumber?: number;
   date: string;
@@ -148,11 +151,6 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
             </div>
           )}
 
-          {/* Image */}
-          {entry.imageUrl && (
-            <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 320, objectFit: "cover", borderRadius: 18, background: "var(--surface-2)" }} />
-          )}
-
           {/* AI Insight */}
           {entry.aiSummary && (
             <div style={{
@@ -163,12 +161,89 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
                 <div style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#7A4DD0", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
               </div>
               <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
               <div style={{ marginTop: 10 }}>
                 <AiDisclaimer variant="analysis" />
               </div>
+            </div>
+          )}
+
+          {/* Image + Location section */}
+          {(entry.imageUrl || entry.location) && (
+            <div>
+              {(entry.imageUrl || entry.location) && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                    {th ? "ช่วงเวลานี้" : "This moment"}
+                  </div>
+                  <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                    {[entry.imageUrl && (th ? "1 รูป" : "1 photo"), entry.location && (th ? "1 สถานที่" : "1 place")].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+              )}
+
+              {/* Photo */}
+              {entry.imageUrl && (
+                <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "var(--surface-2)" }}>
+                  <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 420, objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{timeLabel} {th ? "น." : ""}</span>
+                  </div>
+                  {entry.note && (
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 16px 14px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {entry.note.slice(0, 60)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Map */}
+              {entry.location && entry.locationLat && entry.locationLng && (
+                <div style={{ marginTop: entry.imageUrl ? 12 : 0, borderRadius: 18, overflow: "hidden", border: "1.5px solid var(--hairline)" }}>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${entry.locationLat},${entry.locationLng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "block", position: "relative" }}
+                  >
+                    <img
+                      src={`https://maps.googleapis.com/maps/api/staticmap?center=${entry.locationLat},${entry.locationLng}&zoom=15&size=600x200&scale=2&markers=color:red|${entry.locationLat},${entry.locationLng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
+                      alt={entry.location}
+                      style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }}
+                    />
+                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>G</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>Maps</span>
+                    </div>
+                  </a>
+                  <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#D14343" />
+                    </svg>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{entry.location}</div>
+                      <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                        {entry.locationLat.toFixed(4)}° N, {entry.locationLng.toFixed(4)}° E
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Location without coordinates — text only */}
+              {entry.location && (!entry.locationLat || !entry.locationLng) && (
+                <div style={{ marginTop: entry.imageUrl ? 12 : 0, display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", background: "var(--surface)", border: "1.5px solid var(--hairline)", borderRadius: 14 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="var(--ink-3)" />
+                  </svg>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{entry.location}</span>
+                </div>
+              )}
             </div>
           )}
 

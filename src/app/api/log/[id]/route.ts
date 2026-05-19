@@ -88,6 +88,9 @@ interface PatchBody {
   imageKey?: string | null;
   aiSummary?: string | null;
   aiSource?: "manual" | "nlp" | "vision" | "nlp+vision";
+  location?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
   date?: string;
   createdAt?: string;
 }
@@ -136,6 +139,9 @@ export async function PATCH(
   if ("imageKey" in body) updateData.imageKey = body.imageKey ?? null;
   if (body.aiSummary !== undefined) updateData.aiSummary = body.aiSummary;
   if (body.aiSource !== undefined) updateData.aiSource = body.aiSource;
+  if (body.location !== undefined) updateData.location = body.location?.trim()?.slice(0, 200) || null;
+  if (body.locationLat !== undefined) updateData.locationLat = body.locationLat;
+  if (body.locationLng !== undefined) updateData.locationLng = body.locationLng;
   if (body.date !== undefined) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
       return NextResponse.json({ error: "invalid_date" }, { status: 400 });

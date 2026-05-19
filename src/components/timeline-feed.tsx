@@ -13,6 +13,7 @@ export interface TimelineEntry {
   aiSummary: string | null;
   tags: string[] | null;
   imageUrl: string | null;
+  location: string | null;
   date: string;
   createdAt: string | number;
 }
@@ -250,6 +251,16 @@ function EntryCard({ entry, locale, pack, iconFormat }: { entry: TimelineEntry; 
               {tag}
             </span>
           ))}
+        </div>
+      )}
+      {entry.location && (
+        <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--ink-3)" />
+          </svg>
+          <span style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {entry.location}
+          </span>
         </div>
       )}
     </Link>

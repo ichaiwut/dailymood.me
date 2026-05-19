@@ -106,6 +106,10 @@ export function trackUpgradeClick(source: string) {
 
 // ── Entry actions ──
 
+export function trackLocationSet(source: "gps" | "search") {
+  trackEvent({ action: "location_set", category: "engagement", label: source });
+}
+
 export function trackEntryDelete() {
   trackEvent({ action: "entry_delete", category: "engagement" });
 }

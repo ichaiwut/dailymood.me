@@ -151,6 +151,16 @@ export function DaySheet({
                   </div>
                 )}
 
+                {/* Location */}
+                {e.location && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--ink-3)" />
+                    </svg>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{e.location}</span>
+                  </div>
+                )}
+
                 {/* AI insight */}
                 {e.aiSummary && (
                   <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 20 }}>

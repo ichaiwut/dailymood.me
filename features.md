@@ -42,6 +42,7 @@
 - [x] Custom Mood Types (Premium)
 - [x] Multi-entry per day (timeline)
 - [x] Mood Icon Packs — SVG/WebP/PNG icons hosted on R2 at `{packId}/{moodId}.{format}`; default pack `set_486038`. `users.mood_pack` stores selection. Free users can switch between free packs; premium packs require Pro. Profile page has "Mood Icons" section with grid cards showing preview of all packs.
+- [x] Location (optional) — optional place name on entries. GPS auto-detect (browser Geolocation → Google Geocoder reverse lookup) + Google Places Autocomplete text search. `LocationPicker` component (`src/components/location-picker.tsx`) lazy-loads `@googlemaps/js-api-loader` on mount. DB: `mood_entries.location` nullable text (max 200 chars). Available to all users (Free + Premium). Shown on Smart Log Modal (below toolbar), Edit Entry, Entry Detail, Timeline cards, DaySheet mini cards. Env: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. Graceful degradation: returns null if env var not set.
 
 #### Smart Logging (AI)
 - [x] Smart Log Modal — text + voice + image
@@ -166,7 +167,7 @@
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
-- `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSummary, aiSource, date, createdAt
+- `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSummary, aiSource, **location** (nullable text, max 200 chars), date, createdAt
 - `ai_usage` — (userId, date) PK, nlpCount, visionCount
 - `rate_limits` — key PK (`<endpoint>:<ip>`), count, resetAt — fixed-window rate limit on D1
 

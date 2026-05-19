@@ -15,6 +15,9 @@ interface ConfirmBody {
   imageKey?: string | null;
   aiSource?: "manual" | "nlp" | "vision" | "nlp+vision";
   aiSummary?: string | null;
+  location?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
   date?: string;
 }
 
@@ -67,6 +70,9 @@ export async function POST(req: NextRequest) {
     imageKey: body.imageKey ?? null,
     aiSummary: body.aiSummary ?? null,
     aiSource: body.aiSource ?? "manual",
+    location: body.location?.trim()?.slice(0, 200) || null,
+    locationLat: body.locationLat ?? null,
+    locationLng: body.locationLng ?? null,
     date: entryDate,
   });
 

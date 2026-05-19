@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
       aiSummary: moodEntries.aiSummary,
       tags: moodEntries.tags,
       imageKey: moodEntries.imageKey,
+      location: moodEntries.location,
       date: moodEntries.date,
       createdAt: moodEntries.createdAt,
     })

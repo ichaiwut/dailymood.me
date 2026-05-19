@@ -9,6 +9,7 @@ import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { LocationSearch } from "./location-picker";
 import { trackMoodLog, trackEntryDelete } from "@/lib/analytics";
 
 interface EntryData {
@@ -21,6 +22,9 @@ interface EntryData {
   aiSource: string;
   imageKey: string | null;
   imageUrl: string | null;
+  location: string | null;
+  locationLat: number | null;
+  locationLng: number | null;
   isPremium: boolean;
   date: string;
   createdAt: string | number;
@@ -54,6 +58,10 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
+  const [locationLat, setLocationLat] = useState<number | undefined>();
+  const [locationLng, setLocationLng] = useState<number | undefined>();
+  const [showLocationSearch, setShowLocationSearch] = useState(false);
   const [dateVal, setDateVal] = useState("");
   const [timeVal, setTimeVal] = useState("");
   const [isPremium, setIsPremium] = useState(false);
@@ -91,6 +99,9 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         setAiSource(data.aiSource);
         setImageKey(data.imageKey);
         setImageUrl(data.imageUrl);
+        setLocation(data.location ?? "");
+        setLocationLat(data.locationLat ?? undefined);
+        setLocationLng(data.locationLng ?? undefined);
         setIsPremium(data.isPremium);
         setEntryNumber(data.entryNumber ?? null);
         const d = new Date(data.createdAt);
@@ -173,7 +184,9 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           moodTypeId: moodId, note: note.trim() || null, tags, sentiment,
-          imageKey: finalImageKey, aiSummary, aiSource, date: dateVal, createdAt,
+          imageKey: finalImageKey, aiSummary, aiSource,
+          location: location.trim() || null, locationLat: locationLat ?? null, locationLng: locationLng ?? null,
+          date: dateVal, createdAt,
         }),
       });
       if (!res.ok) { setError(t("errGeneric")); return; }
@@ -182,7 +195,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
     } finally {
       setSaving(false);
     }
-  }, [dateVal, timeVal, note, moodId, tags, sentiment, imageKey, imageFile, aiSummary, aiSource, id, t, router]);
+  }, [dateVal, timeVal, note, moodId, tags, sentiment, imageKey, imageFile, aiSummary, aiSource, location, id, t, router]);
 
   async function handleDelete() {
     setDeleting(true);
@@ -426,6 +439,31 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                 {analyzing ? t("reanalyzing") : t("reanalyzeShort")}
               </button>
             </div>
+          </div>
+
+          {/* ── Location ── */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)" }}>
+                {th ? "สถานที่" : "Location"}
+              </div>
+              <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: showLocationSearch ? "var(--ink)" : "var(--surface)", border: "1px solid var(--hairline)", cursor: "pointer", fontSize: 14, fontWeight: 600, color: showLocationSearch ? "#fff" : "var(--ink-2)" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor" /></svg>
+                {th ? "เพิ่ม" : "Add"}
+              </button>
+            </div>
+            {location && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, padding: "6px 12px", borderRadius: 100, background: "#F4EEFB" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" /></svg>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{location}</span>
+                <button type="button" onClick={() => setLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="var(--ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                </button>
+              </div>
+            )}
+            {showLocationSearch && (
+              <LocationSearch locale={locale} onSelect={(v, lat, lng) => { setLocation(v); setLocationLat(lat); setLocationLng(lng); setShowLocationSearch(false); }} onClose={() => setShowLocationSearch(false)} />
+            )}
           </div>
 
           {/* ── AI Suggestion Result ── */}

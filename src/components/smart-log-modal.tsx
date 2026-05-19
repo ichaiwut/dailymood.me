@@ -8,6 +8,7 @@ import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { LocationSearch } from "./location-picker";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -84,6 +85,10 @@ export function SmartLogModal({
   const [countdown, setCountdown] = useState(0);
   const [aiRemaining, setAiRemaining] = useState<number | null>(null);
   const [aiLimit, setAiLimit] = useState<number | null>(null);
+  const [location, setLocation] = useState("");
+  const [locationLat, setLocationLat] = useState<number | undefined>();
+  const [locationLng, setLocationLng] = useState<number | undefined>();
+  const [showLocationSearch, setShowLocationSearch] = useState(false);
 
   useEffect(() => {
     if (!analyzing) { setAiStep(0); return; }
@@ -207,6 +212,9 @@ export function SmartLogModal({
           imageKey,
           aiSummary: suggestion?.aiSummary ?? null,
           aiSource: suggestion?.aiSource ?? "manual",
+          location: location.trim() || undefined,
+          locationLat: locationLat ?? undefined,
+          locationLng: locationLng ?? undefined,
           ...(presetDate ? { date: presetDate } : {}),
         }),
       });
@@ -332,7 +340,20 @@ export function SmartLogModal({
                 </div>
               )}
 
-              {/* Mic + Image buttons + AI count */}
+              {/* Location tag below textarea */}
+              {location && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "#F4EEFB", maxWidth: "100%" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" />
+                  </svg>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{location}</span>
+                  <button type="button" onClick={() => setLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="var(--ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Mic + Image + Location buttons + AI count */}
               <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "center" }}>
                 <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
                 <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "#fff", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 14, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
@@ -341,12 +362,26 @@ export function SmartLogModal({
                   {tier !== "premium" && <span style={{ position: "absolute", top: -6, right: -4, background: "var(--ink)", color: "#fff", fontSize: 14, fontWeight: 800, padding: "1px 5px", borderRadius: 4 }}>PRO</span>}
                   {tier === "premium" && <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); } }} />}
                 </label>
+                <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 100, border: "1px solid var(--hairline)", background: showLocationSearch ? "var(--ink)" : "#fff", cursor: "pointer" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={showLocationSearch ? "#fff" : "currentColor"} />
+                  </svg>
+                </button>
                 {aiLimit !== null && aiRemaining !== null && (
                   <span style={{ fontSize: 14, color: "var(--ink-3)", marginLeft: "auto" }}>
                     {locale === "th" ? `เหลือ AI วันนี้ ${aiRemaining} / ${aiLimit}` : `AI remaining ${aiRemaining} / ${aiLimit}`}
                   </span>
                 )}
               </div>
+
+              {/* Location search field */}
+              {showLocationSearch && (
+                <LocationSearch
+                  locale={locale}
+                  onSelect={(v, lat, lng) => { setLocation(v); setLocationLat(lat); setLocationLng(lng); setShowLocationSearch(false); }}
+                  onClose={() => setShowLocationSearch(false)}
+                />
+              )}
 
               {/* Error (non-rate-limit) */}
               {error && (

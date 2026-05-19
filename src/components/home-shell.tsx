@@ -8,6 +8,7 @@ import { SmartLogModal } from "./smart-log-modal";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
+import { LocationSearch } from "./location-picker";
 import { Link } from "@/i18n/navigation";
 import { trackMoodLog } from "@/lib/analytics";
 
@@ -20,6 +21,7 @@ interface Entry {
   tags?: string[] | null;
   aiSource?: string;
   imageUrl?: string | null;
+  location?: string | null;
   date: string;
   createdAt: string | number;
 }
@@ -76,6 +78,10 @@ export function HomeShell({
   const [composerBusy, setComposerBusy] = useState(false);
   const [composerError, setComposerError] = useState<string | null>(null);
   const [composerAiBlocked, setComposerAiBlocked] = useState(false);
+  const [composerLocation, setComposerLocation] = useState("");
+  const [composerLocationLat, setComposerLocationLat] = useState<number | undefined>();
+  const [composerLocationLng, setComposerLocationLng] = useState<number | undefined>();
+  const [showComposerLocationSearch, setShowComposerLocationSearch] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const composerHasInput = composerText.trim().length > 0 || !!composerImage;
 
@@ -157,6 +163,9 @@ export function HomeShell({
           imageKey,
           aiSummary: composerSuggestion?.aiSummary ?? null,
           aiSource: composerSuggestion?.aiSource ?? "manual",
+          location: composerLocation.trim() || undefined,
+          locationLat: composerLocationLat ?? undefined,
+          locationLng: composerLocationLng ?? undefined,
         }),
       });
       if (!res.ok) {
@@ -175,6 +184,9 @@ export function HomeShell({
       setComposerMoodId("neutral");
       setComposerImage(null);
       setComposerImagePreview(null);
+      setComposerLocation("");
+      setComposerLocationLat(undefined);
+      setComposerLocationLng(undefined);
       if (tier === "premium") setComposerAiBlocked(false);
       setComposerError(null);
       trackMoodLog("smart_log");
@@ -357,6 +369,17 @@ export function HomeShell({
             </div>
           )}
 
+          {/* Location tag */}
+          {composerLocation && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "#F4EEFB" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" /></svg>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{composerLocation}</span>
+              <button type="button" onClick={() => setComposerLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="var(--ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+              </button>
+            </div>
+          )}
+
           {/* Error / Info */}
           {composerError && (
             <div className="mt-2.5" style={{ padding: "10px 14px", borderRadius: 12, background: "#F4EEFB", border: "1px solid #E6DBF7" }}>
@@ -470,6 +493,20 @@ export function HomeShell({
                 />
               )}
             </label>
+            <button
+              type="button"
+              onClick={() => setShowComposerLocationSearch(!showComposerLocationSearch)}
+              className="icon-btn"
+              style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: showComposerLocationSearch ? "var(--ink)" : undefined,
+                color: showComposerLocationSearch ? "#fff" : undefined,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor" />
+              </svg>
+            </button>
             <div style={{ flex: 1 }} />
             {(composerSuggestion || composerAiBlocked) && !composerAnalyzing ? (
               <button
@@ -519,6 +556,15 @@ export function HomeShell({
               </button>
             ) : null}
           </div>
+
+          {/* Location search */}
+          {showComposerLocationSearch && (
+            <LocationSearch
+              locale={locale}
+              onSelect={(v, lat, lng) => { setComposerLocation(v); setComposerLocationLat(lat); setComposerLocationLng(lng); setShowComposerLocationSearch(false); }}
+              onClose={() => setShowComposerLocationSearch(false)}
+            />
+          )}
 
           <div className="mt-3">
             <AiDisclaimer variant="analysis" />
@@ -835,6 +881,16 @@ function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat =
               # {tag}
             </span>
           ))}
+        </div>
+      )}
+      {entry.location && (
+        <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--ink-3)" />
+          </svg>
+          <span style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {entry.location}
+          </span>
         </div>
       )}
     </Link>
