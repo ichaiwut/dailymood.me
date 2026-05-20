@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { TopBar } from "@/components/topbar";
-import { BottomNav } from "@/components/bottom-nav";
+
 import { SiteFooter } from "@/components/site-footer";
 
 export default async function ArticlesLayout({
@@ -21,7 +21,6 @@ export default async function ArticlesLayout({
         {children}
       </main>
       <SiteFooter />
-      <BottomNav />
     </>
   );
 }

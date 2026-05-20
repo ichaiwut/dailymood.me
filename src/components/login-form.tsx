@@ -230,6 +230,12 @@ function LandingStep({
           {t("createAnAccount")}
         </button>
       </p>
+
+      <p className="text-center pt-1" style={{ fontSize: 14 }}>
+        <a href="/articles" style={{ color: "var(--ink-3)", textDecoration: "none" }}>
+          {t("browseArticles")} →
+        </a>
+      </p>
     </div>
   );
 }
