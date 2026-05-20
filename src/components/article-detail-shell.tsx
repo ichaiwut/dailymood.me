@@ -283,7 +283,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
           {/* Hero / Cover */}
           {article.coverImageUrl ? (
             <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 32, border: "1px solid var(--hairline)" }}>
-              <img src={article.coverImageUrl} alt="" style={{ width: "100%", height: 300, objectFit: "cover", display: "block" }} />
+              <img src={article.coverImageUrl} alt="" style={{ width: "100%", height: 420, objectFit: "cover", display: "block" }} />
             </div>
           ) : (
             <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 32, border: "1px solid var(--hairline)", height: 200, background: `linear-gradient(135deg, ${tone.bgHue}, var(--surface-2))` }} />
@@ -315,9 +315,13 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
                 </>
               ) : (
                 <>
-                  <p style={{ fontSize: 18, lineHeight: 1.6, margin: "0 0 18px" }}>
-                    {keyTakeaway || (isGuest ? t("guestBannerBody") : t("outroBody"))}
-                  </p>
+                  <p
+                    style={{ fontSize: 18, lineHeight: 1.6, margin: "0 0 18px" }}
+                    dangerouslySetInnerHTML={{
+                      __html: (keyTakeaway || (isGuest ? t("guestBannerBody") : t("outroBody")))
+                        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"),
+                    }}
+                  />
                   {isGuest ? (
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <Link href={"/login" as "/"} className="w-btn w-btn-primary" style={{ height: 44, padding: "0 22px", fontSize: 14, textDecoration: "none" }}>

@@ -208,7 +208,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
                 background: featured.coverImageUrl
                   ? `url(${featured.coverImageUrl}) center/cover no-repeat`
                   : "linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%)",
-                minHeight: 220,
+                minHeight: 300,
                 position: "relative",
                 padding: 20,
                 display: "flex",
@@ -351,7 +351,7 @@ function ArticleCard({
     <Link href={`/articles/${article.slug}` as "/"} style={{ textDecoration: "none", color: "inherit" }}>
       <div className="card" style={{ borderRadius: 18, overflow: "hidden", height: "100%", display: "flex", flexDirection: "column" }}>
         {article.coverImageUrl && (
-          <div style={{ height: 140, background: `url(${article.coverImageUrl}) center/cover`, flexShrink: 0 }} />
+          <div style={{ height: 180, background: `url(${article.coverImageUrl}) center/cover`, flexShrink: 0 }} />
         )}
         <div style={{ padding: 18, flex: 1, display: "flex", flexDirection: "column" }}>
           {article.categoryLabelTh && (
