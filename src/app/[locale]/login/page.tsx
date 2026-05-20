@@ -109,8 +109,8 @@ export default async function LoginPage() {
           </h1>
           <p style={{ fontSize: 14, color: "#4A3F55", margin: "10px 0 0", lineHeight: 1.55, maxWidth: 540 }}>
             {locale === "th"
-              ? "เนื้อหาจากนักจิตวิทยาและทีม DailyMood · อัปเดตทุกสัปดาห์"
-              : "Content from psychologists and the DailyMood team · Updated weekly"}
+              ? "บทความดูแลสุขภาพใจ · อัปเดตทุกสัปดาห์"
+              : "Mental health articles · Updated weekly"}
           </p>
         </div>
 
