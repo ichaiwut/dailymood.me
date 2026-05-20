@@ -126,7 +126,7 @@ export default async function LoginPage() {
             return (
               <a
                 key={a.slug}
-                href={`/${locale}/articles/${a.slug}`}
+                href={`/articles/${a.slug}`}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "170px 1fr",
@@ -182,7 +182,7 @@ export default async function LoginPage() {
 
         {/* 4. Footer link */}
         <a
-          href={`/${locale}/articles`}
+          href={"/articles"}
           style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginTop: 18, padding: "14px 18px",

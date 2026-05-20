@@ -66,7 +66,7 @@ export function MobileLoginFeed({
         {/* Featured card */}
         {featured && (
           <a
-            href={`/${locale}/articles/${featured.slug}`}
+            href={`/articles/${featured.slug}`}
             style={{
               display: "block", textDecoration: "none", color: "inherit",
               background: "#fff", borderRadius: 16, overflow: "hidden",
@@ -103,7 +103,7 @@ export function MobileLoginFeed({
         {rest.map((a) => (
           <a
             key={a.slug}
-            href={`/${locale}/articles/${a.slug}`}
+            href={`/articles/${a.slug}`}
             style={{
               display: "grid", gridTemplateColumns: "88px 1fr", gap: 14,
               padding: "14px 0", textDecoration: "none", color: "inherit",
@@ -134,7 +134,7 @@ export function MobileLoginFeed({
 
         {/* See all */}
         <a
-          href={`/${locale}/articles`}
+          href={"/articles"}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             marginTop: 16, padding: "12px 14px", borderRadius: 12,
@@ -172,7 +172,7 @@ export function MobileLoginFeed({
             Google
           </button>
           <button
-            onClick={() => { window.location.href = `/${locale}/login`; }}
+            onClick={() => { window.location.href = "/login"; }}
             style={{
               flex: 1, height: 46, borderRadius: 12,
               background: "#1A1320", color: "#fff", border: "none",
