@@ -14,11 +14,9 @@ export async function GET(req: NextRequest) {
 
   const db = getDb();
 
-  const [cats, categoryMap] = await (async () => {
-    const rows = await db.select().from(articleCategories).orderBy(asc(articleCategories.order));
-    const map = new Map(rows.map((c) => [c.id, c]));
-    return [rows, map] as const;
-  })();
+  // Fetch categories first (needed for filtering + labels)
+  const cats = await db.select().from(articleCategories).orderBy(asc(articleCategories.order));
+  const categoryMap = new Map(cats.map((c) => [c.id, c]));
 
   const conditions = [eq(articles.published, true)];
 
