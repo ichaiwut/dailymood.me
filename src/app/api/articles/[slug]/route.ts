@@ -4,13 +4,13 @@ import { getDb } from "@/lib/cf";
 import { articles, articleCategories, articleBookmarks } from "@/db/schema";
 import { and, eq, ne, desc, count, sql } from "drizzle-orm";
 import { getSignedReadUrl } from "@/lib/r2";
+import { generateKeyTakeaway } from "@/lib/gemini";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { userId } = await getSessionInfo();
-  if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
   const { slug } = await params;
   const db = getDb();
@@ -34,7 +34,9 @@ export async function GET(
       ? db.select().from(articleCategories).where(eq(articleCategories.id, row.categoryId)).limit(1).then((r) => r[0] ?? null)
       : Promise.resolve(null),
     row.coverImageKey ? getSignedReadUrl(row.coverImageKey) : Promise.resolve(null),
-    db.select().from(articleBookmarks).where(and(eq(articleBookmarks.userId, userId), eq(articleBookmarks.articleId, row.id))).limit(1),
+    userId
+      ? db.select().from(articleBookmarks).where(and(eq(articleBookmarks.userId, userId), eq(articleBookmarks.articleId, row.id))).limit(1)
+      : Promise.resolve([]),
     db.select({ c: count() }).from(articleBookmarks).where(eq(articleBookmarks.articleId, row.id)),
     db.select({
       id: articles.id,
@@ -63,10 +65,34 @@ export async function GET(
     return { ...r, categoryLabelTh: cat?.labelTh ?? null, categoryLabelEn: cat?.labelEn ?? null };
   });
 
+  // Lazy-generate key takeaway via AI (once, then serve from DB)
+  let keyTakeawayTh = row.keyTakeawayTh;
+  let keyTakeawayEn = row.keyTakeawayEn;
+  if (!keyTakeawayTh) {
+    generateKeyTakeaway(JSON.stringify({
+      titleTh: row.titleTh,
+      titleEn: row.titleEn,
+      bodyTh: row.bodyTh.slice(0, 2000),
+      bodyEn: row.bodyEn.slice(0, 2000),
+    }))
+      .then((result) =>
+        db.update(articles)
+          .set({ keyTakeawayTh: result.th, keyTakeawayEn: result.en })
+          .where(eq(articles.id, row.id))
+      )
+      .catch(() => {});
+  }
+
   const { coverImageKey: _omit, ...articleData } = row;
 
   return NextResponse.json({
-    article: { ...articleData, coverImageUrl },
+    article: {
+      ...articleData,
+      coverImageUrl,
+      keyTakeawayTh: userId ? keyTakeawayTh : null,
+      keyTakeawayEn: userId ? keyTakeawayEn : null,
+      hasKeyTakeaway: !!(keyTakeawayTh || keyTakeawayEn),
+    },
     category,
     bookmarked: bookmarkRows.length > 0,
     saveCount: saveCountRows[0]?.c ?? 0,

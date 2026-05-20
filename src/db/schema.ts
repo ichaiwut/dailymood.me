@@ -287,6 +287,8 @@ export const articles = pgTable("articles", {
   excerptEn: text("excerpt_en").notNull(),
   bodyTh: text("body_th").notNull().default(""),
   bodyEn: text("body_en").notNull().default(""),
+  keyTakeawayTh: text("key_takeaway_th"),
+  keyTakeawayEn: text("key_takeaway_en"),
   coverImageKey: text("cover_image_key"),
   tone: text("tone").notNull().default("peach"),
   tags: jsonb("tags").$type<string[]>().default([]),

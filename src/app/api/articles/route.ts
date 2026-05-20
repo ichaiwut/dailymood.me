@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { articles, articleCategories } from "@/db/schema";
 import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { getSignedReadUrl } from "@/lib/r2";
 
 export async function GET(req: NextRequest) {
-  const { userId } = await getSessionInfo();
-  if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim().slice(0, 100) ?? "";

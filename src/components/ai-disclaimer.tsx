@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-type Variant = "chat" | "analysis" | "ask" | "story" | "parse";
+type Variant = "chat" | "analysis" | "ask" | "story" | "parse" | "article";
 
 export function AiDisclaimer({ variant, className, style }: { variant: Variant; className?: string; style?: React.CSSProperties }) {
   const t = useTranslations("aiDisclaimer");

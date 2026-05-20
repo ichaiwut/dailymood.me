@@ -462,6 +462,12 @@ button { font-family: inherit; cursor: pointer; }
   .edit-toolbar-spacer { flex-basis: 100% !important; height: 0 !important; }
 }
 
+/* Guest CTA card: floats above BottomNav on mobile */
+.guest-cta-bar { bottom: 24px; }
+@media (max-width: 767px) {
+  .guest-cta-bar { bottom: 110px; }
+}
+
 /* Mood picker: 4-col grid on mobile (override inline flex) */
 @media (max-width: 767px) {
   .hero-card { padding: 20px 16px !important; }

@@ -20,6 +20,9 @@ interface Article {
   viewCount: number;
   readingTimeMinutes: number;
   publishedAt: string | null;
+  keyTakeawayTh: string | null;
+  keyTakeawayEn: string | null;
+  hasKeyTakeaway?: boolean;
 }
 
 interface Category {
@@ -72,9 +75,10 @@ function parseHeadings(body: string): TocItem[] {
   return items;
 }
 
-export function ArticleDetailShell({ slug }: { slug: string }) {
+export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; isGuest?: boolean }) {
   const locale = useLocale();
   const t = useTranslations("articles");
+  const tCommon = useTranslations("aiDisclaimer");
 
   const [article, setArticle] = useState<Article | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
@@ -158,6 +162,7 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
   }, [loading, article]);
 
   async function toggleBookmark() {
+    if (isGuest) return;
     const method = bookmarked ? "DELETE" : "POST";
     setBookmarked(!bookmarked);
     setSaveCount((c) => c + (bookmarked ? -1 : 1));
@@ -176,6 +181,7 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
   }
 
   async function reactMood(moodId: string) {
+    if (isGuest) return;
     setReactionMood(moodId);
     await fetch(`/api/articles/${slug}/reaction`, {
       method: "POST",
@@ -207,7 +213,12 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
   const tone = TONE_MAP[article.tone] ?? TONE_MAP.peach;
   const title = l(article.titleTh, article.titleEn);
   const subtitle = l(article.excerptTh, article.excerptEn);
-  const body = l(article.bodyTh, article.bodyEn);
+  const rawBody = l(article.bodyTh, article.bodyEn);
+
+  const hrIdx = rawBody.lastIndexOf("\n---");
+  const body = hrIdx >= 0 ? rawBody.slice(0, hrIdx).trim() : rawBody;
+  const keyTakeaway = l(article.keyTakeawayTh, article.keyTakeawayEn);
+
   const toc = parseHeadings(body);
   const pubDate = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short", year: "numeric" })
@@ -220,15 +231,21 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
         <Link href={"/articles" as "/"} style={{ color: "var(--ink-3)", textDecoration: "none", fontSize: 14, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
           ← {t("backToArticles")}
         </Link>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            className="w-btn w-btn-ghost"
-            style={{ height: 36, padding: "0 14px", fontSize: 14 }}
-            onClick={toggleBookmark}
-          >
-            <span style={{ color: bookmarked ? "#e53e3e" : "var(--ink-2)" }}>{bookmarked ? "♥" : "♡"}</span>
-            {" "}{t("save")} ({saveCount})
-          </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {isGuest ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 14px", fontSize: 14, color: "var(--ink-3)", borderRadius: 10, background: "var(--surface)", border: "1px solid var(--hairline)" }}>
+              ♡ {t("guestBookmarkHint")}
+            </span>
+          ) : (
+            <button
+              className="w-btn w-btn-ghost"
+              style={{ height: 36, padding: "0 14px", fontSize: 14 }}
+              onClick={toggleBookmark}
+            >
+              <span style={{ color: bookmarked ? "#e53e3e" : "var(--ink-2)" }}>{bookmarked ? "♥" : "♡"}</span>
+              {" "}{t("save")} ({saveCount})
+            </button>
+          )}
           <button
             className="w-btn w-btn-ghost"
             style={{ height: 36, padding: "0 14px", fontSize: 14 }}
@@ -273,21 +290,57 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
           )}
 
           {/* Body */}
-          <ArticleBody body={body} />
+          <ArticleBody body={body} toneColor={tone.hue} toneBg={tone.bgHue} />
 
-          {/* Dark Outro CTA */}
+          {/* Outro CTA */}
           <div style={{ background: "var(--ink)", color: "#fff", borderRadius: 20, padding: "28px 30px", marginTop: 36, marginBottom: 32, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: `radial-gradient(circle, ${tone.hue}, transparent 70%)`, opacity: .4 }} />
             <div style={{ position: "relative" }}>
               <div style={{ fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", opacity: .7, marginBottom: 10 }}>
                 {t("outroEyebrow")}
               </div>
-              <p style={{ fontSize: 18, lineHeight: 1.6, margin: "0 0 18px" }}>
-                {t("outroBody")}
-              </p>
-              <Link href={"/" as "/"} className="w-btn w-btn-primary" style={{ height: 44, padding: "0 22px", fontSize: 14, textDecoration: "none" }}>
-                {t("outroCta")}
-              </Link>
+              {isGuest && article.hasKeyTakeaway ? (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+                    {[100, 95, 88, 60].map((w, i) => (
+                      <div key={i} style={{ width: `${w}%`, height: 16, borderRadius: 8, background: "rgba(255,255,255,0.1)" }} />
+                    ))}
+                  </div>
+                  <p style={{ fontSize: 15, opacity: .7, margin: "0 0 16px" }}>
+                    {t("guestTakeawayHint")}
+                  </p>
+                  <Link href={"/login" as "/"} className="w-btn w-btn-primary" style={{ height: 44, padding: "0 22px", fontSize: 14, textDecoration: "none" }}>
+                    {t("guestBannerLogin")}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p style={{ fontSize: 18, lineHeight: 1.6, margin: "0 0 18px" }}>
+                    {keyTakeaway || (isGuest ? t("guestBannerBody") : t("outroBody"))}
+                  </p>
+                  {isGuest ? (
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <Link href={"/login" as "/"} className="w-btn w-btn-primary" style={{ height: 44, padding: "0 22px", fontSize: 14, textDecoration: "none" }}>
+                        {t("guestBannerSignup")}
+                      </Link>
+                      <Link href={"/login" as "/"} className="w-btn w-btn-ghost" style={{ height: 44, padding: "0 22px", fontSize: 14, textDecoration: "none", color: "#fff", borderColor: "rgba(255,255,255,0.3)" }}>
+                        {t("guestBannerLogin")}
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      <Link href={"/" as "/"} className="w-btn w-btn-primary" style={{ height: 44, padding: "0 22px", fontSize: 14, textDecoration: "none" }}>
+                        {t("outroCta")}
+                      </Link>
+                      {keyTakeaway && (
+                        <p style={{ fontSize: 14, opacity: .5, marginTop: 14, marginBottom: 0 }}>
+                          {tCommon("article")}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
@@ -356,6 +409,49 @@ export function ArticleDetailShell({ slug }: { slug: string }) {
           )}
         </aside>
       </div>
+
+      {/* Guest sticky CTA card */}
+      {isGuest && (
+        <div
+          className="guest-cta-bar"
+          style={{
+            position: "fixed", left: "50%", transform: "translateX(-50%)",
+            zIndex: 50, width: "calc(100% - 32px)", maxWidth: 480,
+          }}
+        >
+          <div style={{
+            background: "var(--ink)", color: "#fff",
+            borderRadius: 18, padding: "16px 22px",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1)",
+            position: "relative", overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute", top: -20, left: -20,
+              width: 100, height: 100, borderRadius: "50%",
+              background: `radial-gradient(circle, ${tone.hue}, transparent 70%)`,
+              opacity: 0.3,
+            }} />
+            <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>
+                {t("guestCtaBar")}
+              </div>
+            </div>
+            <Link
+              href={"/login" as "/"}
+              style={{
+                flexShrink: 0, height: 38, padding: "0 20px",
+                borderRadius: 12, fontSize: 14, fontWeight: 700,
+                background: "#fff", color: "var(--ink)",
+                display: "inline-flex", alignItems: "center",
+                textDecoration: "none",
+              }}
+            >
+              {t("guestCtaBtn")}
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

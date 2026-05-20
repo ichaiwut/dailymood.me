@@ -41,7 +41,7 @@ function getCategoryColor(slug: string | null): string {
   return CATEGORY_COLORS[slug] ?? "var(--purple)";
 }
 
-export function ArticlesShell() {
+export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
   const locale = useLocale();
   const t = useTranslations("articles");
 

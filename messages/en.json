@@ -717,7 +717,7 @@
     "views": "views",
     "tocTitle": "Contents",
     "progress": "Progress",
-    "outroEyebrow": "Key takeaway · Journal",
+    "outroEyebrow": "Key takeaway",
     "outroBody": "Try applying what you've read today. Start by logging how you feel right now.",
     "outroCta": "Log your first mood today →",
     "reactionTitle": "How do you feel after reading?",
@@ -729,13 +729,22 @@
     "practiceRunning": "Questions that will appear on your Today page:",
     "practiceExtracting": "Creating questions...",
     "practiceMaxReached": "You can practice up to 2 articles at a time. Try stopping an existing one first.",
-    "relatedTitle": "Read next"
+    "relatedTitle": "Read next",
+    "guestBookmarkHint": "Sign in to save",
+    "guestCtaBar": "Track your mood every day, free",
+    "guestCtaBtn": "Sign up",
+    "guestBannerTitle": "Enjoyed this article?",
+    "guestBannerBody": "Create a free account to track your mood, save articles for later, and get AI-powered insights",
+    "guestBannerSignup": "Sign up free",
+    "guestBannerLogin": "Sign in",
+    "guestTakeawayHint": "Sign in to see AI summary and recommendations"
   },
   "aiDisclaimer": {
     "chat": "AI can be wrong — don't take it as health advice.",
     "analysis": "Just an AI perspective — use it as input, not a verdict.",
     "ask": "Just AI ideas — not always right.",
     "story": "AI wrote this story — some parts may not be accurate.",
-    "parse": "AI may get it wrong — double-check before saving."
+    "parse": "AI may get it wrong — double-check before saving.",
+    "article": "Summarized by AI · Use your own judgment"
   }
 }

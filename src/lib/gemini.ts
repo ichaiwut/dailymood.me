@@ -593,6 +593,50 @@ export async function generateYearAi(data: string): Promise<YearAiResult> {
   return JSON.parse(r.response.text()) as YearAiResult;
 }
 
+// ── Article Key Takeaway ──
+
+export interface KeyTakeawayResult {
+  th: string;
+  en: string;
+}
+
+const KEY_TAKEAWAY_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    th: { type: SchemaType.STRING },
+    en: { type: SchemaType.STRING },
+  },
+  required: ["th", "en"],
+};
+
+const KEY_TAKEAWAY_PROMPT = `สรุปคีย์สำคัญของบทความดูแลสุขภาพใจ ยาว 5-7 บรรทัด (150-250 คำ)
+เขียนเป็นภาษาพูดอบอุ่น ไม่เป็นทางการ เหมือนเพื่อนเล่าให้ฟัง
+หยิบ key point สำคัญจากบทความมาอธิบายต่อแบบเข้าใจง่าย
+บอกเหตุผลว่าทำไมถึงสำคัญ + วิธีเริ่มต้นทำจริงง่ายๆ
+ห้ามขึ้นต้นด้วย "สรุปว่า" หรือ "บทความนี้"
+ห้ามชวนสมัครหรือใช้แอป เพราะคนอ่านเป็นสมาชิกอยู่แล้ว
+ห้ามพูดถึง DailyMood หรือชื่อแอป
+
+Input: JSON { titleTh, titleEn, bodyTh, bodyEn }
+Output: JSON { th, en } — th ภาษาไทย, en ภาษาอังกฤษ`;
+
+export async function generateKeyTakeaway(data: string): Promise<KeyTakeawayResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: KEY_TAKEAWAY_SCHEMA,
+      temperature: 0.5,
+      maxOutputTokens: 1000,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: KEY_TAKEAWAY_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as KeyTakeawayResult;
+}
+
 function uint8ToBase64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; // 32 KB — safe under spread/argv limits
   let binary = "";
