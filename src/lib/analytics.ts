@@ -126,6 +126,31 @@ export function trackCheckoutCancelled() {
   trackEvent({ action: "checkout_cancelled", category: "conversion" });
 }
 
+// ── Articles ──
+
+export function trackArticleView(slug: string, category?: string) {
+  trackEvent({ action: "article_view", category: "articles", label: slug });
+  if (category) {
+    trackEvent({ action: "article_category", category: "articles", label: category });
+  }
+}
+
+export function trackArticleBookmark(slug: string, added: boolean) {
+  trackEvent({ action: added ? "article_bookmark" : "article_unbookmark", category: "articles", label: slug });
+}
+
+export function trackArticleShare(slug: string) {
+  trackEvent({ action: "article_share", category: "articles", label: slug });
+}
+
+export function trackArticleReaction(slug: string, moodId: string) {
+  trackEvent({ action: "article_reaction", category: "articles", label: `${slug}:${moodId}` });
+}
+
+export function trackArticleReadComplete(slug: string) {
+  trackEvent({ action: "article_read_complete", category: "articles", label: slug });
+}
+
 // ── Premium gating ──
 
 export function trackPremiumGate(feature: string) {

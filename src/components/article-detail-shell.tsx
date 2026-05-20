@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ArticleBody } from "./article-body";
+import { trackArticleView, trackArticleBookmark, trackArticleShare, trackArticleReaction, trackArticleReadComplete } from "@/lib/analytics";
 
 interface Article {
   id: string;
@@ -93,6 +94,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
 
   const articleRef = useRef<HTMLElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
+  const readCompleteTracked = useRef(false);
 
   const l = useCallback((th: string | null, en: string | null) =>
     (locale === "th" ? th : en) || th || en || "",
@@ -118,6 +120,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
         setSaveCount(data.saveCount);
         setRelated(data.related);
         setLoading(false);
+        trackArticleView(slug, data.category?.slug);
       })
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [slug]);
@@ -136,6 +139,13 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [loading]);
+
+  useEffect(() => {
+    if (progress >= 0.9 && !readCompleteTracked.current) {
+      readCompleteTracked.current = true;
+      trackArticleReadComplete(slug);
+    }
+  }, [progress, slug]);
 
   // Scroll-based active section detection for ToC
   useEffect(() => {
@@ -166,12 +176,14 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
     const method = bookmarked ? "DELETE" : "POST";
     setBookmarked(!bookmarked);
     setSaveCount((c) => c + (bookmarked ? -1 : 1));
+    trackArticleBookmark(slug, !bookmarked);
     await fetch(`/api/articles/${slug}/bookmark`, { method });
   }
 
   async function shareArticle() {
     const url = window.location.href;
     const title = article ? l(article.titleTh, article.titleEn) : "";
+    trackArticleShare(slug);
     if (navigator.share) {
       await navigator.share({ title, url }).catch(() => {});
     } else {
@@ -183,6 +195,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
   async function reactMood(moodId: string) {
     if (isGuest) return;
     setReactionMood(moodId);
+    trackArticleReaction(slug, moodId);
     await fetch(`/api/articles/${slug}/reaction`, {
       method: "POST",
       headers: { "content-type": "application/json" },
