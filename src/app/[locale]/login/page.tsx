@@ -6,6 +6,7 @@ import { articles, articleCategories } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { getSignedReadUrl } from "@/lib/r2";
 import { LoginForm } from "@/components/login-form";
+import { MobileLoginFeed } from "@/components/mobile-login-feed";
 
 const TONE_MAP: Record<string, { hue: string; bgHue: string }> = {
   peach:    { hue: "var(--peach)",    bgHue: "rgba(252,164,91,.14)" },
@@ -72,6 +73,7 @@ export default async function LoginPage() {
   const l = (th: string, en: string) => (locale === "th" ? th : en) || th;
 
   return (
+    <>
     <div className="auth-split">
       <div className="auth-brand">
         {/* 1. Top bar */}
@@ -224,5 +226,24 @@ export default async function LoginPage() {
         <LoginForm />
       </main>
     </div>
+
+    {/* Mobile: articles-first feed + sticky CTA */}
+    <MobileLoginFeed
+      articles={featured.map((a) => ({
+        slug: a.slug,
+        title: l(a.titleTh, a.titleEn),
+        excerpt: l(a.excerptTh, a.excerptEn),
+        coverUrl: a.coverUrl,
+        categoryLabel: a.category ? l(a.category.labelTh, a.category.labelEn) : "",
+        readingMinutes: a.readingTimeMinutes,
+        publishedDate: a.publishedAt
+          ? new Date(a.publishedAt).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" })
+          : "",
+        toneHue: a.tone.hue,
+        toneBg: a.tone.bgHue,
+      }))}
+      totalCount={totalCount}
+    />
+    </>
   );
 }
