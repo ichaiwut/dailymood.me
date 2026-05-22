@@ -4,7 +4,7 @@ import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { articles } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getSignedReadUrl } from "@/lib/r2";
+import { publicUrl } from "@/lib/r2";
 import { ArticleDetailShell } from "@/components/article-detail-shell";
 
 export async function generateMetadata({
@@ -35,9 +35,9 @@ export async function generateMetadata({
   const title = locale === "th" ? row.titleTh : row.titleEn;
   const description = locale === "th" ? row.excerptTh : row.excerptEn;
   const coverUrl = row.coverImageKey
-    ? await getSignedReadUrl(row.coverImageKey)
+    ? publicUrl(row.coverImageKey)
     : undefined;
-  const canonical = `https://my.dailymood.me/${locale}/articles/${slug}`;
+  const canonical = `https://my.dailymood.me/articles/${slug}`;
   const keywords = (row.tags as string[] | null)?.join(", ") || undefined;
 
   return {

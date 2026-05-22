@@ -7,6 +7,8 @@ import { getSignedReadUrl } from "@/lib/r2";
 const ALLOWED_ORIGINS = [
   "https://dailymood.me",
   "https://www.dailymood.me",
+  "https://facebook.com",
+  "https://www.facebook.com",
 ];
 
 function getAllowedOrigin(req: NextRequest): string | null {

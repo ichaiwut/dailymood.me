@@ -19,6 +19,10 @@ function objectUrl(key: string): string {
   return `https://${account}.r2.cloudflarestorage.com/${bucket}/${encodeURIComponent(key).replace(/%2F/g, "/")}`;
 }
 
+export function publicUrl(key: string): string {
+  return `${process.env.R2_PUBLIC_URL}/${key}`;
+}
+
 export async function uploadObject(
   key: string,
   body: ArrayBuffer | Uint8Array,
@@ -51,12 +55,16 @@ export async function deleteObject(key: string): Promise<void> {
   }
 }
 
-export async function getSignedReadUrl(key: string): Promise<string> {
+export async function getSignedReadUrl(key: string, expiresIn = SIGN_TTL_SECONDS): Promise<string> {
   const url = new URL(objectUrl(key));
-  url.searchParams.set("X-Amz-Expires", String(SIGN_TTL_SECONDS));
+  url.searchParams.set("X-Amz-Expires", String(expiresIn));
   const signed = await aws().sign(url.toString(), {
     method: "GET",
     aws: { signQuery: true },
   });
   return signed.url;
+}
+
+export async function getSignedReadUrlForMetadata(key: string): Promise<string> {
+  return getSignedReadUrl(key, 86400); // 24 hours for OG images
 }
