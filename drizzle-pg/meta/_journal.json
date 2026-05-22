@@ -50,6 +50,13 @@
       "when": 1779435658773,
       "tag": "0006_panoramic_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779446210386,
+      "tag": "0007_bitter_ben_grimm",
+      "breakpoints": true
     }
   ]
 }

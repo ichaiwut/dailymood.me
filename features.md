@@ -59,6 +59,7 @@
 - [x] Mood Calendar — monthly mood grid (colored day cells by dominant mood), year-in-pixels (12×31 grid), stat cards (AVG MOOD with delta, STREAK, LOGGED), month navigation. API: `/api/calendar?year=Y&month=MM`
 - [x] Calendar Day Sheet — tap a day cell → bottom sheet slides up showing that day's entries. Drag handle, date header with prev/next day arrows, mood card(s), note preview, tag chips, Edit + "Open full entry" CTA. Empty day shows "+ Log mood" button (opens SmartLogModal with preset date). Future dates disabled + toast. Multi-entry days show stacked cards. Dismiss via scrim tap, swipe, or Escape key.
 - [x] Stats Page (`/stats`) — functional period toggle (Week/Month/Year), average mood line chart (SVG, adapts to period), mood mix donut, highest mood day card, real activity impact from tag-mood correlation (min 5 entries/tag, cap 6 rows, diverging bars). Delta badge vs previous period. Premium: Year toggle + activity rows 4-6 unlocked. Free: rows 4-6 blurred. Link to AI Insights. Bottom nav linked (replaced Insights tab). API: `/api/stats?period=week|month|year`
+- [x] AI Chart Annotations (Premium) — glowing AI-annotated pins on mood trend line chart. Hover/tap shows tooltip explaining anomalies, best/worst days, tag correlations (e.g. "วันพุธอารมณ์ดิ่ง คาดว่ามาจาก #ประชุม"). Free: 1 blurred ghost pin + upgrade CTA. All periods (week/month/year). On-demand generation + cached in `chart_annotations_cache` with delta-3 invalidation. API: extends `GET /api/stats` response with `annotations` field
 - [ ] Streak & Habits
 
 #### Profile & Account
@@ -179,6 +180,7 @@
 - `user_achievements` — (userId, badgeId) PK, earnedAt — tracks when user earned each badge
 - `mood_packs` — id PK, label, premium (boolean), createdAt — mood icon pack registry (icons stored on R2 at `{packId}/{moodId}.svg`)
 - `journal_prompt_cache` — (userId, moodId, dateKey, locale) PK, prompt text, generatedAt — caches Gemini-generated journaling prompts per user/mood/date (daily rotation for variety)
+- `chart_annotations_cache` — (userId, periodKey) PK, result JSON (annotations array), entryCount, generatedAt — caches AI-detected anomalies/highlights for mood trend chart (delta-3 invalidation)
 
 Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 

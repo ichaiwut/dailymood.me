@@ -56,6 +56,12 @@ export function computeWellnessScore(opts: {
   return Math.round((avgNorm * 0.4 + consistency * 0.3 + positivity * 0.2 + streakBonus * 0.1) * 100);
 }
 
+export function chartAnnotationPeriodKey(period: "week" | "month" | "year", today: Date): string {
+  if (period === "year") return `year:${today.getFullYear()}`;
+  if (period === "month") return `month:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  return `week:${isoWeekKey(today)}`;
+}
+
 export function isoWeekKey(d: Date): string {
   const tmp = new Date(d);
   tmp.setHours(0, 0, 0, 0);

@@ -645,6 +645,64 @@ export async function generateKeyTakeaway(data: string): Promise<KeyTakeawayResu
   return JSON.parse(r.response.text()) as KeyTakeawayResult;
 }
 
+// ── Chart Annotations: AI-detected anomalies on mood trend ──
+
+import type { ChartAnnotationsResult } from "@/db/schema";
+
+const CHART_ANNOTATIONS_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    annotations: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          dateKey: { type: SchemaType.STRING },
+          type: {
+            type: SchemaType.STRING,
+            enum: ["anomaly_drop", "anomaly_spike", "best", "worst", "tag_correlation"],
+            format: "enum",
+          },
+          importance: { type: SchemaType.NUMBER },
+          labelTh: { type: SchemaType.STRING },
+          labelEn: { type: SchemaType.STRING },
+          tagRefs: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+        },
+        required: ["dateKey", "type", "importance", "labelTh", "labelEn", "tagRefs"],
+      },
+    },
+  },
+  required: ["annotations"],
+};
+
+const CHART_ANNOTATIONS_PROMPT = `Chart annotation generator for a mood tracking app.
+Input JSON: { locale, period, points: [{date, score, tags[]}], overallAvg }
+Identify 2-5 noteworthy points on the mood trend. For each:
+dateKey: exact date/month key from input.
+type: "anomaly_drop" if score ≥1.5 below avg, "anomaly_spike" if ≥1.5 above avg, "best" for period high, "worst" for period low, "tag_correlation" if tags strongly correlate with the score deviation.
+importance: 1-10 (10=most striking).
+labelTh: ≤25 chars ภาษาพูดเบาๆ เช่น "อารมณ์ดิ่ง คาดว่าจาก #ประชุม" ห้ามใช้คำทางการ
+labelEn: ≤25 chars equivalent.
+tagRefs: tags from that day that likely explain the score (prefix #). Empty array if none.
+Never annotate null points. Return empty annotations array if trend is flat.`;
+
+export async function generateChartAnnotations(data: string): Promise<ChartAnnotationsResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: CHART_ANNOTATIONS_SCHEMA,
+      temperature: 0.4,
+      maxOutputTokens: 400,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: CHART_ANNOTATIONS_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as ChartAnnotationsResult;
+}
+
 // ── Journal Prompt: mood-aware placeholder ──
 
 const JOURNAL_PROMPT_SCHEMA: Schema = {

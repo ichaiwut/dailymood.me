@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { trackStatsView, trackPremiumGate } from "@/lib/analytics";
@@ -8,6 +8,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { moodScore, scoreToEmoji } from "@/lib/mood-scores";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import type { Tier } from "@/lib/tier";
+import type { ChartAnnotation } from "@/db/schema";
 import { AiDisclaimer } from "./ai-disclaimer";
 
 /* ── Types ─────────────────────────────────────────────── */
@@ -24,6 +25,7 @@ interface StatsData {
   avgScoreDelta: number | null;
   bestDay: { date: string; moodId: string; score: number; entries: number } | null;
   activityImpact: { tag: string; impact: number; freq: number }[];
+  annotations?: ChartAnnotation[] | null;
   premiumRequired?: boolean;
 }
 
@@ -62,12 +64,16 @@ function MoodLineChart({
   locale,
   moodPack = DEFAULT_MOOD_PACK,
   iconFormat = "svg",
+  annotations,
+  tier,
 }: {
   trend: { date: string; moodId: string | null }[];
   period: Period;
   locale: string;
   moodPack?: string;
   iconFormat?: string;
+  annotations?: ChartAnnotation[] | null;
+  tier: Tier;
 }) {
   const W = 340;
   const H = 150;
@@ -112,49 +118,171 @@ function MoodLineChart({
     });
   }
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [activePin, setActivePin] = useState<ChartAnnotation | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+  const pinAnnotations = (tier === "premium" && annotations && annotations.length > 0) ? annotations : null;
+
+  const annotationMap = new Map<number, ChartAnnotation>();
+  if (pinAnnotations) {
+    for (const ann of pinAnnotations) {
+      const idx = trend.findIndex((d) => d.date === ann.dateKey);
+      if (idx >= 0) annotationMap.set(idx, ann);
+    }
+  }
+
+  function handlePinHover(ann: ChartAnnotation, svgX: number, svgY: number) {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const svgEl = el.querySelector("svg");
+    if (!svgEl) return;
+    const rect = svgEl.getBoundingClientRect();
+    const scaleX = rect.width / W;
+    const scaleY = rect.height / (H + 24);
+    const x = Math.max(70, Math.min(rect.width - 70, svgX * scaleX));
+    const y = svgY * scaleY - 12;
+    setActivePin(ann);
+    setTooltipPos({ x, y });
+  }
+
   return (
-    <svg viewBox={`0 0 ${W} ${H + 24}`} width="100%" style={{ display: "block" }}>
-      <defs>
-        <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#A673F1" stopOpacity={0.25} />
-          <stop offset="100%" stopColor="#A673F1" stopOpacity={0.02} />
-        </linearGradient>
-      </defs>
+    <div ref={wrapperRef} style={{ position: "relative" }} onPointerLeave={() => setActivePin(null)}>
+      <svg viewBox={`0 0 ${W} ${H + 24}`} width="100%" style={{ display: "block" }}>
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#A673F1" stopOpacity={0.25} />
+            <stop offset="100%" stopColor="#A673F1" stopOpacity={0.02} />
+          </linearGradient>
+          <filter id="pinGlow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="pinBlur">
+            <feGaussianBlur stdDeviation="3" />
+          </filter>
+        </defs>
 
-      {[1, 2, 3, 4, 5].map((s) => (
-        <g key={s}>
-          <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
-          <image
-            href={moodIconUrl(SCORE_MOODS[s], moodPack, iconFormat)}
-            x={PX - 28}
-            y={toY(s) - 10}
-            width={20}
-            height={20}
-          />
-        </g>
-      ))}
+        {[1, 2, 3, 4, 5].map((s) => (
+          <g key={s}>
+            <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
+            <image
+              href={moodIconUrl(SCORE_MOODS[s], moodPack, iconFormat)}
+              x={PX - 28}
+              y={toY(s) - 10}
+              width={20}
+              height={20}
+            />
+          </g>
+        ))}
 
-      {areaPath && <path d={areaPath} fill="url(#lineGrad)" />}
+        {areaPath && <path d={areaPath} fill="url(#lineGrad)" />}
 
-      {linePath && (
-        <path d={linePath} fill="none" stroke="#A673F1" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        {linePath && (
+          <path d={linePath} fill="none" stroke="#A673F1" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        )}
+
+        {points.map((p, i) => {
+          const isLast = i === points.length - 1;
+          return (
+            <circle key={p.idx} cx={p.x} cy={p.y} r={isLast ? 6 : 4} fill={isLast ? "#A673F1" : "#fff"} stroke="#A673F1" strokeWidth={2.5} />
+          );
+        })}
+
+        {/* AI Annotation Pins */}
+        {pinAnnotations && points.map((p) => {
+          const ann = annotationMap.get(p.idx);
+          if (!ann) return null;
+          return (
+            <g key={`pin-${p.idx}`} filter="url(#pinGlow)">
+              <circle cx={p.x} cy={p.y} r={10} fill="none" stroke="#A673F1" strokeWidth={1.5} opacity={0.4}>
+                <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.4;0.15;0.4" dur="2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx={p.x} cy={p.y} r={5} fill="#A673F1" />
+              <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize={8} fill="#A673F1">✦</text>
+              <circle
+                cx={p.x} cy={p.y} r={14} fill="transparent" cursor="pointer"
+                onPointerEnter={() => handlePinHover(ann, p.x, p.y)}
+                onPointerDown={() => {
+                  if (activePin?.dateKey === ann.dateKey) setActivePin(null);
+                  else handlePinHover(ann, p.x, p.y);
+                }}
+              />
+            </g>
+          );
+        })}
+
+        {/* Free tier ghost pin */}
+        {tier !== "premium" && points.length > 2 && (() => {
+          const ghostIdx = Math.floor(points.length * 0.6);
+          const gp = points[ghostIdx];
+          if (!gp) return null;
+          return (
+            <g filter="url(#pinBlur)" opacity={0.5}>
+              <circle cx={gp.x} cy={gp.y} r={10} fill="none" stroke="#C9B8E8" strokeWidth={1.5} />
+              <circle cx={gp.x} cy={gp.y} r={5} fill="#C9B8E8" />
+              <text x={gp.x} y={gp.y - 10} textAnchor="middle" fontSize={8} fill="#C9B8E8">✦</text>
+            </g>
+          );
+        })()}
+
+        {labels.map((label, i) =>
+          label ? (
+            <text key={i} x={toX(i)} y={H + 16} textAnchor="middle" fontSize={period === "year" ? 9 : 11} fill="var(--ink-3, #999)">
+              {label}
+            </text>
+          ) : null,
+        )}
+      </svg>
+
+      {/* Tooltip */}
+      {activePin && tooltipPos && (
+        <div style={{
+          position: "absolute",
+          left: tooltipPos.x,
+          top: tooltipPos.y,
+          transform: "translateX(-50%) translateY(-100%)",
+          background: "#1A1320",
+          color: "#fff",
+          borderRadius: 10,
+          padding: "6px 10px",
+          fontSize: 13,
+          fontWeight: 600,
+          lineHeight: 1.4,
+          maxWidth: 180,
+          whiteSpace: "pre-wrap" as const,
+          pointerEvents: "none" as const,
+          zIndex: 20,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+        }}>
+          {locale === "th" ? activePin.labelTh : activePin.labelEn}
+          {activePin.tagRefs.length > 0 && (
+            <div style={{ marginTop: 3, fontSize: 12, opacity: 0.7 }}>
+              {activePin.tagRefs.join(" ")}
+            </div>
+          )}
+        </div>
       )}
 
-      {points.map((p, i) => {
-        const isLast = i === points.length - 1;
-        return (
-          <circle key={p.idx} cx={p.x} cy={p.y} r={isLast ? 6 : 4} fill={isLast ? "#A673F1" : "#fff"} stroke="#A673F1" strokeWidth={2.5} />
-        );
-      })}
-
-      {labels.map((label, i) =>
-        label ? (
-          <text key={i} x={toX(i)} y={H + 16} textAnchor="middle" fontSize={period === "year" ? 9 : 11} fill="var(--ink-3, #999)">
-            {label}
-          </text>
-        ) : null,
+      {/* Free tier upgrade teaser */}
+      {tier !== "premium" && points.length > 2 && (
+        <div style={{ position: "absolute", bottom: 8, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+          <a href="/pricing" style={{
+            background: "rgba(166,115,241,0.1)",
+            border: "1px solid rgba(166,115,241,0.25)",
+            borderRadius: 20,
+            padding: "5px 14px",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#A673F1",
+            textDecoration: "none",
+          }}>
+            ✦ {locale === "th" ? "ปลดล็อก AI Annotations" : "Unlock AI Annotations"} — PRO
+          </a>
+        </div>
       )}
-    </svg>
+    </div>
   );
 }
 
@@ -257,7 +385,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
     let alive = true;
     setLoading(true);
     setYearBlocked(false);
-    fetch(`/api/stats?period=${period}`)
+    fetch(`/api/stats?period=${period}&locale=${locale}`)
       .then((r) => r.json() as Promise<StatsData>)
       .then((data) => {
         if (!alive) return;
@@ -491,7 +619,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   </h2>
                   <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{periodScopeLabel[period]}</span>
                 </div>
-                <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} />
+                <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} annotations={stats?.annotations} tier={tier} />
               </div>
 
               {/* Mood Mix — stacked bar + featured mood + list */}

@@ -4,6 +4,8 @@ import { getDb } from "@/lib/cf";
 import { moodEntries } from "@/db/schema";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { moodScore, ymd, addDays, computeStreak } from "@/lib/mood-scores";
+import { getOrGenerateAnnotations } from "./chart-annotations";
+import type { ChartAnnotation } from "@/db/schema";
 
 
 type Period = "week" | "month" | "year";
@@ -16,6 +18,7 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const period = (url.searchParams.get("period") as Period) || "week";
+  const locale = url.searchParams.get("locale") ?? "th";
 
   if (period === "year" && tier !== "premium") {
     return NextResponse.json({ premiumRequired: true });
@@ -43,6 +46,7 @@ export async function GET(req: NextRequest) {
 
   const distribution: Record<string, number> = {};
   const perDay = new Map<string, Map<string, number>>();
+  const tagsByDate = new Map<string, string[]>();
   let todayMood: { moodId: string; createdAt: number } | null = null;
 
   for (const r of currentRows) {
@@ -50,6 +54,11 @@ export async function GET(req: NextRequest) {
     const day = perDay.get(r.date) ?? new Map<string, number>();
     day.set(r.moodTypeId, (day.get(r.moodTypeId) ?? 0) + 1);
     perDay.set(r.date, day);
+    const tags = (r.tags as string[] | null) ?? [];
+    if (tags.length > 0) {
+      const existing = tagsByDate.get(r.date) ?? [];
+      tagsByDate.set(r.date, [...existing, ...tags]);
+    }
     if (r.date === today && !todayMood) {
       todayMood = { moodId: r.moodTypeId, createdAt: r.createdAt.getTime() };
     }
@@ -143,6 +152,11 @@ export async function GET(req: NextRequest) {
 
   const streak = computeStreak(new Set(perDay.keys()));
 
+  let annotations: ChartAnnotation[] | null = null;
+  if (tier === "premium") {
+    annotations = await getOrGenerateAnnotations(db, userId, period, moodTrend, tagsByDate, currentRows.length, locale);
+  }
+
   return NextResponse.json({
     streak,
     todayMood,
@@ -156,6 +170,7 @@ export async function GET(req: NextRequest) {
     avgScoreDelta,
     bestDay,
     activityImpact,
+    annotations,
   });
 }
 

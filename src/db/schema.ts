@@ -323,6 +323,29 @@ export const journalPromptCache = pgTable("journal_prompt_cache", {
   pk: primaryKey({ columns: [t.userId, t.moodId, t.dateKey, t.locale] }),
 }));
 
+export interface ChartAnnotation {
+  dateKey: string;
+  type: "anomaly_drop" | "anomaly_spike" | "best" | "worst" | "tag_correlation";
+  importance: number;
+  labelTh: string;
+  labelEn: string;
+  tagRefs: string[];
+}
+
+export interface ChartAnnotationsResult {
+  annotations: ChartAnnotation[];
+}
+
+export const chartAnnotationsCache = pgTable("chart_annotations_cache", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  periodKey: text("period_key").notNull(),
+  result: jsonb("result").$type<ChartAnnotationsResult>().notNull(),
+  entryCount: integer("entry_count").notNull().default(0),
+  generatedAt: timestamp("generated_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.periodKey] }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;
