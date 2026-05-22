@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
@@ -9,6 +9,7 @@ import { VoiceButton } from "./voice-button";
 import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { LocationSearch } from "./location-picker";
+import { getStaticPrompt, FALLBACK_PROMPT } from "@/lib/journal-prompts";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -89,6 +90,54 @@ export function SmartLogModal({
   const [locationLat, setLocationLat] = useState<number | undefined>();
   const [locationLng, setLocationLng] = useState<number | undefined>();
   const [showLocationSearch, setShowLocationSearch] = useState(false);
+  const [journalPrompt, setJournalPrompt] = useState<string | null>(null);
+  const [promptLoading, setPromptLoading] = useState(false);
+  const promptCacheRef = useRef<Record<string, string>>({});
+
+  const moodLabel = useMemo(() => {
+    const allMoods = [...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods];
+    const moodObj = allMoods.find((m) => m.id === moodId);
+    return moodObj ? (locale === "th" ? (moodObj.labelTh ?? moodObj.label) : moodObj.label) : "";
+  }, [moodId, locale, customMoods]);
+
+  useEffect(() => {
+    if (tier === "guest") return;
+
+    const key = `${moodId}:${locale}`;
+    const cached = promptCacheRef.current[key];
+    if (cached) { setJournalPrompt(cached); setPromptLoading(false); return; }
+
+    if (tier === "free") {
+      const p = getStaticPrompt(moodId, locale);
+      promptCacheRef.current[key] = p;
+      setJournalPrompt(p);
+      return;
+    }
+
+    setJournalPrompt(null);
+    setPromptLoading(true);
+
+    const controller = new AbortController();
+    fetch(`/api/ai/journal-prompt?moodId=${encodeURIComponent(moodId)}&locale=${locale}&moodLabel=${encodeURIComponent(moodLabel)}`, { signal: controller.signal })
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: unknown) => {
+        if (controller.signal.aborted) return;
+        const j = d as { prompt?: string } | null;
+        if (j?.prompt) {
+          promptCacheRef.current[key] = j.prompt;
+          setJournalPrompt(j.prompt);
+        } else {
+          setJournalPrompt(getStaticPrompt(moodId, locale));
+        }
+        setPromptLoading(false);
+      })
+      .catch((err: unknown) => {
+        if ((err as { name?: string })?.name === "AbortError") return;
+        setJournalPrompt(getStaticPrompt(moodId, locale));
+        setPromptLoading(false);
+      });
+    return () => controller.abort();
+  }, [moodId, locale, tier, moodLabel]);
 
   useEffect(() => {
     if (!analyzing) { setAiStep(0); return; }
@@ -326,7 +375,7 @@ export function SmartLogModal({
                 value={text}
                 onChange={(e) => { setText(e.target.value); if (suggestion) setSuggestion(null); }}
                 className="w-textarea"
-                placeholder={locale === "th" ? "วันนี้รู้สึกยังไง พิมพ์เหมือนคุยกับเพื่อน..." : "How are you feeling? Write like you're talking to a friend..."}
+                placeholder={promptLoading ? (locale === "th" ? "✦ กำลังเตรียมคำถามให้..." : "✦ Preparing your prompt...") : (journalPrompt ?? (locale === "th" ? FALLBACK_PROMPT.th : FALLBACK_PROMPT.en))}
                 style={{ minHeight: 130, fontSize: 16, lineHeight: 1.6 }}
               />
 

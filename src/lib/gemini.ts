@@ -645,6 +645,46 @@ export async function generateKeyTakeaway(data: string): Promise<KeyTakeawayResu
   return JSON.parse(r.response.text()) as KeyTakeawayResult;
 }
 
+// ── Journal Prompt: mood-aware placeholder ──
+
+const JOURNAL_PROMPT_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    prompt: { type: SchemaType.STRING },
+  },
+  required: ["prompt"],
+};
+
+const JOURNAL_PROMPT = `Journaling prompt generator for a mood tracking app.
+Input JSON: { locale, moodId, moodLabel, recentTags, recentMoods, dayOfWeek }
+Generate ONE short journaling prompt (placeholder text) in the user's locale (th/en).
+Rules:
+- th: ≤25 คำ ภาษาพูดเบาๆ ลงท้ายด้วย "..."
+- en: ≤15 words, conversational, ends with "..."
+- ห้ามขึ้นต้นด้วย "เล่า" หรือ "บอก" | Never start with "Tell me" or "Share"
+- เปิดกว้าง ไม่กดดัน | Open-ended, gentle, no pressure
+- ถ้า recentTags มีอะไรน่าสนใจ ให้ reference ได้ | Weave in a recent tag if natural
+- โทน: เพื่อนถามเบาๆ | Tone: like a friend asking softly
+- For sad/anxious/angry: extra gentle, safe space
+Output JSON: { prompt: string }`;
+
+export async function generateJournalPrompt(data: string): Promise<{ prompt: string }> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: JOURNAL_PROMPT_SCHEMA,
+      temperature: 0.7,
+      maxOutputTokens: 80,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: JOURNAL_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as { prompt: string };
+}
+
 function uint8ToBase64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; // 32 KB — safe under spread/argv limits
   let binary = "";

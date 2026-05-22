@@ -312,6 +312,17 @@ export const articleBookmarks = pgTable("article_bookmarks", {
   pk: primaryKey({ columns: [t.userId, t.articleId] }),
 }));
 
+export const journalPromptCache = pgTable("journal_prompt_cache", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  moodId: text("mood_id").notNull(),
+  dateKey: text("date_key").notNull(),
+  locale: text("locale").notNull(),
+  prompt: text("prompt").notNull(),
+  generatedAt: timestamp("generated_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.moodId, t.dateKey, t.locale] }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;

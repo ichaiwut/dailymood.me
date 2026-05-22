@@ -43,6 +43,13 @@
       "when": 1779249758104,
       "tag": "0005_true_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779435658773,
+      "tag": "0006_panoramic_tarantula",
+      "breakpoints": true
     }
   ]
 }

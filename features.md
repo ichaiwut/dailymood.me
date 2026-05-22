@@ -52,6 +52,7 @@
 - [x] Voice input — Web Speech API (TH/EN)
 - [x] Confirm flow — user แก้/ยืนยัน suggestion ก่อน save
 - [x] Daily AI rate limit — Free 5 NLP/วัน
+- [x] AI Guided Journaling Prompts — textarea placeholder เปลี่ยนตาม mood ที่เลือก. Free: pre-written prompts (7 moods, TH+EN, instant). Premium: Gemini-generated personalized prompt (ใช้ recent tags/moods เป็น context, cached per user/mood/date ใน `journal_prompt_cache` table). Custom moods (Premium): Gemini adapt prompt จาก mood label. API: `GET /api/ai/journal-prompt?moodId=&locale=&moodLabel=`. ไม่นับ NLP quota
 
 #### Visualization
 - [x] Today's Timeline — entry grid (1/2/3 cols) with horizontal day-axis above (spine + mood-colored dots positioned by time-of-day, pulsing "Now" cap on the right)
@@ -148,6 +149,7 @@
 | GET | `/api/stats` | auth | Stats data: `?period=week|month|year`. Returns moodTrend, distribution, avgScore, avgScoreDelta, bestDay, activityImpact (real tag-mood correlation), streak. Year period requires premium |
 | GET | `/api/insights` | auth | Weekly AI insights (cached per week in D1 `insights_ai_cache`). Free: preview headline + first sentence only. Premium: full patterns + suggestion |
 | POST | `/api/insights/feedback` | premium | Suggestion feedback: `{ weekKey, suggestionTitle, reaction: "up"|"down"|"routine" }` |
+| GET | `/api/ai/journal-prompt` | auth | Mood-adaptive journaling prompt: `?moodId=&locale=&moodLabel=`. Free: static prompt. Premium: Gemini-generated + cached per user/mood/date. Does not count against NLP quota |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
@@ -176,6 +178,7 @@
 - `suggestion_feedback` — id PK, userId, weekKey, suggestionTitle, reaction (up/down/routine), createdAt — persists user feedback on AI suggestions
 - `user_achievements` — (userId, badgeId) PK, earnedAt — tracks when user earned each badge
 - `mood_packs` — id PK, label, premium (boolean), createdAt — mood icon pack registry (icons stored on R2 at `{packId}/{moodId}.svg`)
+- `journal_prompt_cache` — (userId, moodId, dateKey, locale) PK, prompt text, generatedAt — caches Gemini-generated journaling prompts per user/mood/date (daily rotation for variety)
 
 Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
