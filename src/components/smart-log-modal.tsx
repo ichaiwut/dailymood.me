@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations, useLocale } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
@@ -284,8 +285,8 @@ export function SmartLogModal({
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)" }}>
+  return createPortal(
+    <div className="fixed inset-0 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)", zIndex: 9999 }}>
       <div
         className="flex flex-col mx-auto w-full"
         style={{
@@ -492,10 +493,10 @@ export function SmartLogModal({
                   {/* Mood picker */}
                   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
-                    <div style={{ display: "flex", gap: 6 }}>
+                    <div style={{ display: "flex", gap: 6, overflow: "auto" }} className="no-scrollbar">
                       {allMoods.map((m) => (
-                        <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                          <img src={iconSrc(m)} alt="" width={24} height={24} />
+                        <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, minWidth: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", padding: 0, flexShrink: 0 }}>
+                          <img src={iconSrc(m)} alt="" width={24} height={24} style={{ display: "block", pointerEvents: "none" }} />
                         </button>
                       ))}
                     </div>
@@ -564,6 +565,7 @@ export function SmartLogModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
