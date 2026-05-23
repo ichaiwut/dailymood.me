@@ -3,6 +3,7 @@ import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { moodEntries } from "@/db/schema";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
+import { ictYear } from "@/lib/timezone";
 
 
 const MOOD_SCORES: Record<string, number> = {
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
   const url = new URL(req.url);
-  const year = parseInt(url.searchParams.get("year") ?? String(new Date().getFullYear()), 10);
+  const year = parseInt(url.searchParams.get("year") ?? String(ictYear()), 10);
   const monthParam = url.searchParams.get("month");
 
   const db = getDb();

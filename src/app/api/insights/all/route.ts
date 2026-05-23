@@ -8,6 +8,7 @@ import { moodScore, computeStreak, computeWellnessScore, isoWeekKey, ymd, addDay
 import type { InsightsAiResult } from "@/db/schema";
 import { getNlpUsage, FREE_NLP_DAILY_LIMIT } from "@/lib/usage";
 import { getCached, setCached } from "@/lib/ai-cache";
+import { ictDayOfWeek, ictHour } from "@/lib/timezone";
 import { createHash } from "crypto";
 
 export async function GET(req: NextRequest) {
@@ -206,7 +207,7 @@ function buildInsightsPayload(allRecent: EntryRow[], locale: string, entryCount:
   for (const r of allRecent) {
     moodCounts[r.moodTypeId] = (moodCounts[r.moodTypeId] ?? 0) + 1;
     for (const t of (r.tags as string[] | null) ?? []) tagCounts[t] = (tagCounts[t] ?? 0) + 1;
-    const dow = r.createdAt.toLocaleDateString("en-US", { weekday: "short" });
+    const dow = ictDayOfWeek(r.createdAt, "en", "short");
     dayCounts[dow] = (dayCounts[dow] ?? 0) + 1;
     if (r.sentiment != null) { sentSum += r.sentiment; sentN++; }
   }
@@ -244,7 +245,7 @@ async function getForecast(userId: string, rows: EntryRow[], locale: string) {
 
   const dayScores: Record<string, number[]> = {};
   for (const r of rows) {
-    const dow = new Date(r.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
+    const dow = ictDayOfWeek(new Date(r.date + "T12:00:00"), "en", "short");
     if (!dayScores[dow]) dayScores[dow] = [];
     dayScores[dow].push(moodScore(r.moodTypeId));
   }
@@ -256,7 +257,7 @@ async function getForecast(userId: string, rows: EntryRow[], locale: string) {
     return +(de.reduce((s, r) => s + moodScore(r.moodTypeId), 0) / de.length).toFixed(1);
   });
 
-  const payload = JSON.stringify({ locale, tomorrowDow: addDays(new Date(), 1).toLocaleDateString("en-US", { weekday: "long" }), n: rows.length, dowAvgs, last7, recentMoods: rows.slice(0, 7).map((r) => ({ d: r.date, m: r.moodTypeId })) });
+  const payload = JSON.stringify({ locale, tomorrowDow: ictDayOfWeek(addDays(new Date(), 1)), n: rows.length, dowAvgs, last7, recentMoods: rows.slice(0, 7).map((r) => ({ d: r.date, m: r.moodTypeId })) });
   try {
     const result = await generateForecast(payload);
     setCached(cacheKey, result);
@@ -267,7 +268,7 @@ async function getForecast(userId: string, rows: EntryRow[], locale: string) {
 function getEnergyClock(rows: EntryRow[]) {
   if (rows.length < 7) return null;
   const hourBuckets = Array.from({ length: 24 }, () => ({ sum: 0, count: 0 }));
-  for (const r of rows) { const h = r.createdAt.getHours(); hourBuckets[h].sum += moodScore(r.moodTypeId); hourBuckets[h].count++; }
+  for (const r of rows) { const h = ictHour(r.createdAt); hourBuckets[h].sum += moodScore(r.moodTypeId); hourBuckets[h].count++; }
   const raw = hourBuckets.map((b) => b.count > 0 ? b.sum / b.count : 0);
   const hourly = raw.map((_, i) => {
     const vals = [raw[(i + 23) % 24], raw[i], raw[(i + 1) % 24]].filter((v) => v > 0);

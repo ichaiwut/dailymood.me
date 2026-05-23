@@ -1,11 +1,12 @@
 import { getDb } from "@/lib/cf";
 import { aiUsage } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
+import { todayICT } from "@/lib/timezone";
 
 export const FREE_NLP_DAILY_LIMIT = 3;
 
 export function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayICT();
 }
 
 export async function getNlpUsage(userId: string, date = todayKey()): Promise<number> {

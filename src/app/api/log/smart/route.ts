@@ -4,6 +4,7 @@ import { analyzeText, analyzeImage } from "@/lib/gemini";
 import { uploadObject } from "@/lib/r2";
 import { FREE_NLP_DAILY_LIMIT, getNlpUsage, incNlpUsage, incVisionUsage, todayKey } from "@/lib/usage";
 import { rateLimit } from "@/lib/rate-limit";
+import { midnightICTinUTC } from "@/lib/timezone";
 import { ulid } from "@/lib/ulid";
 
 
@@ -45,10 +46,8 @@ export async function POST(req: NextRequest) {
     const used = await getNlpUsage(userId);
     if (used >= FREE_NLP_DAILY_LIMIT) {
       const now = new Date();
-      const midnight = new Date(now);
-      midnight.setUTCDate(midnight.getUTCDate() + 1);
-      midnight.setUTCHours(0, 0, 0, 0);
-      const retryAfterSec = Math.ceil((midnight.getTime() - now.getTime()) / 1000);
+      const nextMidnight = midnightICTinUTC();
+      const retryAfterSec = Math.ceil((nextMidnight.getTime() - now.getTime()) / 1000);
       return NextResponse.json(
         { error: "rate_limited", used, limit: FREE_NLP_DAILY_LIMIT, retryAfterSec, imageKey },
         { status: 429 },

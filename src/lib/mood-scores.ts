@@ -20,11 +20,10 @@ export function scoreToEmoji(score: number): string {
   return "\u{1F622}";
 }
 
+import { ymdICT } from "@/lib/timezone";
+
 export function ymd(d: Date): string {
-  const y = d.getFullYear();
-  const m = `${d.getMonth() + 1}`.padStart(2, "0");
-  const day = `${d.getDate()}`.padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return ymdICT(d);
 }
 
 export function addDays(d: Date, n: number): Date {
@@ -57,16 +56,17 @@ export function computeWellnessScore(opts: {
 }
 
 export function chartAnnotationPeriodKey(period: "week" | "month" | "year", today: Date): string {
-  if (period === "year") return `year:${today.getFullYear()}`;
-  if (period === "month") return `month:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const ict = new Date(today.getTime() + 7 * 3600_000);
+  if (period === "year") return `year:${ict.getUTCFullYear()}`;
+  if (period === "month") return `month:${ict.getUTCFullYear()}-${String(ict.getUTCMonth() + 1).padStart(2, "0")}`;
   return `week:${isoWeekKey(today)}`;
 }
 
 export function isoWeekKey(d: Date): string {
-  const tmp = new Date(d);
-  tmp.setHours(0, 0, 0, 0);
-  tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7));
-  const week1 = new Date(tmp.getFullYear(), 0, 4);
+  const ict = new Date(d.getTime() + 7 * 3600_000);
+  const tmp = new Date(Date.UTC(ict.getUTCFullYear(), ict.getUTCMonth(), ict.getUTCDate()));
+  tmp.setUTCDate(tmp.getUTCDate() + 3 - ((tmp.getUTCDay() + 6) % 7));
+  const week1 = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 4));
   const weekNum =
     1 +
     Math.round(
@@ -75,5 +75,5 @@ export function isoWeekKey(d: Date): string {
         ((week1.getDay() + 6) % 7)) /
         7,
     );
-  return `${tmp.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+  return `${tmp.getUTCFullYear()}-W${String(weekNum).padStart(2, "0")}`;
 }

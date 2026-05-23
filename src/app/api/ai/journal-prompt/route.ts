@@ -4,6 +4,7 @@ import { getDb } from "@/lib/cf";
 import { moodEntries, journalPromptCache } from "@/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { generateJournalPrompt } from "@/lib/gemini";
+import { ictDayOfWeek } from "@/lib/timezone";
 import { getStaticPrompt } from "@/lib/journal-prompts";
 import { todayKey } from "@/lib/usage";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
   }
   const recentTags = Object.entries(tagFreq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
   const recentMoods = recentEntries.slice(0, 3).map((e) => e.moodTypeId);
-  const dayOfWeek = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const dayOfWeek = ictDayOfWeek();
 
   const resolvedLabel =
     (locale === "th"

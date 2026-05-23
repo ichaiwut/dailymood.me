@@ -4,6 +4,7 @@ import { getDb } from "@/lib/cf";
 import { moodEntries } from "@/db/schema";
 import { and, eq, gte, desc } from "drizzle-orm";
 import { moodScore, ymd, addDays } from "@/lib/mood-scores";
+import { ictHour } from "@/lib/timezone";
 
 export async function GET() {
   const { userId, tier } = await getSessionInfo();
@@ -31,7 +32,7 @@ export async function GET() {
   const hourBuckets: { sum: number; count: number }[] = Array.from({ length: 24 }, () => ({ sum: 0, count: 0 }));
 
   for (const r of rows) {
-    const hour = r.createdAt.getHours();
+    const hour = ictHour(r.createdAt);
     const score = moodScore(r.moodTypeId);
     hourBuckets[hour].sum += score;
     hourBuckets[hour].count += 1;

@@ -4,6 +4,7 @@ import { getDb } from "@/lib/cf";
 import { moodEntries, yearAiCache } from "@/db/schema";
 import type { YearAiResult } from "@/db/schema";
 import { generateYearAi } from "@/lib/gemini";
+import { ictYear } from "@/lib/timezone";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
 
 const MOOD_SCORES: Record<string, number> = {
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const year = parseInt(url.searchParams.get("year") ?? String(new Date().getFullYear()), 10);
+  const year = parseInt(url.searchParams.get("year") ?? String(ictYear()), 10);
   const locale = url.searchParams.get("locale") ?? "th";
   if (isNaN(year) || year < 2020 || year > 2100) {
     return NextResponse.json({ error: "invalid_year" }, { status: 400 });

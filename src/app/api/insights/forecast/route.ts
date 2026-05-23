@@ -5,6 +5,7 @@ import { moodEntries, forecastCache } from "@/db/schema";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { generateForecast } from "@/lib/gemini";
 import { moodScore, ymd, addDays } from "@/lib/mood-scores";
+import { ictDayOfWeek } from "@/lib/timezone";
 import type { ForecastResult } from "@/db/schema";
 import { createHash } from "crypto";
 
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   for (const r of rows) {
     const score = moodScore(r.moodTypeId);
-    const dow = new Date(r.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
+    const dow = ictDayOfWeek(new Date(r.date + "T12:00:00"), "en", "short");
     if (!dayScores[dow]) dayScores[dow] = [];
     dayScores[dow].push(score);
 
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest) {
     dowAvgs[dow] = +(scores.reduce((s, v) => s + v, 0) / scores.length).toFixed(1);
   }
 
-  const tomorrowDow = addDays(new Date(), 1).toLocaleDateString("en-US", { weekday: "long" });
+  const tomorrowDow = ictDayOfWeek(addDays(new Date(), 1));
   const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t, c]) => `${t}:${c}`);
 
   const payload = JSON.stringify({

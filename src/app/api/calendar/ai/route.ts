@@ -5,6 +5,7 @@ import { moodEntries, calendarAiCache } from "@/db/schema";
 import type { CalendarAiResult } from "@/db/schema";
 import { generateCalendarAi } from "@/lib/gemini";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
+import { ictYear, ictMonth, ictDayOfWeek } from "@/lib/timezone";
 
 
 const MOOD_SCORES: Record<string, number> = {
@@ -23,8 +24,8 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const year = parseInt(url.searchParams.get("year") ?? String(new Date().getFullYear()), 10);
-  const month = parseInt(url.searchParams.get("month") ?? String(new Date().getMonth() + 1), 10);
+  const year = parseInt(url.searchParams.get("year") ?? String(ictYear()), 10);
+  const month = parseInt(url.searchParams.get("month") ?? String(ictMonth()), 10);
   const locale = url.searchParams.get("locale") ?? "th";
 
   if (!Number.isInteger(year) || year < 2020 || year > 2100 || !Number.isInteger(month) || month < 1 || month > 12) {
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
       tagCounts[t] = (tagCounts[t] ?? 0) + 1;
     }
     const d = new Date(r.date + "T12:00:00");
-    const dow = d.toLocaleDateString("en-US", { weekday: "short" });
+    const dow = ictDayOfWeek(d, "en", "short");
     dowCounts[dow] = (dowCounts[dow] ?? 0) + 1;
   }
 

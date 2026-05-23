@@ -5,6 +5,7 @@ import { moodEntries } from "@/db/schema";
 import { and, eq, gte, desc } from "drizzle-orm";
 import { moodScore, ymd, addDays } from "@/lib/mood-scores";
 import { getCached, setCached } from "@/lib/ai-cache";
+import { ictDayOfWeek } from "@/lib/timezone";
 
 export async function GET(req: NextRequest) {
   const { userId, tier } = await getSessionInfo();
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
   const dayScores: Record<string, number[]> = {};
   for (const e of entries) {
     for (const t of (e.tags as string[] | null) ?? []) tagCounts[t] = (tagCounts[t] ?? 0) + 1;
-    const dow = new Date(e.date + "T12:00:00").toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long" });
+    const dow = ictDayOfWeek(new Date(e.date + "T12:00:00"), locale === "th" ? "th" : "en");
     if (!dayScores[dow]) dayScores[dow] = [];
     dayScores[dow].push(moodScore(e.moodTypeId));
   }

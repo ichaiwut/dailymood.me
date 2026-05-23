@@ -3,6 +3,7 @@ import { getSessionInfo, meetsTier } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
 import { moodEntries, insightsAiCache } from "@/db/schema";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { ictDayOfWeek } from "@/lib/timezone";
 import { generateInsights } from "@/lib/gemini";
 import { moodScore, computeStreak, computeWellnessScore, isoWeekKey, ymd, addDays } from "@/lib/mood-scores";
 import type { InsightsAiResult } from "@/db/schema";
@@ -142,7 +143,7 @@ export async function GET(req: NextRequest) {
     for (const t of (r.tags as string[] | null) ?? []) {
       tagCounts[t] = (tagCounts[t] ?? 0) + 1;
     }
-    const dow = r.createdAt.toLocaleDateString("en-US", { weekday: "short" });
+    const dow = ictDayOfWeek(r.createdAt, "en", "short");
     dayCounts[dow] = (dayCounts[dow] ?? 0) + 1;
     if (r.sentiment != null) { sentSum += r.sentiment; sentN++; }
   }
