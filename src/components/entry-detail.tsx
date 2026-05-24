@@ -47,16 +47,18 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
   const [streak, setStreak] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [flashback, setFlashback] = useState<{ message: string; pastDate: string; pastNote: string } | null>(null);
 
   useEffect(() => {
-    fetch(`/api/log/${id}`)
+    fetch(`/api/log/${id}?locale=${locale}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: unknown) => {
-        const d = data as (EntryData & { nearby?: NearbyDay[]; lastYear?: NearbyDay | null; streak?: number }) | null;
+        const d = data as (EntryData & { nearby?: NearbyDay[]; lastYear?: NearbyDay | null; streak?: number; flashback?: { message: string; pastDate: string; pastNote: string } | null }) | null;
         setEntry(d);
         if (d?.nearby) setNearby(d.nearby);
         if (d?.lastYear) setLastYear(d.lastYear);
         if (d?.streak) setStreak(d.streak);
+        if (d?.flashback) setFlashback(d.flashback);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -167,6 +169,53 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
               <div style={{ marginTop: 10 }}>
                 <AiDisclaimer variant="analysis" />
               </div>
+            </div>
+          )}
+
+          {/* AI Flashback */}
+          {flashback && (
+            <div style={{
+              borderRadius: 18, padding: "18px 20px",
+              background: "linear-gradient(135deg, #F0F7FF 0%, #E8F4FD 50%, #F5F0FF 100%)",
+              border: "1px solid rgba(154, 205, 226, 0.3)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#9ACDE2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#5B8FA8", letterSpacing: 0.3 }}>{th ? "ย้อนดูตัวเอง" : "FLASHBACK"}</span>
+              </div>
+              <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (flashback.message ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+              {flashback.pastDate && (
+                <div style={{ marginTop: 10, fontSize: 13, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" /></svg>
+                  {new Date(flashback.pastDate + "T12:00:00").toLocaleDateString(th ? "th-TH" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
+                </div>
+              )}
+              <div style={{ marginTop: 10 }}>
+                <AiDisclaimer variant="analysis" />
+              </div>
+            </div>
+          )}
+
+          {/* Free tier flashback teaser */}
+          {!entry.isPremium && score <= 4 && !flashback && (
+            <div style={{
+              borderRadius: 18, padding: "18px 20px",
+              background: "#F8F6FB",
+              border: "1px dashed rgba(166, 115, 241, 0.3)",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 24, marginBottom: 8 }}>🕰️</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink-2)", marginBottom: 4 }}>
+                {th ? "ย้อนดูตัวเอง" : "Flashback"}
+              </div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 12 }}>
+                {th ? "AI จะช่วยดึงบันทึกเก่าที่คุณเคยผ่านช่วงเวลาคล้ายๆ กันมาได้ พร้อมข้อความให้กำลังใจ" : "AI finds past entries where you overcame similar moments, with an encouraging reflection"}
+              </div>
+              <a href="/pricing" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 700, color: "#A673F1", textDecoration: "none" }}>
+                ✦ {th ? "ปลดล็อกด้วย Premium" : "Unlock with Premium"} — PRO
+              </a>
             </div>
           )}
 

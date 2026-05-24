@@ -4,7 +4,10 @@ import { getDb } from "@/lib/cf";
 import { moodEntries, moodTypes } from "@/db/schema";
 import { getSignedReadUrl, deleteObject } from "@/lib/r2";
 import { todayKey } from "@/lib/usage";
-import { and, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { moodScore } from "@/lib/mood-scores";
+import { generateFlashback } from "@/lib/gemini";
+import type { FlashbackResult } from "@/lib/gemini";
 
 
 export async function GET(
@@ -72,11 +75,49 @@ export async function GET(
     cur.setDate(cur.getDate() - 1);
   }
 
+  let flashback: FlashbackResult | null = null;
+  const score = moodScore(row.moodTypeId);
+  if (tier === "premium" && score <= 2) {
+    try {
+      const url = new URL(_req.url);
+      const locale = url.searchParams.get("locale") ?? "th";
+
+      const negativeMoods = ["sad", "angry", "anxious", "tired"];
+      const pastEntries = await db
+        .select({ date: moodEntries.date, moodTypeId: moodEntries.moodTypeId, note: moodEntries.note, tags: moodEntries.tags })
+        .from(moodEntries)
+        .where(and(
+          eq(moodEntries.userId, userId),
+          ne(moodEntries.id, id),
+          inArray(moodEntries.moodTypeId, negativeMoods),
+        ))
+        .orderBy(desc(moodEntries.createdAt))
+        .limit(10);
+
+      if (pastEntries.length > 0) {
+        const payload = JSON.stringify({
+          locale,
+          currentEntry: { date: row.date, mood: row.moodTypeId, note: (row.note ?? "").slice(0, 200), tags: (row.tags as string[] | null) ?? [] },
+          pastEntries: pastEntries.map((e) => ({
+            date: e.date,
+            mood: e.moodTypeId,
+            note: (e.note ?? "").slice(0, 100),
+            tags: (e.tags as string[] | null) ?? [],
+          })),
+        });
+        flashback = await generateFlashback(payload);
+      }
+    } catch {
+      // Gemini failed — no flashback is fine
+    }
+  }
+
   return NextResponse.json({
     ...row, imageUrl, isPremium: tier === "premium", entryNumber,
     nearby,
     lastYear: lastYearRow ?? null,
     streak,
+    flashback,
   });
 }
 

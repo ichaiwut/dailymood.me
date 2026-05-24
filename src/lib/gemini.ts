@@ -645,6 +645,50 @@ export async function generateKeyTakeaway(data: string): Promise<KeyTakeawayResu
   return JSON.parse(r.response.text()) as KeyTakeawayResult;
 }
 
+// ── Flashback: cognitive reflection from past entries ──
+
+export interface FlashbackResult {
+  message: string;
+  pastDate: string;
+  pastNote: string;
+}
+
+const FLASHBACK_SCHEMA: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    message: { type: SchemaType.STRING },
+    pastDate: { type: SchemaType.STRING },
+    pastNote: { type: SchemaType.STRING },
+  },
+  required: ["message", "pastDate", "pastNote"],
+};
+
+const FLASHBACK_PROMPT = `Cognitive reflection assistant for a mood journal app.
+Input JSON: { locale, currentEntry: {date, mood, note, tags}, pastEntries: [{date, mood, note, tags}] }
+The user is feeling down. Find the most relevant past entry where they felt similar but eventually moved past it.
+Output JSON in the user's locale:
+message: 2-3 ประโยค อบอุ่น ให้กำลังใจ อ้างอิงสถานการณ์เดิมที่เคยผ่านมาได้ ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้น"สรุปว่า" ห้ามใช้"เล่า"/"บอก" โทนเหมือนเพื่อนพูดเบาๆ
+pastDate: the date of the past entry referenced (YYYY-MM-DD)
+pastNote: first 50 chars of the past entry's note for context
+If no relevant past entry, write a gentle encouragement without referencing a specific date.`;
+
+export async function generateFlashback(data: string): Promise<FlashbackResult> {
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: FLASHBACK_SCHEMA,
+      temperature: 0.6,
+      maxOutputTokens: 300,
+      // @ts-expect-error -- thinkingConfig not yet in SDK types
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    systemInstruction: FLASHBACK_PROMPT,
+  });
+  const r = await model.generateContent(data);
+  return JSON.parse(r.response.text()) as FlashbackResult;
+}
+
 // ── Chart Annotations: AI-detected anomalies on mood trend ──
 
 import type { ChartAnnotationsResult } from "@/db/schema";
