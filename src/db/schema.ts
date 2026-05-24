@@ -323,6 +323,12 @@ export const journalPromptCache = pgTable("journal_prompt_cache", {
   pk: primaryKey({ columns: [t.userId, t.moodId, t.dateKey, t.locale] }),
 }));
 
+export const flashbackCache = pgTable("flashback_cache", {
+  entryId: text("entry_id").notNull().references(() => moodEntries.id, { onDelete: "cascade" }).primaryKey(),
+  result: jsonb("result").$type<{ message: string; pastDate: string; pastNote: string }>().notNull(),
+  generatedAt: timestamp("generated_at").notNull().$defaultFn(() => new Date()),
+});
+
 export interface ChartAnnotation {
   dateKey: string;
   type: "anomaly_drop" | "anomaly_spike" | "best" | "worst" | "tag_correlation";

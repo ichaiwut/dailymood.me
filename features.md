@@ -182,6 +182,7 @@
 - `mood_packs` — id PK, label, premium (boolean), createdAt — mood icon pack registry (icons stored on R2 at `{packId}/{moodId}.svg`)
 - `journal_prompt_cache` — (userId, moodId, dateKey, locale) PK, prompt text, generatedAt — caches Gemini-generated journaling prompts per user/mood/date (daily rotation for variety)
 - `chart_annotations_cache` — (userId, periodKey) PK, result JSON (annotations array), entryCount, generatedAt — caches AI-detected anomalies/highlights for mood trend chart (delta-3 invalidation)
+- `flashback_cache` — entryId PK (FK mood_entries, cascade delete), result JSON (message + pastDate + pastNote), generatedAt — caches Gemini-generated flashback reflections per entry (generate once on first view)
 
 Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 

@@ -57,6 +57,13 @@
       "when": 1779446210386,
       "tag": "0007_bitter_ben_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779584343287,
+      "tag": "0008_magical_firebrand",
+      "breakpoints": true
     }
   ]
 }
