@@ -8,7 +8,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { moodScore, scoreToEmoji } from "@/lib/mood-scores";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import type { Tier } from "@/lib/tier";
-import type { ChartAnnotation } from "@/db/schema";
+import type { ChartAnnotation, SpecialDay } from "@/db/schema";
 import { AiDisclaimer } from "./ai-disclaimer";
 
 /* ── Types ─────────────────────────────────────────────── */
@@ -66,6 +66,7 @@ function MoodLineChart({
   iconFormat = "svg",
   annotations,
   tier,
+  specialDays,
 }: {
   trend: { date: string; moodId: string | null }[];
   period: Period;
@@ -74,6 +75,7 @@ function MoodLineChart({
   iconFormat?: string;
   annotations?: ChartAnnotation[] | null;
   tier: Tier;
+  specialDays?: SpecialDay[];
 }) {
   const W = 340;
   const H = 150;
@@ -121,6 +123,8 @@ function MoodLineChart({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [activePin, setActivePin] = useState<ChartAnnotation | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [activeMarker, setActiveMarker] = useState<SpecialDay | null>(null);
+  const [markerPos, setMarkerPos] = useState<{ x: number; y: number } | null>(null);
 
   const pinAnnotations = (tier === "premium" && annotations && annotations.length > 0) ? annotations : null;
 
@@ -130,6 +134,20 @@ function MoodLineChart({
       const idx = trend.findIndex((d) => d.date === ann.dateKey);
       if (idx >= 0) annotationMap.set(idx, ann);
     }
+  }
+
+  function handleMarkerHover(sd: SpecialDay, svgX: number, svgY: number) {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const svgEl = el.querySelector("svg");
+    if (!svgEl) return;
+    const rect = svgEl.getBoundingClientRect();
+    const scaleX = rect.width / W;
+    const scaleY = rect.height / (H + 24);
+    const x = Math.max(70, Math.min(rect.width - 70, svgX * scaleX));
+    const y = svgY * scaleY - 12;
+    setActiveMarker(sd);
+    setMarkerPos({ x, y });
   }
 
   function handlePinHover(ann: ChartAnnotation, svgX: number, svgY: number) {
@@ -147,7 +165,7 @@ function MoodLineChart({
   }
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative" }} onPointerLeave={() => setActivePin(null)}>
+    <div ref={wrapperRef} style={{ position: "relative" }} onPointerLeave={() => { setActivePin(null); setActiveMarker(null); }}>
       <svg viewBox={`0 0 ${W} ${H + 24}`} width="100%" style={{ display: "block" }}>
         <defs>
           <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
@@ -177,6 +195,29 @@ function MoodLineChart({
         ))}
 
         {areaPath && <path d={areaPath} fill="url(#lineGrad)" />}
+
+        {/* Special day markers */}
+        {specialDays && specialDays.map((sd) => {
+          const idx = trend.findIndex((d) => d.date === sd.date);
+          if (idx < 0) return null;
+          const x = toX(idx);
+          const color = sd.type === "holiday" ? "#F43F5E" : "#3B82F6";
+          return (
+            <g key={`marker-${sd.date}-${sd.type}`}>
+              <line x1={x} x2={x} y1={PY - 2} y2={PY + chartH} stroke={color} strokeWidth={1} strokeDasharray="3 3" opacity={0.4} />
+              <circle cx={x} cy={PY - 6} r={7} fill={color} opacity={0.15} />
+              <text x={x} y={PY - 3} textAnchor="middle" fontSize={9}>{sd.emoji}</text>
+              <circle
+                cx={x} cy={PY - 6} r={12} fill="transparent" cursor="pointer"
+                onPointerEnter={() => handleMarkerHover(sd, x, PY - 6)}
+                onPointerDown={() => {
+                  if (activeMarker?.date === sd.date) setActiveMarker(null);
+                  else handleMarkerHover(sd, x, PY - 6);
+                }}
+              />
+            </g>
+          );
+        })}
 
         {linePath && (
           <path d={linePath} fill="none" stroke="#A673F1" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
@@ -262,6 +303,30 @@ function MoodLineChart({
               {activePin.tagRefs.join(" ")}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Marker tooltip */}
+      {activeMarker && markerPos && (
+        <div style={{
+          position: "absolute",
+          left: markerPos.x,
+          top: markerPos.y,
+          transform: "translateX(-50%) translateY(-100%)",
+          background: activeMarker.type === "holiday" ? "#F43F5E" : "#3B82F6",
+          color: "#fff",
+          borderRadius: 10,
+          padding: "6px 10px",
+          fontSize: 13,
+          fontWeight: 600,
+          lineHeight: 1.4,
+          maxWidth: 200,
+          whiteSpace: "nowrap" as const,
+          pointerEvents: "none" as const,
+          zIndex: 20,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+        }}>
+          {activeMarker.emoji} {locale === "th" ? (activeMarker.labelTh ?? activeMarker.label) : activeMarker.label}
         </div>
       )}
 
@@ -379,6 +444,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
   const [loading, setLoading] = useState(true);
   const [yearBlocked, setYearBlocked] = useState(false);
   const [insight, setInsight] = useState<{ headline: string; summary: string; locked?: boolean } | null>(null);
+  const [specialDays, setSpecialDays] = useState<SpecialDay[]>([]);
 
   useEffect(() => {
     trackStatsView(period);
@@ -394,6 +460,19 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
           setPeriod("month");
         } else {
           setStats(data as StatsData);
+          if (data.moodTrend?.length) {
+            const dates = data.moodTrend.map((d: { date: string }) => d.date);
+            const months = new Set(dates.map((d: string) => d.slice(0, 7)));
+            Promise.all(
+              [...months].map((ym: string) =>
+                fetch(`/api/events?year=${ym.slice(0, 4)}&month=${parseInt(ym.slice(5), 10)}`)
+                  .then((r) => (r.ok ? r.json() : { events: [] }))
+                  .then((d) => (d as { events: SpecialDay[] }).events),
+              ),
+            ).then((arrays) => {
+              if (alive) setSpecialDays(arrays.flat());
+            });
+          }
         }
       })
       .catch(() => {})
@@ -619,8 +698,37 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   </h2>
                   <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{periodScopeLabel[period]}</span>
                 </div>
-                <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} annotations={stats?.annotations} tier={tier} />
+                <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} annotations={stats?.annotations} tier={tier} specialDays={specialDays} />
               </div>
+
+              {/* Special Days in period */}
+              {specialDays.length > 0 && (
+                <div style={CARD}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase" as const, marginBottom: 10 }}>
+                    {locale === "th" ? "วันสำคัญในช่วงนี้" : "Special days"}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {specialDays.filter((sd) => trend.some((d) => d.date === sd.date)).map((sd) => (
+                      <span
+                        key={`${sd.date}-${sd.type}`}
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                          padding: "5px 12px", borderRadius: 100,
+                          background: sd.type === "holiday" ? "#FFF0F3" : "#EFF6FF",
+                          fontSize: 14, fontWeight: 600,
+                          color: sd.type === "holiday" ? "#BE123C" : "#1D4ED8",
+                        }}
+                      >
+                        <span>{sd.emoji}</span>
+                        {locale === "th" ? (sd.labelTh ?? sd.label) : sd.label}
+                        <span style={{ fontSize: 12, opacity: 0.6 }}>
+                          {parseInt(sd.date.slice(8), 10)}/{parseInt(sd.date.slice(5, 7), 10)}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Mood Mix — stacked bar + featured mood + list */}
               <div style={CARD}>
