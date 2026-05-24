@@ -43,6 +43,7 @@
 - [x] Multi-entry per day (timeline)
 - [x] Mood Icon Packs — SVG/WebP/PNG icons hosted on R2 at `{packId}/{moodId}.{format}`; default pack `set_486038`. `users.mood_pack` stores selection. Free users can switch between free packs; premium packs require Pro. Profile page has "Mood Icons" section with grid cards showing preview of all packs.
 - [x] Location (optional) — optional place name on entries. GPS auto-detect (browser Geolocation → Google Geocoder reverse lookup) + Google Places Autocomplete text search. `LocationPicker` component (`src/components/location-picker.tsx`) lazy-loads `@googlemaps/js-api-loader` on mount. DB: `mood_entries.location` nullable text (max 200 chars). Available to all users (Free + Premium). Shown on Smart Log Modal (below toolbar), Edit Entry, Entry Detail, Timeline cards, DaySheet mini cards. Env: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. Graceful degradation: returns null if env var not set.
+- [x] Activities — กิจกรรมที่ผูกกับ entry (1 กิจกรรมต่อ entry). 10 default activities (💼 ทำงาน, 🏃 ออกกำลังกาย, 👫 เจอเพื่อน ฯลฯ). Free: 5 custom activities, Premium: 100. Manage ใน Settings → กิจกรรม. Horizontal scrollable chips ใน SmartLogModal + Edit Entry. แสดง chip ใน Entry Detail, emoji ใน Timeline + DaySheet. AI (Gemini) suggest activity จาก text. DB: `activities` table + `mood_entries.activity_id` FK. API: `GET/POST /api/activities`, `DELETE /api/activities/[id]`
 
 #### Smart Logging (AI)
 - [x] Smart Log Modal — text + voice + image
@@ -161,6 +162,9 @@
 | GET | `/api/events` | auth | List user's personal events (no params) OR merged holidays+personal events for a month (`?year=&month=`) |
 | POST | `/api/events` | auth | Create personal event: `{ label, labelTh?, month, day, emoji? }`. Free: max 3 events (409 limit_reached). Premium: unlimited |
 | DELETE | `/api/events/:id` | auth | Delete own personal event |
+| GET | `/api/activities` | auth | List all activities (system defaults + user custom) |
+| POST | `/api/activities` | auth | Create custom activity: `{ label, labelTh?, emoji? }`. Free: max 5 (409 limit_reached). Premium: max 100 |
+| DELETE | `/api/activities/:id` | auth | Delete own custom activity |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
@@ -180,7 +184,8 @@
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
-- `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSummary, aiSource, **location** (nullable text, max 200 chars), date, createdAt
+- `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSummary, aiSource, **activityId** (nullable FK→activities), **location** (nullable text, max 200 chars), date, createdAt
+- `activities` — id PK, userId (nullable FK→users, null=default), emoji, label, labelTh, order, isDefault, createdAt — 10 system defaults + user custom activities. Free: max 5 custom, Premium: max 100
 - `ai_usage` — (userId, date) PK, nlpCount, visionCount
 - `rate_limits` — key PK (`<endpoint>:<ip>`), count, resetAt — fixed-window rate limit on D1
 
@@ -195,7 +200,7 @@
 - `personal_events` — id PK, userId (FK cascade), label, labelTh, month (1-12), day (1-31), emoji, createdAt — user's recurring important dates (birthday, anniversary). Free: max 3, Premium: unlimited
 - `holiday_cache` — (year, countryCode) PK, data JSON (array of {date, name, localName}), fetchedAt — caches Nager.Date API response per year (30-day TTL)
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`, `0018_activities.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Railway)
 

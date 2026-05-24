@@ -84,6 +84,7 @@ export const moodEntries = pgTable("mood_entries", {
   sentiment: real("sentiment"),
   aiSummary: text("ai_summary"),
   aiSource: text("ai_source").notNull().default("manual"),
+  activityId: text("activity_id").references(() => activities.id),
   location: text("location"),
   locationLat: real("location_lat"),
   locationLng: real("location_lng"),
@@ -352,6 +353,19 @@ export const chartAnnotationsCache = pgTable("chart_annotations_cache", {
   pk: primaryKey({ columns: [t.userId, t.periodKey] }),
 }));
 
+export const activities = pgTable("activities", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+  emoji: text("emoji").notNull(),
+  label: text("label").notNull(),
+  labelTh: text("label_th"),
+  order: integer("order").notNull().default(0),
+  isDefault: boolean("is_default").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  userIdx: index("activities_user_idx").on(t.userId),
+}));
+
 export const personalEvents = pgTable("personal_events", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -389,6 +403,7 @@ export interface SpecialDay {
   id?: string;
 }
 
+export type Activity = typeof activities.$inferSelect;
 export type PersonalEvent = typeof personalEvents.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;

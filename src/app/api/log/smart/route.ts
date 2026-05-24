@@ -6,6 +6,9 @@ import { FREE_NLP_DAILY_LIMIT, getNlpUsage, incNlpUsage, incVisionUsage, todayKe
 import { rateLimit } from "@/lib/rate-limit";
 import { midnightICTinUTC } from "@/lib/timezone";
 import { ulid } from "@/lib/ulid";
+import { getDb } from "@/lib/cf";
+import { activities } from "@/db/schema";
+import { eq, isNull, or } from "drizzle-orm";
 
 
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024; // 6MB after client optimization
@@ -77,13 +80,20 @@ export async function POST(req: NextRequest) {
   let sentiment: number | null = null;
   let nlpTags: string[] = [];
   let aiSummary: string | null = null;
+  let suggestedActivityId: string | null = null;
 
   if (text) {
-    const r = await analyzeText(text);
+    const db = getDb();
+    const userActivities = await db
+      .select({ id: activities.id, label: activities.label })
+      .from(activities)
+      .where(or(isNull(activities.userId), eq(activities.userId, userId)));
+    const r = await analyzeText(text, userActivities);
     suggestedMoodId = r.suggestedMoodId;
     sentiment = r.sentiment;
     nlpTags = r.tags ?? [];
     if (tier === "premium") aiSummary = r.summary || null;
+    if (r.suggestedActivityId) suggestedActivityId = r.suggestedActivityId;
     await incNlpUsage(userId);
   }
 
@@ -98,5 +108,6 @@ export async function POST(req: NextRequest) {
     imageKey,
     aiSource,
     aiSummary,
+    suggestedActivityId,
   });
 }

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { moodEntries } from "@/db/schema";
-import { and, desc, eq, gte } from "drizzle-orm";
+import { moodEntries, activities } from "@/db/schema";
+import { and, desc, eq, gte, isNull, or } from "drizzle-orm";
 import { moodScore, ymd, addDays, computeStreak } from "@/lib/mood-scores";
 import { getOrGenerateAnnotations } from "./chart-annotations";
 import type { ChartAnnotation } from "@/db/schema";
@@ -35,9 +35,14 @@ export async function GET(req: NextRequest) {
       date: moodEntries.date,
       moodTypeId: moodEntries.moodTypeId,
       tags: moodEntries.tags,
+      activityId: moodEntries.activityId,
+      activityLabel: activities.label,
+      activityLabelTh: activities.labelTh,
+      activityEmoji: activities.emoji,
       createdAt: moodEntries.createdAt,
     })
     .from(moodEntries)
+    .leftJoin(activities, eq(moodEntries.activityId, activities.id))
     .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, prevStart)))
     .orderBy(desc(moodEntries.createdAt));
 
@@ -47,6 +52,7 @@ export async function GET(req: NextRequest) {
   const distribution: Record<string, number> = {};
   const perDay = new Map<string, Map<string, number>>();
   const tagsByDate = new Map<string, string[]>();
+  const activityByDate = new Map<string, string>();
   let todayMood: { moodId: string; createdAt: number } | null = null;
 
   for (const r of currentRows) {
@@ -58,6 +64,9 @@ export async function GET(req: NextRequest) {
     if (tags.length > 0) {
       const existing = tagsByDate.get(r.date) ?? [];
       tagsByDate.set(r.date, [...existing, ...tags]);
+    }
+    if (r.activityLabel && !activityByDate.has(r.date)) {
+      activityByDate.set(r.date, r.activityLabel);
     }
     if (r.date === today && !todayMood) {
       todayMood = { moodId: r.moodTypeId, createdAt: r.createdAt.getTime() };
@@ -150,11 +159,29 @@ export async function GET(req: NextRequest) {
   activityImpact.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
   activityImpact.splice(6);
 
+  // activity-based impact (structured activities, not free-text tags)
+  const actScores = new Map<string, { scores: number[]; label: string; emoji: string }>();
+  for (const r of currentRows) {
+    if (!r.activityId || !r.activityLabel) continue;
+    const s = moodScore(r.moodTypeId);
+    const existing = actScores.get(r.activityId) ?? { scores: [], label: r.activityLabel, emoji: r.activityEmoji ?? "" };
+    existing.scores.push(s);
+    actScores.set(r.activityId, existing);
+  }
+  const activityInsight: { id: string; label: string; emoji: string; impact: number; freq: number }[] = [];
+  for (const [id, data] of actScores) {
+    if (data.scores.length < 2) continue;
+    const avg = data.scores.reduce((a, b) => a + b, 0) / data.scores.length;
+    const impact = Math.round(((avg - overallAvg) / 4) * 100);
+    activityInsight.push({ id, label: data.label, emoji: data.emoji, impact: Math.max(-100, Math.min(100, impact)), freq: data.scores.length });
+  }
+  activityInsight.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+
   const streak = computeStreak(new Set(perDay.keys()));
 
   let annotations: ChartAnnotation[] | null = null;
   if (tier === "premium") {
-    annotations = await getOrGenerateAnnotations(db, userId, period, moodTrend, tagsByDate, currentRows.length, locale);
+    annotations = await getOrGenerateAnnotations(db, userId, period, moodTrend, tagsByDate, activityByDate, currentRows.length, locale);
   }
 
   return NextResponse.json({
@@ -170,6 +197,7 @@ export async function GET(req: NextRequest) {
     avgScoreDelta,
     bestDay,
     activityImpact,
+    activityInsight,
     annotations,
   });
 }

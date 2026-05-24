@@ -1,0 +1,2 @@
+export const FREE_ACTIVITY_LIMIT = 5;
+export const PREMIUM_ACTIVITY_LIMIT = 100;

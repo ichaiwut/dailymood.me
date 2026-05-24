@@ -2,6 +2,19 @@
 
 ## 2026-05-24
 
+### 6. Activities
+กิจกรรมที่ผูกกับแต่ละ mood entry
+
+- **10 default activities** — 💼 ทำงาน, 🏃 ออกกำลังกาย, 👫 เจอเพื่อน, 👨‍👩‍👧 ครอบครัว, 🍽️ กินข้าวนอกบ้าน, 🎮 เล่นเกม, 📚 อ่านหนังสือ, 🎬 ดูหนัง/ซีรีส์, 😴 พักผ่อน, ✈️ เที่ยว
+- **Custom activities** — Free: 5, Premium: 100. Manage ใน Settings → กิจกรรม
+- **1 activity ต่อ entry** — horizontal scrollable chips, tap เลือก/ยกเลิก
+- **แสดง** — SmartLogModal, Edit Entry, Entry Detail (chip), Timeline + DaySheet (emoji)
+- **AI suggest** — Gemini analyzeText ส่ง activity list + return suggestedActivityId
+- DB: `activities` table + `mood_entries.activity_id` FK
+- API: `GET/POST /api/activities`, `DELETE /api/activities/[id]`
+- Migration: `0018_activities.sql` (create table + seed defaults + add FK)
+- Files: `activity-limits.ts`, `default-activities.ts`, `activity-manager.tsx`, `activity-picker.tsx`
+
 ### 1. Public Holidays + Personal Events
 ระบบปฏิทินวันสำคัญ
 

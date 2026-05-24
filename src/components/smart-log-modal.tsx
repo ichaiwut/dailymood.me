@@ -11,6 +11,7 @@ import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { LocationSearch } from "./location-picker";
 import { SpecialDayBanner } from "./special-day-banner";
+import { ActivityPicker } from "./activity-picker";
 import type { SpecialDay } from "@/db/schema";
 import { getStaticPrompt, FALLBACK_PROMPT } from "@/lib/journal-prompts";
 
@@ -23,6 +24,7 @@ interface AiSuggestion {
   imageKey: string | null;
   aiSource: "manual" | "nlp" | "vision" | "nlp+vision";
   aiSummary: string | null;
+  suggestedActivityId?: string | null;
 }
 
 interface RateLimitInfo {
@@ -99,6 +101,7 @@ export function SmartLogModal({
   const [moodId, setMoodId] = useState<string>(preSelectedMoodId ?? "neutral");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [activityId, setActivityId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiStep, setAiStep] = useState(0);
@@ -247,6 +250,7 @@ export function SmartLogModal({
       setSuggestion(s);
       setMoodId(s.suggestedMoodId);
       setTags(s.tags);
+      if (s.suggestedActivityId) setActivityId(s.suggestedActivityId);
       if (aiRemaining !== null && aiRemaining > 0) setAiRemaining(aiRemaining - 1);
     } catch (e) {
       console.error("[SmartLog] fetch error:", e);
@@ -282,6 +286,7 @@ export function SmartLogModal({
           imageKey,
           aiSummary: suggestion?.aiSummary ?? null,
           aiSource: suggestion?.aiSource ?? "manual",
+          activityId: activityId || undefined,
           location: location.trim() || undefined,
           locationLat: locationLat ?? undefined,
           locationLng: locationLng ?? undefined,
@@ -475,6 +480,13 @@ export function SmartLogModal({
                 </div>
               )}
 
+              {/* Activity picker */}
+              {!analyzing && !rateLimitInfo && (
+                <div style={{ marginTop: 14 }}>
+                  <ActivityPicker value={activityId} onChange={setActivityId} />
+                </div>
+              )}
+
               {/* AI analyzing state */}
               {analyzing && (
                 <div className="fade-in" style={{ marginTop: 24, textAlign: "center", padding: "32px 20px" }}>
@@ -547,6 +559,8 @@ export function SmartLogModal({
                       <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder={locale === "th" ? "+ เพิ่ม" : "+ Add"} style={{ width: tagInput ? 100 : 60, padding: "4px 10px", borderRadius: 100, background: "transparent", border: "1px dashed var(--hairline-2)", color: "var(--ink-3)", fontFamily: "inherit", fontSize: 14, outline: "none" }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} />
                     </form>
                   </div>
+                  {/* Activity in AI suggestion */}
+                  <ActivityPicker value={activityId} onChange={setActivityId} />
                   {/* Summary */}
                   {suggestion.aiSummary && (
                     <div style={{ padding: 12, background: "rgba(255,255,255,.6)", borderRadius: 10 }}>
@@ -586,7 +600,7 @@ export function SmartLogModal({
                   </button>
                 )}
                 {suggestion && !analyzing && (
-                  <button onClick={() => { setSuggestion(null); setTags([]); setMoodId(preSelectedMoodId ?? "neutral"); }} className="w-btn w-btn-ghost">
+                  <button onClick={() => { setSuggestion(null); setTags([]); setMoodId(preSelectedMoodId ?? "neutral"); setActivityId(null); }} className="w-btn w-btn-ghost">
                     {locale === "th" ? "เขียนเอง" : "Write myself"}
                   </button>
                 )}

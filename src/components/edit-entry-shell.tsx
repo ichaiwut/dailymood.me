@@ -10,6 +10,7 @@ import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { LocationSearch } from "./location-picker";
+import { ActivityPicker } from "./activity-picker";
 import { trackMoodLog, trackEntryDelete } from "@/lib/analytics";
 
 interface EntryData {
@@ -22,6 +23,7 @@ interface EntryData {
   aiSource: string;
   imageKey: string | null;
   imageUrl: string | null;
+  activityId: string | null;
   location: string | null;
   locationLat: number | null;
   locationLng: number | null;
@@ -58,6 +60,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [activityId, setActivityId] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [locationLat, setLocationLat] = useState<number | undefined>();
   const [locationLng, setLocationLng] = useState<number | undefined>();
@@ -99,6 +102,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         setAiSource(data.aiSource);
         setImageKey(data.imageKey);
         setImageUrl(data.imageUrl);
+        setActivityId(data.activityId ?? null);
         setLocation(data.location ?? "");
         setLocationLat(data.locationLat ?? undefined);
         setLocationLng(data.locationLng ?? undefined);
@@ -185,6 +189,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         body: JSON.stringify({
           moodTypeId: moodId, note: note.trim() || null, tags, sentiment,
           imageKey: finalImageKey, aiSummary, aiSource,
+          activityId: activityId ?? null,
           location: location.trim() || null, locationLat: locationLat ?? null, locationLng: locationLng ?? null,
           date: dateVal, createdAt,
         }),
@@ -195,7 +200,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
     } finally {
       setSaving(false);
     }
-  }, [dateVal, timeVal, note, moodId, tags, sentiment, imageKey, imageFile, aiSummary, aiSource, location, id, t, router]);
+  }, [dateVal, timeVal, note, moodId, tags, sentiment, imageKey, imageFile, aiSummary, aiSource, activityId, location, id, t, router]);
 
   async function handleDelete() {
     setDeleting(true);
@@ -503,6 +508,9 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               <p style={{ fontSize: 14, fontWeight: 600, color: "#7A4DD0", margin: 0 }}>{error}</p>
             </div>
           )}
+
+          {/* ── Activity ── */}
+          <ActivityPicker value={activityId} onChange={setActivityId} />
 
           {/* ── Tags ── */}
           <div>

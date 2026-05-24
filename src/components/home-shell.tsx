@@ -12,6 +12,7 @@ import { LocationSearch } from "./location-picker";
 import { Link } from "@/i18n/navigation";
 import { trackMoodLog } from "@/lib/analytics";
 import { SpecialDayBanner } from "./special-day-banner";
+import { ActivityPicker } from "./activity-picker";
 import type { SpecialDay } from "@/db/schema";
 
 type Tier = "guest" | "free" | "premium";
@@ -72,6 +73,7 @@ export function HomeShell({
     imageKey: string | null;
     aiSource: string;
     aiSummary: string | null;
+    suggestedActivityId?: string | null;
   } | null>(null);
   const [composerMoodId, setComposerMoodId] = useState("neutral");
   const [composerTags, setComposerTags] = useState<string[]>([]);
@@ -84,6 +86,7 @@ export function HomeShell({
   const [composerLocationLat, setComposerLocationLat] = useState<number | undefined>();
   const [composerLocationLng, setComposerLocationLng] = useState<number | undefined>();
   const [showComposerLocationSearch, setShowComposerLocationSearch] = useState(false);
+  const [composerActivityId, setComposerActivityId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [todaySpecialDays, setTodaySpecialDays] = useState<SpecialDay[]>([]);
   const composerHasInput = composerText.trim().length > 0 || !!composerImage;
@@ -128,10 +131,12 @@ export function HomeShell({
         imageKey: string | null;
         aiSource: string;
         aiSummary: string | null;
+        suggestedActivityId?: string | null;
       };
       setComposerSuggestion(s);
       setComposerMoodId(s.suggestedMoodId);
       setComposerTags(s.tags);
+      if (s.suggestedActivityId) setComposerActivityId(s.suggestedActivityId);
     } catch {
       setComposerError("error");
     } finally {
@@ -166,6 +171,7 @@ export function HomeShell({
           imageKey,
           aiSummary: composerSuggestion?.aiSummary ?? null,
           aiSource: composerSuggestion?.aiSource ?? "manual",
+          activityId: composerActivityId || undefined,
           location: composerLocation.trim() || undefined,
           locationLat: composerLocationLat ?? undefined,
           locationLng: composerLocationLng ?? undefined,
@@ -455,6 +461,13 @@ export function HomeShell({
                   </button>
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* Activity picker */}
+          {!composerAnalyzing && (
+            <div style={{ marginTop: 10 }}>
+              <ActivityPicker value={composerActivityId} onChange={setComposerActivityId} compact />
             </div>
           )}
 

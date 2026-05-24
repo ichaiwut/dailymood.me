@@ -14,6 +14,7 @@ export interface NlpResult {
   sentiment: number; // -1..1
   tags: string[]; // 3-8 short lowercase tags
   summary: string;
+  suggestedActivityId?: string | null;
 }
 
 const NLP_SCHEMA: Schema = {
@@ -37,18 +38,37 @@ sentiment: -1..1.
 tags: 3-8 lowercase keywords (activities/people/places/feelings).
 summary: 1-2 ประโยค ภาษาไทย อบอุ่น ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้นต้น"สรุปว่า" ห้ามใช้ครับ/ค่ะ/คะ — โทนเป็นกลาง`;
 
-export async function analyzeText(text: string): Promise<NlpResult> {
+interface ActivityOption {
+  id: string;
+  label: string;
+}
+
+const NLP_SCHEMA_WITH_ACTIVITY: Schema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    ...NLP_SCHEMA.properties,
+    suggestedActivityId: { type: SchemaType.STRING },
+  },
+  required: ["suggestedMoodId", "sentiment", "tags", "summary"],
+};
+
+export async function analyzeText(text: string, activityOptions?: ActivityOption[]): Promise<NlpResult> {
+  const hasActivities = activityOptions && activityOptions.length > 0;
+  const schema = hasActivities ? NLP_SCHEMA_WITH_ACTIVITY : NLP_SCHEMA;
+  const activityLine = hasActivities
+    ? `\nsuggestedActivityId: pick the best activity from: ${activityOptions.map((a) => `"${a.id}"=${a.label}`).join(", ")}. If none match, omit field.`
+    : "";
   const model = genAI.getGenerativeModel({
     model: MODEL,
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: NLP_SCHEMA,
+      responseSchema: schema,
       temperature: 0.4,
       maxOutputTokens: 256,
       // @ts-expect-error -- thinkingConfig not yet in SDK types
       thinkingConfig: { thinkingBudget: 0 },
     },
-    systemInstruction: NLP_PROMPT,
+    systemInstruction: NLP_PROMPT + activityLine,
   });
   const r = await model.generateContent(text.slice(0, 500));
   return JSON.parse(r.response.text()) as NlpResult;

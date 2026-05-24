@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { CustomMoodManager } from "./custom-mood-manager";
+import { ActivityManager } from "./activity-manager";
 
 export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
   const t = useTranslations("profile");
@@ -214,6 +215,15 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
           </SettingCard>
         </Section>
       )}
+
+      {/* Activities */}
+      <Section label={locale === "th" ? "กิจกรรม" : "Activities"}>
+        <SettingCard>
+          <div style={{ padding: "16px 20px" }}>
+            <ActivityManager isPremium={isPremium} />
+          </div>
+        </SettingCard>
+      </Section>
 
       {/* Data */}
       <Section label={t("data")}>

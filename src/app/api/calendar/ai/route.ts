@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo, meetsTier } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { moodEntries, calendarAiCache } from "@/db/schema";
+import { moodEntries, calendarAiCache, activities } from "@/db/schema";
 import type { CalendarAiResult } from "@/db/schema";
 import { generateCalendarAi } from "@/lib/gemini";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
@@ -46,8 +46,10 @@ export async function GET(req: NextRequest) {
       moodTypeId: moodEntries.moodTypeId,
       tags: moodEntries.tags,
       sentiment: moodEntries.sentiment,
+      activityLabel: activities.label,
     })
     .from(moodEntries)
+    .leftJoin(activities, eq(moodEntries.activityId, activities.id))
     .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, from), lte(moodEntries.date, to)))
     .orderBy(desc(moodEntries.createdAt));
 
@@ -78,9 +80,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ...cached.result, cached: true });
   }
 
-  const dayMap = new Map<string, { mood: string; score: number; tags: string[] }>();
+  const dayMap = new Map<string, { mood: string; score: number; tags: string[]; activity?: string }>();
   const moodCounts: Record<string, number> = {};
   const tagCounts: Record<string, number> = {};
+  const activityCounts: Record<string, number> = {};
   const dowCounts: Record<string, number> = {};
 
   for (const r of rows) {
@@ -89,11 +92,15 @@ export async function GET(req: NextRequest) {
         mood: r.moodTypeId,
         score: MOOD_SCORES[r.moodTypeId] ?? 3,
         tags: (r.tags as string[] | null) ?? [],
+        activity: r.activityLabel ?? undefined,
       });
     }
     moodCounts[r.moodTypeId] = (moodCounts[r.moodTypeId] ?? 0) + 1;
     for (const t of (r.tags as string[] | null) ?? []) {
       tagCounts[t] = (tagCounts[t] ?? 0) + 1;
+    }
+    if (r.activityLabel) {
+      activityCounts[r.activityLabel] = (activityCounts[r.activityLabel] ?? 0) + 1;
     }
     const d = new Date(r.date + "T12:00:00");
     const dow = ictDayOfWeek(d, "en", "short");
@@ -102,7 +109,12 @@ export async function GET(req: NextRequest) {
 
   const days = Array.from(dayMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, v]) => ({ date, mood: v.mood, score: v.score, tags: v.tags }));
+    .map(([date, v]) => ({ date, mood: v.mood, score: v.score, tags: v.tags, activity: v.activity ?? null }));
+
+  const topActivities = Object.entries(activityCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([a, c]) => `${a}:${c}`);
 
   const topTags = Object.entries(tagCounts)
     .sort((a, b) => b[1] - a[1])
@@ -116,6 +128,7 @@ export async function GET(req: NextRequest) {
     days,
     moodCounts,
     topTags,
+    topActivities,
     dowCounts,
     moodEmojis: MOOD_EMOJIS,
   });

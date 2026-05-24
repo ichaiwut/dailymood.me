@@ -12,6 +12,8 @@ export interface TimelineEntry {
   note: string | null;
   aiSummary: string | null;
   tags: string[] | null;
+  activityId?: string | null;
+  activityEmoji?: string | null;
   imageUrl: string | null;
   location: string | null;
   date: string;
@@ -218,8 +220,9 @@ function EntryCard({ entry, locale, pack, iconFormat }: { entry: TimelineEntry; 
           {mood && <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={24} height={24} />}
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
             {locale === "th" ? mood?.labelTh : mood?.label}
+            {entry.activityEmoji && <span style={{ fontSize: 14 }}>{entry.activityEmoji}</span>}
           </div>
           <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
             {time}

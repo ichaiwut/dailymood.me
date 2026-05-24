@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { moodEntries } from "@/db/schema";
+import { moodEntries, activities } from "@/db/schema";
 import { and, eq, gte, lte, desc } from "drizzle-orm";
 import { getSignedReadUrl } from "@/lib/r2";
 
@@ -31,12 +31,15 @@ export async function GET(req: NextRequest) {
       note: moodEntries.note,
       aiSummary: moodEntries.aiSummary,
       tags: moodEntries.tags,
+      activityId: moodEntries.activityId,
+      activityEmoji: activities.emoji,
       imageKey: moodEntries.imageKey,
       location: moodEntries.location,
       date: moodEntries.date,
       createdAt: moodEntries.createdAt,
     })
     .from(moodEntries)
+    .leftJoin(activities, eq(moodEntries.activityId, activities.id))
     .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, from), lte(moodEntries.date, to)))
     .orderBy(desc(moodEntries.createdAt));
 

@@ -150,6 +150,7 @@ interface PatchBody {
   imageKey?: string | null;
   aiSummary?: string | null;
   aiSource?: "manual" | "nlp" | "vision" | "nlp+vision";
+  activityId?: string | null;
   location?: string | null;
   locationLat?: number | null;
   locationLng?: number | null;
@@ -201,6 +202,7 @@ export async function PATCH(
   if ("imageKey" in body) updateData.imageKey = body.imageKey ?? null;
   if (body.aiSummary !== undefined) updateData.aiSummary = body.aiSummary;
   if (body.aiSource !== undefined) updateData.aiSource = body.aiSource;
+  if ("activityId" in body) updateData.activityId = body.activityId ?? null;
   if (body.location !== undefined) updateData.location = body.location?.trim()?.slice(0, 200) || null;
   if (body.locationLat !== undefined) updateData.locationLat = body.locationLat;
   if (body.locationLng !== undefined) updateData.locationLng = body.locationLng;

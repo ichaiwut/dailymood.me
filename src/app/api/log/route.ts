@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { moodEntries } from "@/db/schema";
+import { moodEntries, activities } from "@/db/schema";
 import { getSignedReadUrl } from "@/lib/r2";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -19,13 +19,30 @@ export async function GET(req: NextRequest) {
     ? and(eq(moodEntries.userId, userId), eq(moodEntries.date, date))
     : eq(moodEntries.userId, userId);
   const rows = await db
-    .select()
+    .select({
+      id: moodEntries.id,
+      userId: moodEntries.userId,
+      moodTypeId: moodEntries.moodTypeId,
+      note: moodEntries.note,
+      imageKey: moodEntries.imageKey,
+      tags: moodEntries.tags,
+      sentiment: moodEntries.sentiment,
+      aiSummary: moodEntries.aiSummary,
+      aiSource: moodEntries.aiSource,
+      activityId: moodEntries.activityId,
+      activityEmoji: activities.emoji,
+      location: moodEntries.location,
+      locationLat: moodEntries.locationLat,
+      locationLng: moodEntries.locationLng,
+      date: moodEntries.date,
+      createdAt: moodEntries.createdAt,
+    })
     .from(moodEntries)
+    .leftJoin(activities, eq(moodEntries.activityId, activities.id))
     .where(where)
     .orderBy(desc(moodEntries.createdAt))
     .limit(limit);
 
-  // Hydrate signed image URLs
   const out = await Promise.all(
     rows.map(async (r) => ({
       ...r,

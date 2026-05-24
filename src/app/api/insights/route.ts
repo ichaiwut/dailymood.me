@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionInfo, meetsTier } from "@/lib/tier";
 import { getDb } from "@/lib/cf";
-import { moodEntries, insightsAiCache } from "@/db/schema";
+import { moodEntries, insightsAiCache, activities } from "@/db/schema";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { generateInsights } from "@/lib/gemini";
 import { ictDayOfWeek } from "@/lib/timezone";
@@ -27,9 +27,11 @@ export async function GET(req: NextRequest) {
       note: moodEntries.note,
       tags: moodEntries.tags,
       sentiment: moodEntries.sentiment,
+      activityLabel: activities.label,
       createdAt: moodEntries.createdAt,
     })
     .from(moodEntries)
+    .leftJoin(activities, eq(moodEntries.activityId, activities.id))
     .where(and(eq(moodEntries.userId, userId), gte(moodEntries.date, start)))
     .orderBy(desc(moodEntries.createdAt))
     .limit(100);
@@ -74,6 +76,7 @@ export async function GET(req: NextRequest) {
   // generate fresh insights
   const moodCounts: Record<string, number> = {};
   const tagCounts: Record<string, number> = {};
+  const activityCounts: Record<string, number> = {};
   const dayCounts: Record<string, number> = {};
   let sentSum = 0;
   let sentN = 0;
@@ -81,6 +84,9 @@ export async function GET(req: NextRequest) {
     moodCounts[r.moodTypeId] = (moodCounts[r.moodTypeId] ?? 0) + 1;
     for (const t of (r.tags as string[] | null) ?? []) {
       tagCounts[t] = (tagCounts[t] ?? 0) + 1;
+    }
+    if (r.activityLabel) {
+      activityCounts[r.activityLabel] = (activityCounts[r.activityLabel] ?? 0) + 1;
     }
     const dow = ictDayOfWeek(r.createdAt, "en", "short");
     dayCounts[dow] = (dayCounts[dow] ?? 0) + 1;
@@ -91,6 +97,11 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([t, c]) => `${t}:${c}`);
+
+  const topActivities = Object.entries(activityCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([a, c]) => `${a}:${c}`);
 
   const recent = rows.slice(0, 10).map((r) => ({
     d: r.date,
@@ -105,6 +116,7 @@ export async function GET(req: NextRequest) {
     moods: moodCounts,
     days: dayCounts,
     tags: topTags,
+    activities: topActivities,
     recent,
   });
 

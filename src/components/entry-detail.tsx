@@ -7,6 +7,7 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { SpecialDayBanner } from "./special-day-banner";
+import { ActivityChip } from "./activity-picker";
 import type { SpecialDay } from "@/db/schema";
 
 interface EntryData {
@@ -17,6 +18,7 @@ interface EntryData {
   sentiment: number | null;
   aiSummary?: string | null;
   aiSource: string;
+  activityId?: string | null;
   imageUrl?: string | null;
   location?: string | null;
   locationLat?: number | null;
@@ -152,6 +154,11 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
         {specialDays.length > 0 && (
           <div style={{ marginTop: 12 }}>
             <SpecialDayBanner days={specialDays} locale={locale} />
+          </div>
+        )}
+        {entry.activityId && (
+          <div style={{ marginTop: 10 }}>
+            <ActivityChip activityId={entry.activityId} />
           </div>
         )}
       </div>

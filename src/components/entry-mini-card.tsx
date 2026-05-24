@@ -10,6 +10,7 @@ interface SheetEntry {
   moodTypeId: string;
   note: string | null;
   tags: string[] | null;
+  activityEmoji?: string | null;
   imageUrl: string | null;
   aiSummary: string | null;
   location: string | null;
@@ -67,8 +68,9 @@ export function EntryMiniCard({ entry, pack = DEFAULT_MOOD_PACK, iconFormat = "s
           {mood && <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={28} height={28} />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", lineHeight: 1.2 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", lineHeight: 1.2, display: "flex", alignItems: "center", gap: 6 }}>
             {moodLabel}
+            {entry.activityEmoji && <span style={{ fontSize: 14 }}>{entry.activityEmoji}</span>}
           </div>
           <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
             {timeLabel}

@@ -13,6 +13,7 @@ export async function getOrGenerateAnnotations(
   period: Period,
   moodTrend: { date: string; moodId: string | null }[],
   tagsByDate: Map<string, string[]>,
+  activityByDate: Map<string, string>,
   currentEntryCount: number,
   locale: string,
 ): Promise<ChartAnnotation[]> {
@@ -50,6 +51,7 @@ export async function getOrGenerateAnnotations(
       date: d.date,
       score: moodScore(d.moodId!),
       tags: tagsByDate.get(d.date) ?? [],
+      activity: activityByDate.get(d.date) ?? null,
     })),
   });
 
