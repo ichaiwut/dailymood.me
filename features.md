@@ -93,7 +93,7 @@
 - [x] AI Flashback & Cognitive Reflection (Premium) — เมื่อ user บันทึกอารมณ์แย่ (sad/angry/anxious/tired, score ≤ 2) แล้วเปิดดู entry detail, Gemini ค้นหา entries เก่าที่มีอารมณ์คล้ายกันแล้วสร้างข้อความสะท้อนคิดให้กำลังใจ อ้างอิงสถานการณ์ที่เคยผ่านมาได้. แสดงเป็น Flashback card (blue gradient, clock icon) ใต้ AI Insight. Free: teaser card + upgrade CTA. ไม่มี cache (on-demand ทุกครั้ง). API: extends `GET /api/log/[id]` response with `flashback` field
 - [ ] AI Mood Analysis (trends)
 - [ ] AI Suggestions
-- [ ] AI Summary (weekly)
+- [x] Weekly Digest Email (Premium) — ทุกวันจันทร์ 08:00 ICT ส่ง email สรุปสัปดาห์ ผ่าน Resend. ใช้ insights cache (reuse ถ้ามี, generate ใหม่ถ้าไม่มี). เนื้อหา: headline, summary, avg mood/streak/entries stats, patterns (3 อัน), suggestion card. Toggle on/off ผ่าน Insights page (`weeklyDigestEnabled` column). Cron: `/api/cron/weekly-digest`, registered ใน `cron-scheduler.ts` (Monday UTC day=1, hour=1)
 - [ ] AI Chatbot
 
 #### Social & Sharing
