@@ -13,7 +13,7 @@ import { TimelineFeed } from "./timeline-feed";
 import type { TimelineEntry } from "./timeline-feed";
 import { Link } from "@/i18n/navigation";
 import type { Tier } from "@/lib/tier";
-import type { CalendarAiResult } from "@/db/schema";
+import type { CalendarAiResult, SpecialDay } from "@/db/schema";
 import { trackCalendarView } from "@/lib/analytics";
 
 type CalView = "calendar" | "timeline";
@@ -81,6 +81,8 @@ export function CalendarShell({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPatternsVisible, setAiPatternsVisible] = useState(true);
 
+  const [specialDays, setSpecialDays] = useState<SpecialDay[]>([]);
+
   function handleDayPress(dateStr: string, isFuture: boolean) {
     if (isFuture) {
       clearTimeout(toastTimer.current);
@@ -139,6 +141,18 @@ export function CalendarShell({
     return () => { alive = false; };
   }, [viewYear, viewMonth, refreshKey, calView]);
 
+  // Fetch special days (holidays + personal events)
+  useEffect(() => {
+    let alive = true;
+    const mm = viewMonth + 1;
+    fetch(`/api/events?year=${viewYear}&month=${mm}`)
+      .then((r) => (r.ok ? r.json() : { events: [] }))
+      .then((data) => {
+        if (alive) setSpecialDays((data as { events: SpecialDay[] }).events);
+      });
+    return () => { alive = false; };
+  }, [viewYear, viewMonth, refreshKey]);
+
   useEffect(() => {
     if (sheetDate) { document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = ""; }; }
   }, [sheetDate]);
@@ -180,6 +194,14 @@ export function CalendarShell({
       .filter((p) => p.type !== "best")
       .map((p) => ({ type: p.type, title: p.title }));
   }, [aiData, aiPatternsVisible, tier]);
+
+  const eventMap = useMemo(() => {
+    const map = new Map<string, SpecialDay>();
+    for (const e of specialDays) {
+      if (!map.has(e.date)) map.set(e.date, e);
+    }
+    return map;
+  }, [specialDays]);
 
   const totalDaysInMonth = daysInMonth(viewYear, viewMonth);
   const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
@@ -399,6 +421,7 @@ export function CalendarShell({
             const isFuture = new Date(viewYear, viewMonth, day) > new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const ring = ringMap.get(dateStr);
             const ringColor = ring === "best" ? "#FCA45B" : ring === "recurring" ? "#A673F1" : ring === "anomaly" ? "#D4BEE4" : null;
+            const specialDay = eventMap.get(dateStr);
             return (
               <div
                 key={day}
@@ -462,6 +485,17 @@ export function CalendarShell({
                     background: ring === "recurring" ? "#A673F1" : "#D4BEE4",
                   }} />
                 )}
+                {specialDay && (
+                  <span style={{
+                    position: "absolute",
+                    top: 3,
+                    left: 3,
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: specialDay.type === "holiday" ? "#F43F5E" : "#3B82F6",
+                  }} />
+                )}
               </div>
             );
           })}
@@ -523,6 +557,7 @@ export function CalendarShell({
               onOpenLog={(date) => { setSheetDate(null); setLogDate(date); }}
               pack={pack}
               iconFormat={iconFormat}
+              specialDays={specialDays.filter((e) => e.date === sheetDate)}
             />
           </div>
         </div>

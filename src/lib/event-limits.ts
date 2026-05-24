@@ -1,0 +1,1 @@
+export const FREE_PERSONAL_EVENTS_LIMIT = 3;

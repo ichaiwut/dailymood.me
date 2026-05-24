@@ -10,6 +10,8 @@ import { VoiceButton } from "./voice-button";
 import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { LocationSearch } from "./location-picker";
+import { SpecialDayBanner } from "./special-day-banner";
+import type { SpecialDay } from "@/db/schema";
 import { getStaticPrompt, FALLBACK_PROMPT } from "@/lib/journal-prompts";
 
 type Tier = "guest" | "free" | "premium";
@@ -64,6 +66,13 @@ export function SmartLogModal({
   const [fetchedCustomMoods, setFetchedCustomMoods] = useState<{ id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[]>([]);
   const customMoods = customMoodsProp ?? fetchedCustomMoods;
 
+  const [modalSpecialDays, setModalSpecialDays] = useState<SpecialDay[]>([]);
+
+  const logDate = useMemo(() => {
+    if (presetDate) return new Date(presetDate + "T12:00:00");
+    return new Date();
+  }, [presetDate]);
+
   useEffect(() => {
     if (customMoodsProp) return;
     fetch("/api/moods").then((r) => r.ok ? r.json() : { moods: [] }).then((d) => {
@@ -71,6 +80,17 @@ export function SmartLogModal({
       setFetchedCustomMoods(moods.filter((m) => !m.isDefault));
     });
   }, [customMoodsProp]);
+
+  useEffect(() => {
+    const y = logDate.getFullYear();
+    const m = logDate.getMonth() + 1;
+    const dateStr = `${y}-${String(m).padStart(2, "0")}-${String(logDate.getDate()).padStart(2, "0")}`;
+    fetch(`/api/events?year=${y}&month=${m}`)
+      .then((r) => (r.ok ? r.json() : { events: [] }))
+      .then((data) => {
+        setModalSpecialDays((data as { events: SpecialDay[] }).events.filter((e) => e.date === dateStr));
+      });
+  }, [logDate]);
 
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -314,6 +334,19 @@ export function SmartLogModal({
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="var(--ink-2)" strokeWidth="1.8" strokeLinecap="round" /></svg>
           </button>
+        </div>
+
+        {/* ── Date label + special days ── */}
+        <div style={{ padding: "12px 28px 0", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="var(--ink-3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)" }}>
+              {logDate.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            </span>
+          </div>
+          {modalSpecialDays.length > 0 && <SpecialDayBanner days={modalSpecialDays} locale={locale} />}
         </div>
 
         {/* ── Content ── */}

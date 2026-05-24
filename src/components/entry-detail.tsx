@@ -6,6 +6,8 @@ import { useRouter, Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { SpecialDayBanner } from "./special-day-banner";
+import type { SpecialDay } from "@/db/schema";
 
 interface EntryData {
   id: string;
@@ -48,6 +50,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [flashback, setFlashback] = useState<{ message: string; pastDate: string; pastNote: string } | null>(null);
+  const [specialDays, setSpecialDays] = useState<SpecialDay[]>([]);
 
   useEffect(() => {
     fetch(`/api/log/${id}?locale=${locale}`)
@@ -59,6 +62,15 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
         if (d?.lastYear) setLastYear(d.lastYear);
         if (d?.streak) setStreak(d.streak);
         if (d?.flashback) setFlashback(d.flashback);
+        if (d?.date) {
+          const y = parseInt(d.date.slice(0, 4), 10);
+          const m = parseInt(d.date.slice(5, 7), 10);
+          fetch(`/api/events?year=${y}&month=${m}`)
+            .then((r2) => (r2.ok ? r2.json() : { events: [] }))
+            .then((ev) => {
+              setSpecialDays((ev as { events: SpecialDay[] }).events.filter((e) => e.date === d.date));
+            });
+        }
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -135,6 +147,11 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
         {entry.entryNumber && (
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-3)", marginTop: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>
             {th ? "บันทึกที่" : "Entry #"} {entry.entryNumber}
+          </div>
+        )}
+        {specialDays.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <SpecialDayBanner days={specialDays} locale={locale} />
           </div>
         )}
       </div>

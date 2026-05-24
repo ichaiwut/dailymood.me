@@ -64,6 +64,13 @@
       "when": 1779584343287,
       "tag": "0008_magical_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779609482883,
+      "tag": "0009_lazy_the_fury",
+      "breakpoints": true
     }
   ]
 }

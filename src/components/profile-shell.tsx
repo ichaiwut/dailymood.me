@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { trackExportData, trackUpgradeClick, trackFeatureUse } from "@/lib/analytics";
 import { signOut } from "next-auth/react";
 import { CustomMoodManager } from "./custom-mood-manager";
+import { PersonalEventsManager } from "./personal-events-manager";
 import { R2_PUBLIC_URL, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { DEFAULT_MOOD_IDS } from "@/lib/default-moods";
 
@@ -574,9 +575,18 @@ export function ProfileShell() {
         </SettingCard>
       </Section>
 
+      {/* Special Days */}
+      <Section label={t("specialDays")} delay="330ms">
+        <SettingCard>
+          <div style={{ padding: "16px 20px" }}>
+            <PersonalEventsManager isPremium={!!data.user.isPremium} />
+          </div>
+        </SettingCard>
+      </Section>
+
       {/* Mood Pack */}
       {packs.length > 1 && (
-        <Section label={t("moodPackSection")} delay="330ms">
+        <Section label={t("moodPackSection")} delay="360ms">
           <SettingCard>
             <div style={{ padding: "16px 20px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

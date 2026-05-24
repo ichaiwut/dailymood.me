@@ -7,6 +7,8 @@ import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { EntryMiniCard, type SheetEntry } from "./entry-mini-card";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { SpecialDayBanner } from "./special-day-banner";
+import type { SpecialDay } from "@/db/schema";
 
 interface DaySheetProps {
   selectedDate: string;
@@ -17,6 +19,7 @@ interface DaySheetProps {
   onOpenLog: (date: string) => void;
   pack?: string;
   iconFormat?: string;
+  specialDays?: SpecialDay[];
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -40,6 +43,7 @@ export function DaySheet({
   onOpenLog,
   pack = DEFAULT_MOOD_PACK,
   iconFormat = "svg",
+  specialDays,
 }: DaySheetProps) {
   const locale = useLocale();
   const router = useRouter();
@@ -98,7 +102,10 @@ export function DaySheet({
         <div>
           {/* Date header */}
           <div style={{ fontSize: 15, fontWeight: 700, color: "var(--peach)", marginBottom: 4 }}>{weekday}</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", lineHeight: 1.15, marginBottom: 24 }}>{monthDay}</div>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", lineHeight: 1.15, marginBottom: specialDays && specialDays.length > 0 ? 12 : 24 }}>{monthDay}</div>
+
+
+          {specialDays && <SpecialDayBanner days={specialDays} locale={locale} />}
 
           {entries.map((e, idx) => {
             const m = DEFAULT_MOODS.find((d) => d.id === e.moodTypeId);
@@ -212,6 +219,7 @@ export function DaySheet({
       ) : (
         /* ═══ STATE 2: EMPTY PAST ═══ */
         <div style={{ padding: "32px 24px 40px", textAlign: "center" }}>
+          {specialDays && <SpecialDayBanner days={specialDays} locale={locale} />}
           <div style={{ fontSize: 56, marginBottom: 16 }}>🤔</div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
             {locale === "th" ? "ไม่มีบันทึก" : "No entry"}

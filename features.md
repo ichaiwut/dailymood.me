@@ -62,6 +62,10 @@
 - [x] AI Chart Annotations (Premium) — glowing AI-annotated pins on mood trend line chart. Hover/tap shows tooltip explaining anomalies, best/worst days, tag correlations (e.g. "วันพุธอารมณ์ดิ่ง คาดว่ามาจาก #ประชุม"). Free: 1 blurred ghost pin + upgrade CTA. All periods (week/month/year). On-demand generation + cached in `chart_annotations_cache` with delta-3 invalidation. API: extends `GET /api/stats` response with `annotations` field
 - [ ] Streak & Habits
 
+#### Special Days
+- [x] Public Holidays (Thai) — fetched from Nager.Date API, cached in `holiday_cache` table (30-day TTL). ~18-20 Thai public holidays per year. Red dot indicator on calendar grid (top-left 7px). Holiday name shown as chip in DaySheet + Home banner. No API key required
+- [x] Personal Events — user-created important dates (birthday, anniversary, etc.). Free: 3 events max, Premium: unlimited. Recurring yearly (stores month+day only). Blue dot indicator on calendar grid. Managed in Profile Settings → "วันสำคัญ" section. API: `GET/POST /api/events`, `DELETE /api/events/[id]`. DB: `personal_events` table
+
 #### Profile & Account
 - [x] Profile Overview (`/profile`) — hero card (purple→peach gradient, avatar initials with accent color, name, email, member-since, premium badge), hero stats row (streak 🔥, entries 📓, avg mood 😄 — tappable deep-links), mood signature card (stacked bar of mood distribution over 30 days + headline + top 3 %s), achievements preview row (horizontal scroll, 6 visible), settings shortcut list (notifications, language, privacy, export, subscription — color-tinted icon tiles), footer (help/sign out/version). API: `GET /api/profile`, `PATCH /api/profile`
 - [x] Edit Profile (`/profile/edit`) — avatar upload (Premium, 2MB limit, client-side WebP optimize via `optimizeImage()`, R2 storage at `users/{userId}/avatar/{ulid}.webp`, signed read URLs, remove button), accent color picker (6 colors), display name (≤30 chars), email (read-only with verified badge), bio (≤160 chars), delete account button. API: `POST /api/profile/avatar`, `DELETE /api/profile/avatar`
@@ -152,6 +156,9 @@
 | GET | `/api/insights` | auth | Weekly AI insights (cached per week in D1 `insights_ai_cache`). Free: preview headline + first sentence only. Premium: full patterns + suggestion |
 | POST | `/api/insights/feedback` | premium | Suggestion feedback: `{ weekKey, suggestionTitle, reaction: "up"|"down"|"routine" }` |
 | GET | `/api/ai/journal-prompt` | auth | Mood-adaptive journaling prompt: `?moodId=&locale=&moodLabel=`. Free: static prompt. Premium: Gemini-generated + cached per user/mood/date. Does not count against NLP quota |
+| GET | `/api/events` | auth | List user's personal events (no params) OR merged holidays+personal events for a month (`?year=&month=`) |
+| POST | `/api/events` | auth | Create personal event: `{ label, labelTh?, month, day, emoji? }`. Free: max 3 events (409 limit_reached). Premium: unlimited |
+| DELETE | `/api/events/:id` | auth | Delete own personal event |
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
@@ -183,6 +190,8 @@
 - `journal_prompt_cache` — (userId, moodId, dateKey, locale) PK, prompt text, generatedAt — caches Gemini-generated journaling prompts per user/mood/date (daily rotation for variety)
 - `chart_annotations_cache` — (userId, periodKey) PK, result JSON (annotations array), entryCount, generatedAt — caches AI-detected anomalies/highlights for mood trend chart (delta-3 invalidation)
 - `flashback_cache` — entryId PK (FK mood_entries, cascade delete), result JSON (message + pastDate + pastNote), generatedAt — caches Gemini-generated flashback reflections per entry (generate once on first view)
+- `personal_events` — id PK, userId (FK cascade), label, labelTh, month (1-12), day (1-31), emoji, createdAt — user's recurring important dates (birthday, anniversary). Free: max 3, Premium: unlimited
+- `holiday_cache` — (year, countryCode) PK, data JSON (array of {date, name, localName}), fetchedAt — caches Nager.Date API response per year (30-day TTL)
 
 Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 

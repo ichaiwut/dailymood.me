@@ -11,6 +11,8 @@ import { VoiceButton } from "./voice-button";
 import { LocationSearch } from "./location-picker";
 import { Link } from "@/i18n/navigation";
 import { trackMoodLog } from "@/lib/analytics";
+import { SpecialDayBanner } from "./special-day-banner";
+import type { SpecialDay } from "@/db/schema";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -83,6 +85,7 @@ export function HomeShell({
   const [composerLocationLng, setComposerLocationLng] = useState<number | undefined>();
   const [showComposerLocationSearch, setShowComposerLocationSearch] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [todaySpecialDays, setTodaySpecialDays] = useState<SpecialDay[]>([]);
   const composerHasInput = composerText.trim().length > 0 || !!composerImage;
 
   function handleComposerImage(file: File) {
@@ -201,6 +204,10 @@ export function HomeShell({
 
   useEffect(() => {
     let alive = true;
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth() + 1;
+    const todayDateStr = `${todayYear}-${String(todayMonth).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     Promise.all([
       fetch("/api/log?limit=50").then((r) => (r.ok ? r.json() : { entries: [] })),
       fetch("/api/stats").then((r) =>
@@ -209,7 +216,8 @@ export function HomeShell({
           : { streak: 0, todayMood: null, last7: [], distribution: {}, total30d: 0 },
       ),
       fetch("/api/moods").then((r) => (r.ok ? r.json() : { moods: [] })),
-    ]).then(([logData, statsData, moodsData]) => {
+      fetch(`/api/events?year=${todayYear}&month=${todayMonth}`).then((r) => (r.ok ? r.json() : { events: [] })),
+    ]).then(([logData, statsData, moodsData, eventsData]) => {
       if (!alive) return;
       const allEntries = (logData as { entries: Entry[] }).entries;
       const sevenDaysAgo = new Date();
@@ -219,6 +227,7 @@ export function HomeShell({
       setStats(statsData as Stats);
       const allMoods = (moodsData as { moods: { id: string; emoji: string; label: string; labelTh: string | null; color: string; isDefault: boolean; iconKey: string | null }[] }).moods;
       setCustomMoods(allMoods.filter((m) => !m.isDefault));
+      setTodaySpecialDays((eventsData as { events: SpecialDay[] }).events.filter((e) => e.date === todayDateStr));
     });
     return () => {
       alive = false;
@@ -256,6 +265,7 @@ export function HomeShell({
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", marginBottom: 6 }}>
             {greetTime} · {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" })}
           </div>
+          <SpecialDayBanner days={todaySpecialDays} locale={locale} />
           <h1 style={{ fontSize: 30, fontWeight: 800, margin: "4px 0 18px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>
             {locale === "th" ? "วันนี้คุณรู้สึกยังไง?" : "How are you feeling?"}
           </h1>

@@ -352,6 +352,44 @@ export const chartAnnotationsCache = pgTable("chart_annotations_cache", {
   pk: primaryKey({ columns: [t.userId, t.periodKey] }),
 }));
 
+export const personalEvents = pgTable("personal_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  labelTh: text("label_th"),
+  month: integer("month").notNull(),
+  day: integer("day").notNull(),
+  emoji: text("emoji").notNull().default("🎉"),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  userIdx: index("personal_events_user_idx").on(t.userId),
+}));
+
+export const holidayCache = pgTable("holiday_cache", {
+  year: text("year").notNull(),
+  countryCode: text("country_code").notNull().default("TH"),
+  data: jsonb("data").$type<HolidayCacheEntry[]>().notNull(),
+  fetchedAt: timestamp("fetched_at").notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.year, t.countryCode] }),
+}));
+
+export interface HolidayCacheEntry {
+  date: string;
+  name: string;
+  localName: string;
+}
+
+export interface SpecialDay {
+  date: string;
+  type: "holiday" | "personal";
+  label: string;
+  labelTh?: string;
+  emoji: string;
+  id?: string;
+}
+
+export type PersonalEvent = typeof personalEvents.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;
