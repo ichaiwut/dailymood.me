@@ -64,8 +64,8 @@
 - [ ] Streak & Habits
 
 #### Special Days
-- [x] Public Holidays (Thai) — fetched from Nager.Date API, cached in `holiday_cache` table (30-day TTL). ~18-20 Thai public holidays per year. Red dot indicator on calendar grid (top-left 7px). Holiday name shown as chip in DaySheet + Home banner. No API key required
-- [x] Personal Events — user-created important dates (birthday, anniversary, etc.). Free: 3 events max, Premium: unlimited. Recurring yearly (stores month+day only). Blue dot indicator on calendar grid. Managed in Profile Settings → "วันสำคัญ" section. API: `GET/POST /api/events`, `DELETE /api/events/[id]`. DB: `personal_events` table
+- [x] Public Holidays (Thai) — hardcoded ~20 recurring holidays/year in `src/lib/holidays.ts` (สงกรานต์, วันพ่อ, วันแม่ ฯลฯ), ไม่พึ่ง API ภายนอก. Red dot indicator on calendar grid (top-left 7px). Holiday name shown as chip in DaySheet, Entry Detail, SmartLogModal, + Home banner
+- [x] Personal Events — user-created important dates (birthday, anniversary, etc.). Free: 3 events max, Premium: unlimited. Recurring yearly (stores month+day only). Blue dot indicator on calendar grid. Shown as chip in DaySheet, Entry Detail, SmartLogModal, + Home banner. Managed in Profile Settings → "วันสำคัญ" section. API: `GET/POST /api/events`, `DELETE /api/events/[id]`. DB: `personal_events` table
 
 #### Profile & Account
 - [x] Profile Overview (`/profile`) — hero card (purple→peach gradient, avatar initials with accent color, name, email, member-since, premium badge), hero stats row (streak 🔥, entries 📓, avg mood 😄 — tappable deep-links), mood signature card (stacked bar of mood distribution over 30 days + headline + top 3 %s), achievements preview row (horizontal scroll, 6 visible), settings shortcut list (notifications, language, privacy, export, subscription — color-tinted icon tiles), footer (help/sign out/version). API: `GET /api/profile`, `PATCH /api/profile`
@@ -95,6 +95,7 @@
 - [ ] AI Mood Analysis (trends)
 - [ ] AI Suggestions
 - [x] Weekly Digest Email (Premium) — ทุกวันจันทร์ 08:00 ICT ส่ง email สรุปสัปดาห์ ผ่าน Resend. ใช้ insights cache (reuse ถ้ามี, generate ใหม่ถ้าไม่มี). เนื้อหา: headline, summary, avg mood/streak/entries stats, patterns (3 อัน), suggestion card. Toggle on/off ผ่าน Insights page (`weeklyDigestEnabled` column). Cron: `/api/cron/weekly-digest`, registered ใน `cron-scheduler.ts` (Monday UTC day=1, hour=1)
+- [x] Email Template Branding — shared `email-parts.ts` ใช้ร่วมกันทุก email template (AI Coach + Weekly Digest). Header: `icon.png` logo + "DailyMood" bold. Footer: unsubscribe link "ไม่ต้องการรับอีก? ปิดได้ที่หน้า Insights"
 - [ ] AI Chatbot
 
 #### Social & Sharing
