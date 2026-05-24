@@ -35,7 +35,7 @@ const NLP_PROMPT = `Mood journal analyzer. Input: TH/EN text. Output JSON.
 suggestedMoodId: best enum match, default "neutral".
 sentiment: -1..1.
 tags: 3-8 lowercase keywords (activities/people/places/feelings).
-summary: 1-2 ประโยค ภาษาไทย อบอุ่น ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้นต้น"สรุปว่า"`;
+summary: 1-2 ประโยค ภาษาไทย อบอุ่น ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้นต้น"สรุปว่า" ห้ามใช้ครับ/ค่ะ/คะ — โทนเป็นกลาง`;
 
 export async function analyzeText(text: string): Promise<NlpResult> {
   const model = genAI.getGenerativeModel({
@@ -148,7 +148,8 @@ patterns: ALWAYS return exactly 3 findings:
   3. tag "alert": an anomaly, unusual shift, or notable observation. If nothing stands out, make a gentle positive observation.
 Each pattern: title (≤40 chars) + description (1-2 sentences referencing data) + tag + optional miniVizData.
 suggestion: one actionable tip or null. Frame as gentle invitation, not instruction.
-Use "highest/lowest" not "best/worst". Use "correlates with" not "causes".`;
+Use "highest/lowest" not "best/worst". Use "correlates with" not "causes".
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ/นะครับ/นะคะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateInsights(data: string): Promise<InsightsResult> {
   const model = genAI.getGenerativeModel({
@@ -200,7 +201,8 @@ sources: 2-5 evidence items from the data that support your answer. kind="entry"
 entriesUsed: number of entries you analyzed.
 
 For follow-up questions, consider the conversation history. Build on previous answers, don't repeat.
-Do NOT answer questions unrelated to the user's mood/wellbeing data.`;
+Do NOT answer questions unrelated to the user's mood/wellbeing data.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateChatResponse(data: string): Promise<ChatResponse> {
   const model = genAI.getGenerativeModel({
@@ -258,7 +260,8 @@ reasoning: 1-2 sentences explaining prediction in warm tone. Use "มีแน�
 factors: 2-4 contributing factors. direction "+" for positive, "-" for negative. label: short description in user's locale.
 miniTrend: last 7 mood scores (1-5 scale) from the data.
 
-Never claim certainty. Frame as gentle observation, not prescription.`;
+Never claim certainty. Frame as gentle observation, not prescription.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateForecast(data: string): Promise<ForecastResult> {
   const model = genAI.getGenerativeModel({
@@ -299,7 +302,8 @@ const COACH_TIP_PROMPT = `Mood coach for daily tips. Input: JSON with user's rec
 Generate a short, warm, actionable tip for today. Output JSON in user's locale (th/en).
 title: ≤30 chars, catchy headline.
 tip: 2-3 sentences, warm personal tone. Reference the user's actual patterns. Suggest one small action. Never clinical.
-emoji: single emoji representing the tip.`;
+emoji: single emoji representing the tip.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateCoachTip(data: string): Promise<CoachTipResult> {
   const model = genAI.getGenerativeModel({
@@ -348,7 +352,8 @@ Find the 5 most recurring themes/topics. Output JSON in user's locale (th/en).
 themes: array of 5 items, sorted by count descending.
   label: 1-3 words describing the theme (e.g. "งาน/deadline", "ครอบครัว", "การนอน").
   count: number of entries that mention this theme.
-  color: a hex color for the theme bar (use warm, distinct colors: #FCA45B, #85ECCB, #A673F1, #FDCB56, #9ACDE2).`;
+  color: a hex color for the theme bar (use warm, distinct colors: #FCA45B, #85ECCB, #A673F1, #FDCB56, #9ACDE2).
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateThemes(data: string): Promise<ThemesResult> {
   const model = genAI.getGenerativeModel({
@@ -389,7 +394,8 @@ const DNA_PROMPT = `Mood personality analyzer. Input: JSON with user's 5-axis mo
 Determine their mood personality archetype. Output JSON in user's locale (th/en).
 archetype: a creative 2-3 word personality name (e.g. "Morning Optimist", "Steady Sage", "Creative Tide", "นักสำรวจเงียบ", "จิตวิญญาณอิสระ"). Pick from 12 archetypes based on the top 2 axes.
 archetypeIcon: single emoji that represents this archetype.
-description: 1 sentence describing this personality type in warm, affirming tone.`;
+description: 1 sentence describing this personality type in warm, affirming tone.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateDna(data: string): Promise<DnaResult> {
   const model = genAI.getGenerativeModel({
@@ -491,7 +497,8 @@ patterns: ALWAYS return exactly 3 items:
   - title: ≤40 chars, human-friendly label in user's locale (not mood IDs like "anxious").
   - explanation: 1 sentence referencing actual data (counts, dates, mood names in user's locale).
   - icon: single emoji representing the pattern.
-Always return 3 patterns. Use dowCounts and topTags from the input to find recurring patterns.`;
+Always return 3 patterns. Use dowCounts and topTags from the input to find recurring patterns.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateCalendarAi(data: string): Promise<CalendarAiResult> {
   const model = genAI.getGenerativeModel({
@@ -532,7 +539,8 @@ const ASK_AI_SCHEMA: Schema = {
 const ASK_AI_PROMPT = `Mood calendar assistant. Input: user's monthly mood JSON + a question.
 Output JSON in user's locale (th/en).
 answer: 2-3 sentences directly answering the question, referencing actual dates and moods. Warm, non-clinical tone.
-matchingDates: YYYY-MM-DD dates specifically relevant to the answer. Empty array if none.`;
+matchingDates: YYYY-MM-DD dates specifically relevant to the answer. Empty array if none.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateAskAi(data: string): Promise<AskAiResult> {
   const model = genAI.getGenerativeModel({
@@ -574,7 +582,8 @@ summary: 3-4 sentences summarizing the year. Use **double asterisks** to bold 2-
 summaryShort: exact first sentence of summary (keep **bold** as-is).
 bestQuarter: 1 sentence about the best quarter/period and why (reference month names and mood data).
 hardestPeriod: 1 sentence about the hardest period and what patterns appeared (reference month names).
-yearTheme: a short 3-5 word label capturing the year's emotional theme (e.g. "ปีแห่งการเติบโต", "Year of Recovery").`;
+yearTheme: a short 3-5 word label capturing the year's emotional theme (e.g. "ปีแห่งการเติบโต", "Year of Recovery").
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateYearAi(data: string): Promise<YearAiResult> {
   const model = genAI.getGenerativeModel({
@@ -615,7 +624,7 @@ const KEY_TAKEAWAY_PROMPT = `สรุปคีย์สำคัญของบ
 - ใช้ภาษาเขียนที่สุภาพ ไม่ใช่ภาษาพูด
 - ห้ามใช้คำว่า "เฮ้ย" "แก" "นะ" "สิ" "ดูสิ" "เลยนะ" "ง่ายมากๆ" หรือคำพูดแบบเพื่อน
 - ห้ามใช้เครื่องหมายตกใจ (!)
-- ใช้ "ครับ" ปิดท้ายได้บ้าง แต่ไม่ต้องทุกประโยค
+- ห้ามใช้ ครับ/ค่ะ/คะ/นะครับ/นะคะ — โทนเป็นกลาง ไม่ระบุเพศ
 
 เนื้อหา:
 - หยิบ key point สำคัญจากบทความมาอธิบายต่อแบบกระชับ
@@ -670,7 +679,8 @@ Output JSON in the user's locale:
 message: 2-3 ประโยค อบอุ่น ให้กำลังใจ อ้างอิงสถานการณ์เดิมที่เคยผ่านมาได้ ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้น"สรุปว่า" ห้ามใช้"เล่า"/"บอก" โทนเหมือนเพื่อนพูดเบาๆ
 pastDate: the date of the past entry referenced (YYYY-MM-DD)
 pastNote: first 50 chars of the past entry's note for context
-If no relevant past entry, write a gentle encouragement without referencing a specific date.`;
+If no relevant past entry, write a gentle encouragement without referencing a specific date.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateFlashback(data: string): Promise<FlashbackResult> {
   const model = genAI.getGenerativeModel({
@@ -728,7 +738,8 @@ importance: 1-10 (10=most striking).
 labelTh: ≤25 chars ภาษาพูดเบาๆ เช่น "อารมณ์ดิ่ง คาดว่าจาก #ประชุม" ห้ามใช้คำทางการ
 labelEn: ≤25 chars equivalent.
 tagRefs: tags from that day that likely explain the score (prefix #). Empty array if none.
-Never annotate null points. Return empty annotations array if trend is flat.`;
+Never annotate null points. Return empty annotations array if trend is flat.
+Thai output: ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ`;
 
 export async function generateChartAnnotations(data: string): Promise<ChartAnnotationsResult> {
   const model = genAI.getGenerativeModel({
@@ -768,6 +779,7 @@ Rules:
 - ถ้า recentTags มีอะไรน่าสนใจ ให้ reference ได้ | Weave in a recent tag if natural
 - โทน: เพื่อนถามเบาๆ | Tone: like a friend asking softly
 - For sad/anxious/angry: extra gentle, safe space
+- ห้ามใช้ ครับ/ค่ะ/คะ — โทนเป็นกลาง ไม่ระบุเพศ
 Output JSON: { prompt: string }`;
 
 export async function generateJournalPrompt(data: string): Promise<{ prompt: string }> {
