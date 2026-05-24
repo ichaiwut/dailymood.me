@@ -10,6 +10,8 @@
 - **1 activity ต่อ entry** — horizontal scrollable chips, tap เลือก/ยกเลิก
 - **แสดง** — SmartLogModal, Edit Entry, Entry Detail (chip), Timeline + DaySheet (emoji)
 - **AI suggest** — Gemini analyzeText ส่ง activity list + return suggestedActivityId
+- **AI analytics** — activity data ส่งเข้า Calendar AI summary, AI Insights, Chart Annotations payloads ให้ Gemini ใช้วิเคราะห์
+- **Stats** — `activityInsight` array (activity-mood correlation แยกจาก tag-based `activityImpact`)
 - DB: `activities` table + `mood_entries.activity_id` FK
 - API: `GET/POST /api/activities`, `DELETE /api/activities/[id]`
 - Migration: `0018_activities.sql` (create table + seed defaults + add FK)
@@ -71,3 +73,5 @@ Logo + Unsubscribe footer ทั้ง AI Coach และ Weekly Digest
 | `f1be0a8` | feat: Weekly Digest email cron — Monday 08:00 ICT |
 | `9525580` | fix: email logo + unsubscribe footer |
 | `58b617b` | feat: Timeline Markers on Stats mood trend chart |
+| `4de91bb` | docs: sync features.md with changelogs |
+| `56a2893` | feat: Activities — per-entry activity tracking with AI suggestion |
