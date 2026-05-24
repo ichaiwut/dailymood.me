@@ -5,6 +5,7 @@ import { and, eq, gte, desc } from "drizzle-orm";
 import { moodScore, ymd, addDays } from "@/lib/mood-scores";
 import { generateCoachTip } from "@/lib/gemini";
 import { resend } from "@/lib/resend";
+import { EMAIL_LOGO, emailUnsubFooter } from "@/lib/email-parts";
 
 const FROM = "Dailymood AI Coach <hello@dailymood.me>";
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -99,16 +100,18 @@ function coachEmailHtml(opts: { name: string; emoji: string; title: string; tip:
   const footer = opts.locale === "th"
     ? "จาก AI Coach ของคุณที่ Dailymood"
     : "From your AI Coach at Dailymood";
+  const unsub = emailUnsubFooter(opts.locale, "aiCoach");
 
   return `<!doctype html><html><body style="margin:0;background:#F4EFE5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#2C1B14;">
     <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
-      <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:32px;">Dailymood</div>
+      ${EMAIL_LOGO}
       <p style="font-size:15px;color:#6B5848;margin:0 0 20px;">${greeting}</p>
       <div style="background:#fff;border-radius:18px;padding:24px;border:1.5px solid #F2F0F5;">
         <div style="font-size:32px;margin-bottom:8px;">${opts.emoji}</div>
         <h2 style="font-size:20px;font-weight:800;margin:0 0 10px;color:#2C1B14;">${opts.title}</h2>
         <p style="font-size:15px;line-height:1.6;margin:0;color:#6B5848;">${opts.tip}</p>
       </div>
-      <p style="font-size:13px;color:#A8998A;margin:24px 0 0;">${footer}</p>
+      <p style="font-size:13px;color:#A8998A;margin:24px 0 0;text-align:center;">${footer}</p>
+      ${unsub}
     </div></body></html>`;
 }

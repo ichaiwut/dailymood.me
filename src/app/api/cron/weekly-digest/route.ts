@@ -6,6 +6,7 @@ import { moodScore, ymd, addDays, computeStreak, isoWeekKey } from "@/lib/mood-s
 import { generateInsights } from "@/lib/gemini";
 import type { InsightsAiResult } from "@/db/schema";
 import { resend } from "@/lib/resend";
+import { EMAIL_LOGO, emailUnsubFooter } from "@/lib/email-parts";
 
 const FROM = "Dailymood <hello@dailymood.me>";
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -148,6 +149,7 @@ function digestEmailHtml(opts: {
   const footer = th
     ? "จาก Dailymood — สรุปให้ทุกวันจันทร์"
     : "From Dailymood — your Monday digest";
+  const unsub = emailUnsubFooter(opts.locale, "weeklyDigest");
 
   const statsRow = `
     <div style="display:flex;gap:12px;margin-bottom:20px;">
@@ -187,7 +189,7 @@ function digestEmailHtml(opts: {
 
   return `<!doctype html><html><body style="margin:0;background:#F4EFE5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#2C1B14;">
     <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
-      <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:32px;">Dailymood</div>
+      ${EMAIL_LOGO}
       <p style="font-size:15px;color:#6B5848;margin:0 0 20px;">${greeting}</p>
       <div style="background:#fff;border-radius:18px;padding:24px;border:1.5px solid #F2F0F5;">
         <div style="font-size:14px;font-weight:800;color:#A673F1;letter-spacing:0.3px;margin-bottom:6px;">📊 ${th ? "สรุปสัปดาห์" : "WEEKLY DIGEST"}</div>
@@ -201,5 +203,6 @@ function digestEmailHtml(opts: {
         <a href="https://my.dailymood.me/insights" style="display:inline-block;padding:12px 28px;background:#A673F1;color:#fff;border-radius:100px;font-size:14px;font-weight:700;text-decoration:none;">${th ? "ดูเพิ่มเติม" : "View full insights"}</a>
       </div>
       <p style="font-size:13px;color:#A8998A;margin:24px 0 0;text-align:center;">${footer}</p>
+      ${unsub}
     </div></body></html>`;
 }
