@@ -135,6 +135,19 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
   useEffect(() => {
+    if (tier === "premium") {
+      fetch("/api/profile")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!d) return;
+          const u = (d as { user: { aiCoachEnabled?: boolean; weeklyDigestEnabled?: boolean } }).user;
+          if (typeof u.aiCoachEnabled === "boolean") setAiCoach(u.aiCoachEnabled);
+          if (typeof u.weeklyDigestEnabled === "boolean") setWeeklyDigest(u.weeklyDigestEnabled);
+        });
+    }
+  }, [tier]);
+
+  useEffect(() => {
     trackInsightsView();
     if (tier !== "premium") { setLoading(false); return; }
 
@@ -382,7 +395,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
             <div style={{ ...CARD, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
               <span style={{ fontSize: 24, marginBottom: 6 }}>🔮</span>
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "พยากรณ์" : "Forecast"}</div>
-              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>{locale === "th" ? "กำลังวิเคราะห์..." : "Analyzing..."}</div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2, lineHeight: 1.4 }}>{locale === "th" ? "AI กำลังสร้างให้ — กลับมาดูอีกทีนะ" : "AI is generating — check back soon"}</div>
             </div>
           ) : (
             <FeatureTeaser icon="🔮" label={t("forecast")} desc={forecast?.tooFewEntries ? t("forecastNeedMore", { count: String(forecast.entriesNeeded ?? 7) }) : t("forecast")} locked={!isPremium} locale={locale} />
