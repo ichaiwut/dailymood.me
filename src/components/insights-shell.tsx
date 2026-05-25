@@ -323,7 +323,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
               <p
                 style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.45, margin: "0 0 20px" }}
                 dangerouslySetInnerHTML={{
-                  __html: (expanded ? data.summary : data.headline).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                  __html: ((expanded ? data.summary : data.headline) ?? "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
                 }}
               />
 
@@ -473,7 +473,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </>
       ) : (
         <>
-          {data.patterns.length > 0 && (
+          {data.patterns?.length > 0 && (
             <section className="mb-5 fade-in" style={{ animationDelay: "120ms" }}>
               <div className="ins-patterns">
                 {data.patterns.slice(0, 3).map((p, i) => {
