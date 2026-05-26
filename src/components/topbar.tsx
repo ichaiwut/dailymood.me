@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
 import { TopBarClient } from "./topbar-client";
+import { TrialBanner } from "./trial-banner";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -10,11 +11,15 @@ export async function TopBar() {
   const session = await auth();
 
   let avatarUrl: string | null = session?.user?.image ?? null;
+  let trialBannerMode: "activate" | "countdown" | "none" = "none";
+  let trialDaysLeft = 0;
+  let trialWarning = false;
+
   if (session?.user?.id) {
     try {
       const db = getDb();
       const [row] = await db
-        .select({ imageKey: users.imageKey, image: users.image })
+        .select({ imageKey: users.imageKey, image: users.image, trialActivatedAt: users.trialActivatedAt, trialEndsAt: users.trialEndsAt, stripeSubscriptionId: users.stripeSubscriptionId, isPremium: users.isPremium })
         .from(users)
         .where(eq(users.id, session.user.id))
         .limit(1);
@@ -23,19 +28,41 @@ export async function TopBar() {
       } else if (row?.image) {
         avatarUrl = row.image;
       }
+
+      const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
+      if (!stripeActive && !row?.isPremium) {
+        if (!row?.trialActivatedAt) {
+          trialBannerMode = "activate";
+        } else if (row?.trialEndsAt) {
+          const msLeft = row.trialEndsAt.getTime() - Date.now();
+          if (msLeft > 0) {
+            trialBannerMode = "countdown";
+            trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
+            trialWarning = trialDaysLeft <= 3;
+          }
+        }
+      }
     } catch {
-      // image_key column may not exist yet — fall back to session image
+      // fall back to session image
     }
   }
 
   return (
     <>
       {session?.user ? (
-        <TopBarClient
-          name={session.user.name ?? null}
-          image={avatarUrl}
-          email={session.user.email ?? null}
-        />
+        <>
+          {trialBannerMode === "activate" && (
+            <TrialBanner mode="activate" />
+          )}
+          {trialBannerMode === "countdown" && (
+            <TrialBanner mode="countdown" daysLeft={trialDaysLeft} isWarning={trialWarning} />
+          )}
+          <TopBarClient
+            name={session.user.name ?? null}
+            image={avatarUrl}
+            email={session.user.email ?? null}
+          />
+        </>
       ) : (
         <header className="w-topbar">
           <div className="w-container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>

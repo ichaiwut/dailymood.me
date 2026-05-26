@@ -21,6 +21,8 @@ export async function GET() {
       planInterval: users.planInterval,
       subscriptionStatus: users.subscriptionStatus,
       createdAt: users.createdAt,
+      trialActivatedAt: users.trialActivatedAt,
+      trialEndsAt: users.trialEndsAt,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -37,13 +39,27 @@ export async function GET() {
     } catch {}
   }
 
+  const now = new Date();
+  const inAppTrialActive = !!user.trialEndsAt && user.trialEndsAt.getTime() > now.getTime();
+  const stripeActive = user.isPremium && !!user.stripeSubscriptionId;
+  const effectivePremium = stripeActive || inAppTrialActive;
+
+  let trialDaysLeft: number | null = null;
+  if (inAppTrialActive) {
+    trialDaysLeft = Math.max(1, Math.ceil((user.trialEndsAt!.getTime() - now.getTime()) / 86_400_000));
+  }
+
   return NextResponse.json({
-    isPremium: user.isPremium,
+    isPremium: effectivePremium,
     hasStripeCustomer: !!user.stripeCustomerId,
     currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
     cancelAtPeriodEnd: user.cancelAtPeriodEnd,
     planInterval: user.planInterval ?? null,
     subscriptionStatus: subStatus ?? null,
     memberSince: user.createdAt.toISOString(),
+    trialActivatedAt: user.trialActivatedAt?.toISOString() ?? null,
+    trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
+    trialDaysLeft,
+    isTrialing: inAppTrialActive && !stripeActive,
   });
 }

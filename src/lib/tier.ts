@@ -12,21 +12,53 @@ export interface SessionInfo {
   moodPack: string;
   iconFormat: string;
   hidePreview: boolean;
+  isTrialing: boolean;
+  trialDaysLeft: number | null;
+  trialWarning: boolean;
+  trialActivatedAt: Date | null;
 }
+
+const GUEST_SESSION: SessionInfo = {
+  userId: null, tier: "guest", moodPack: DEFAULT_MOOD_PACK, iconFormat: "svg",
+  hidePreview: false, isTrialing: false, trialDaysLeft: null, trialWarning: false, trialActivatedAt: null,
+};
 
 export async function getSessionInfo(): Promise<SessionInfo> {
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId) return { userId: null, tier: "guest", moodPack: DEFAULT_MOOD_PACK, iconFormat: "svg", hidePreview: false };
+  if (!userId) return GUEST_SESSION;
 
   const db = getDb();
   const [row] = await db
-    .select({ isPremium: users.isPremium, moodPack: users.moodPack, hidePreview: users.hidePreview })
+    .select({
+      isPremium: users.isPremium,
+      moodPack: users.moodPack,
+      hidePreview: users.hidePreview,
+      stripeSubscriptionId: users.stripeSubscriptionId,
+      trialActivatedAt: users.trialActivatedAt,
+      trialEndsAt: users.trialEndsAt,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
 
-  const tier: Tier = row?.isPremium ? "premium" : "free";
+  const now = new Date();
+  const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
+  const inAppTrialActive = !!row?.trialEndsAt && row.trialEndsAt.getTime() > now.getTime();
+  const effectivePremium = stripeActive || inAppTrialActive;
+
+  let isTrialing = false;
+  let trialDaysLeft: number | null = null;
+  let trialWarning = false;
+
+  if (inAppTrialActive && !stripeActive) {
+    isTrialing = true;
+    const msLeft = row!.trialEndsAt!.getTime() - now.getTime();
+    trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
+    trialWarning = trialDaysLeft <= 3;
+  }
+
+  const tier: Tier = effectivePremium ? "premium" : "free";
   let pack = DEFAULT_MOOD_PACK;
   let iconFormat = "svg";
 
@@ -42,7 +74,10 @@ export async function getSessionInfo(): Promise<SessionInfo> {
     }
   }
 
-  return { userId, tier, moodPack: pack, iconFormat, hidePreview: !!row?.hidePreview };
+  return {
+    userId, tier, moodPack: pack, iconFormat, hidePreview: !!row?.hidePreview,
+    isTrialing, trialDaysLeft, trialWarning, trialActivatedAt: row?.trialActivatedAt ?? null,
+  };
 }
 
 export class TierError extends Error {

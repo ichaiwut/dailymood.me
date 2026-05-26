@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { BottomSheet } from "./bottom-sheet";
+import { TrialConfirmSheet } from "./trial-confirm-sheet";
 
 interface SubData {
   isPremium: boolean;
@@ -13,6 +14,10 @@ interface SubData {
   planInterval: string | null;
   subscriptionStatus: string | null;
   memberSince: string;
+  trialActivatedAt: string | null;
+  trialEndsAt: string | null;
+  trialDaysLeft: number | null;
+  isTrialing: boolean;
 }
 
 const CARD: React.CSSProperties = {
@@ -23,10 +28,10 @@ const CARD: React.CSSProperties = {
 };
 
 const FEATURES = [
-  { icon: "✨", title: "AI ไม่จำกัด", titleEn: "Unlimited AI", desc: "NLP, Vision, Insights — ใช้ได้ทุกวัน", descEn: "NLP, Vision, Insights — unlimited daily" },
+  { icon: "✨", title: "AI ไม่จำกัด", titleEn: "Unlimited AI", desc: "วิเคราะห์อารมณ์ รูปภาพ สรุปข้อมูล — ใช้ได้ทุกวัน", descEn: "Mood analysis, Vision, Insights — unlimited daily" },
   { icon: "🔮", title: "AI Insights + พยากรณ์", titleEn: "AI Insights + Forecast", desc: "สรุปสัปดาห์ แพทเทิร์น Mood DNA พยากรณ์อารมณ์", descEn: "Weekly recap, patterns, Mood DNA, forecast" },
   { icon: "📅", title: "Calendar AI + Ask AI", titleEn: "Calendar AI + Ask AI", desc: "สรุปรายเดือน + ถามอะไรก็ได้จากข้อมูลของคุณ", descEn: "Monthly summaries + ask anything about your data" },
-  { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icon Packs", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + premium icon packs" },
+  { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icon Packs", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + pro icon packs" },
   { icon: "📊", title: "Year in Pixels + สถิติปี", titleEn: "Year in Pixels + Yearly Stats", desc: "ดูภาพรวมทั้งปี + Activity Impact เต็ม", descEn: "Full year overview + complete activity impact" },
   { icon: "📤", title: "ส่งออก CSV", titleEn: "Export CSV", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
 ];
@@ -113,12 +118,20 @@ export function SubscriptionShell() {
       <TopBar t={t} router={router} />
 
       {!data.isPremium ? (
-        <FreeState />
+        <FreeState data={data} onRefresh={() => {
+          setLoading(true);
+          fetch("/api/subscription")
+            .then((r) => r.ok ? r.json() as Promise<SubData> : null)
+            .then((d) => { if (d) setData(d); })
+            .finally(() => setLoading(false));
+        }} />
+      ) : data.isTrialing ? (
+        <TrialState data={data} locale={locale} />
       ) : (
         <>
           {/* Title */}
           <div className="fade-in" style={{ marginBottom: 20 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>Premium</h1>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>Pro</h1>
             <p style={{ fontSize: 14, color: "var(--ink-3)", margin: 0 }}>
               {locale === "th"
                 ? "ใช้ AI ได้ไม่จำกัด · บันทึกย้อนหลังได้ไม่จำกัด · ส่งออกข้อมูลทุกรูปแบบ"
@@ -140,7 +153,7 @@ export function SubscriptionShell() {
                 background: "rgba(166,115,241,0.3)", borderRadius: 20, padding: "5px 14px",
                 fontSize: 14, fontWeight: 700,
               }}>
-                ✨ Premium {isYearly ? "Yearly" : "Monthly"}
+                ✨ Pro {isYearly ? "Yearly" : "Monthly"}
               </span>
             </div>
 
@@ -249,7 +262,7 @@ export function SubscriptionShell() {
             <div className="sub-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div style={CARD}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
-                  AI SUMMARIES
+                  {locale === "th" ? "สรุปด้วย AI" : "AI SUMMARIES"}
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)" }}>{usage?.nlp ?? "—"}</span>
@@ -331,9 +344,12 @@ function TopBar({ t, router }: { t: (key: string) => string; router: ReturnType<
   );
 }
 
-function FreeState() {
+function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }) {
   const locale = useLocale();
   const isTh = locale === "th";
+  const [showTrialConfirm, setShowTrialConfirm] = useState(false);
+
+  const hasUsedTrial = data.trialActivatedAt !== null;
 
   const handleCheckout = async () => {
     const res = await fetch("/api/stripe/checkout", {
@@ -353,6 +369,61 @@ function FreeState() {
       <h1 style={{ fontSize: "clamp(22px, 5vw, 26px)", fontWeight: 800, color: "var(--ink)", margin: "0 0 20px" }}>
         {isTh ? "แพ็กเกจของคุณ" : "Your plan"}
       </h1>
+
+      {/* Trial activation banner — only for users who haven't tried yet */}
+      {!hasUsedTrial && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #FCA45B 0%, #A673F1 100%)",
+            borderRadius: 20, padding: "22px 24px", marginBottom: 20,
+            color: "#fff", textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 32, marginBottom: 10 }}>✨</div>
+          <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
+            {isTh ? "ลองใช้ Pro ฟรี 14 วัน" : "Try Pro free for 14 days"}
+          </div>
+          <div style={{ fontSize: 14, opacity: 0.9, marginBottom: 18, lineHeight: 1.5 }}>
+            {isTh
+              ? "ปลดล็อกทุกฟีเจอร์ · ไม่ต้องใส่บัตรเครดิต · ยกเลิกอัตโนมัติ"
+              : "Unlock everything · No credit card · Auto-cancels"}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowTrialConfirm(true)}
+            style={{
+              padding: "14px 32px", borderRadius: 16,
+              background: "#fff", border: "none",
+              color: "#A673F1", fontSize: 16, fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            {isTh ? "เริ่มทดลองฟรี →" : "Start free trial →"}
+          </button>
+          <TrialConfirmSheet open={showTrialConfirm} onClose={() => setShowTrialConfirm(false)} />
+        </div>
+      )}
+
+      {/* Trial expired banner */}
+      {hasUsedTrial && (
+        <div
+          style={{
+            background: "#FEF6E8", border: "1.5px solid #F5DEB3",
+            borderRadius: 16, padding: "16px 20px", marginBottom: 20,
+            display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 24 }}>⏰</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
+              {isTh ? "ช่วงทดลองใช้สิ้นสุดแล้ว" : "Your free trial has ended"}
+            </div>
+            <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+              {isTh ? "อัปเกรดเพื่อใช้ต่อ" : "Upgrade to keep using Pro features"}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="sub-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
         {/* Free card */}
@@ -395,11 +466,11 @@ function FreeState() {
         >
           <div style={{ position: "absolute", top: 16, right: 16, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800 }}>+</div>
           <div style={{ fontSize: 14, fontWeight: 600, opacity: 0.9, marginBottom: 4 }}>
-            {isTh ? "อัพเกรด" : "Upgrade"}
+            {isTh ? "อัปเกรด" : "Upgrade"}
           </div>
-          <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Premium</div>
+          <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Pro</div>
           <div style={{ fontSize: 14, opacity: 0.85, marginBottom: 16 }}>
-            ฿99 / {isTh ? "เดือน" : "month"} · 7 {isTh ? "วันแรกฟรี" : "days free"}
+            ฿99 / {isTh ? "เดือน" : "month"}
           </div>
 
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
@@ -417,7 +488,7 @@ function FreeState() {
               "AI Insights + Forecast + Mood DNA",
               "Calendar AI + Ask AI",
               "Year-in-Pixels + Export CSV",
-              "Custom Moods + premium Icon Packs",
+              "Custom Moods + pro Icon Packs",
               "Daily AI Coach + Energy Clock",
             ]).map((item, i) => (
               <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
@@ -435,11 +506,106 @@ function FreeState() {
               fontSize: 15, fontWeight: 800, cursor: "pointer",
             }}
           >
-            {isTh ? "เริ่มทดลองฟรี 7 วัน →" : "Start 7-day free trial →"}
+            {isTh ? "สมัคร Pro →" : "Subscribe to Pro →"}
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+function TrialState({ data, locale }: { data: SubData; locale: string }) {
+  const isTh = locale === "th";
+  const daysLeft = data.trialDaysLeft ?? 0;
+  const trialEndDate = data.trialEndsAt ? formatDate(data.trialEndsAt, locale) : "";
+  const isWarning = daysLeft <= 3;
+
+  const handleCheckout = async () => {
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan: "monthly" }),
+    });
+    const json = (await res.json()) as { url?: string };
+    if (json.url) globalThis.location.assign(json.url);
+  };
+
+  return (
+    <>
+      <div className="fade-in" style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>
+          {isTh ? "ทดลองใช้ Pro" : "Pro Trial"}
+        </h1>
+        <p style={{ fontSize: 14, color: "var(--ink-3)", margin: 0 }}>
+          {isTh
+            ? "ใช้ทุกฟีเจอร์ได้เต็มที่ ไม่มีค่าใช้จ่าย"
+            : "Full access to all features, free of charge"}
+        </p>
+      </div>
+
+      {/* Trial status card */}
+      <div
+        className="fade-in"
+        style={{
+          background: isWarning
+            ? "linear-gradient(135deg, #D94444 0%, #FCA45B 100%)"
+            : "linear-gradient(135deg, #FCA45B 0%, #A673F1 100%)",
+          borderRadius: 24, padding: "22px 24px", color: "#fff",
+          marginBottom: 24,
+        }}
+      >
+        <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+          <span style={{
+            background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 14px",
+            fontSize: 14, fontWeight: 700,
+          }}>
+            {isWarning ? "⏰" : "✨"} {isTh ? "ทดลองใช้ฟรี" : "Free Trial"}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between flex-wrap" style={{ gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
+              {isTh ? `เหลืออีก ${daysLeft} วัน` : `${daysLeft} day${daysLeft !== 1 ? "s" : ""} remaining`}
+            </div>
+            <div style={{ fontSize: 14, opacity: 0.8 }}>
+              {isTh ? `สิ้นสุด ${trialEndDate}` : `Ends ${trialEndDate}`}
+            </div>
+          </div>
+          <button
+            onClick={handleCheckout}
+            style={{
+              background: "#fff", border: "none",
+              borderRadius: 14, padding: "10px 18px",
+              fontSize: 14, fontWeight: 700, cursor: "pointer",
+              color: "#A673F1",
+            }}
+          >
+            {isTh ? "สมัคร Pro →" : "Subscribe to Pro →"}
+          </button>
+        </div>
+      </div>
+
+      {/* What you get */}
+      <div className="fade-in" style={{ marginBottom: 24, animationDelay: "60ms" }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: "0 0 14px" }}>
+          {isTh ? "สิ่งที่คุณได้" : "What you get"}
+        </h2>
+        <div className="sub-features" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          {FEATURES.map((f, i) => (
+            <div key={i} style={CARD}>
+              <div style={{ fontSize: 24, marginBottom: 10 }}>{f.icon}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                {isTh ? f.title : f.titleEn}
+              </div>
+              <div style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4 }}>
+                {isTh ? f.desc : f.descEn}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
 

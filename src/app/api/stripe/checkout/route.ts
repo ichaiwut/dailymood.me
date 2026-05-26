@@ -47,7 +47,6 @@ export async function POST(req: NextRequest) {
     success_url: `${origin}/pricing?success=1`,
     cancel_url: `${origin}/pricing?cancelled=1`,
     subscription_data: {
-      trial_period_days: 7,
       metadata: { userId },
     },
     metadata: { userId },

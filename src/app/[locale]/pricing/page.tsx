@@ -4,8 +4,8 @@ import { PricingShell } from "@/components/pricing-shell";
 
 
 export default async function PricingPage() {
-  const { tier } = await getSessionInfo();
+  const { tier, trialActivatedAt } = await getSessionInfo();
   const locale = await getLocale();
 
-  return <PricingShell tier={tier} />;
+  return <PricingShell tier={tier} hasUsedTrial={trialActivatedAt !== null} />;
 }

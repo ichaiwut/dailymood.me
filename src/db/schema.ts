@@ -17,6 +17,8 @@ export const users = pgTable("users", {
   cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
   planInterval: text("plan_interval"),
   subscriptionStatus: text("subscription_status"),
+  trialActivatedAt: timestamp("trial_activated_at"),
+  trialEndsAt: timestamp("trial_ends_at"),
   bio: text("bio"),
   accentColor: text("accent_color"),
   hidePreview: boolean("hide_preview").notNull().default(false),

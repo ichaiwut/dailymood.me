@@ -987,7 +987,7 @@ function FreeGate({ locale }: { locale: string }) {
               fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
             }}
           >
-            ✨ {isTh ? "ทดลองฟรี 7 วัน" : "Start 7-day free trial"}
+            ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
           </button>
           <div style={{ fontSize: 14, opacity: 0.75, textAlign: "center" }}>
             ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}

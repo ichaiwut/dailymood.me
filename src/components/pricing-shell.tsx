@@ -6,19 +6,20 @@ import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import type { Tier } from "@/lib/tier";
 import { trackPricingView, trackPlanSelect, trackCheckoutStart, trackCheckoutSuccess, trackCheckoutCancelled } from "@/lib/analytics";
+import { TrialConfirmSheet } from "./trial-confirm-sheet";
 
 type Plan = "monthly" | "yearly";
 
 const FEATURES = [
-  { icon: "✨", title: "AI ไม่จำกัด", titleEn: "Unlimited AI", desc: "NLP, Vision, Insights ใช้ได้ทุกวัน", descEn: "NLP, Vision, Insights — daily" },
+  { icon: "✨", title: "AI ไม่จำกัด", titleEn: "Unlimited AI", desc: "วิเคราะห์อารมณ์ รูปภาพ สรุปข้อมูล — ใช้ได้ทุกวัน", descEn: "Mood analysis, Vision, Insights — unlimited daily" },
   { icon: "🔮", title: "AI Insights + พยากรณ์", titleEn: "AI Insights + Forecast", desc: "สรุปสัปดาห์ แพทเทิร์น Mood DNA", descEn: "Weekly recap, patterns, Mood DNA" },
   { icon: "📅", title: "Calendar AI + Ask AI", titleEn: "Calendar AI + Ask AI", desc: "สรุปรายเดือน + ถามอะไรก็ได้ 100 คำถาม/เดือน", descEn: "Monthly summaries + 100 questions/month" },
-  { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icons", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + premium icons" },
+  { icon: "🎨", title: "Custom Moods + Icon Packs", titleEn: "Custom Moods + Icons", desc: "สร้างอารมณ์เอง + เลือก pack ไอคอนพิเศษ", descEn: "Create your own moods + pro icons" },
   { icon: "📊", title: "Year in Pixels + สถิติปี", titleEn: "Year in Pixels + Yearly Stats", desc: "ภาพรวมทั้งปี + Activity Impact เต็ม", descEn: "Full year overview + complete activity impact" },
   { icon: "📤", title: "ส่งออก CSV", titleEn: "Export CSV", desc: "ข้อมูลของคุณ คุณเป็นเจ้าของ", descEn: "Your data, you own it" },
 ];
 
-export function PricingShell({ tier }: { tier: Tier }) {
+export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial: boolean }) {
   const t = useTranslations("pricing");
   const locale = useLocale();
   const isTh = locale === "th";
@@ -28,6 +29,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+  const [showTrialConfirm, setShowTrialConfirm] = useState(false);
 
   useEffect(() => {
     trackPricingView();
@@ -65,7 +67,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
       <div className="fade-in" style={{ textAlign: "center", padding: "80px 0" }}>
         <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
         <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
-          {isTh ? "ยินดีต้อนรับสู่ Premium!" : "Welcome to Premium!"}
+          {isTh ? "ยินดีต้อนรับสู่ Pro!" : "Welcome to Pro!"}
         </h1>
         <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 28 }}>
           {isTh ? "ปลดล็อกทุกฟีเจอร์เรียบร้อย เริ่มใช้งานได้เลย" : "All features unlocked. Enjoy the full experience."}
@@ -114,7 +116,7 @@ export function PricingShell({ tier }: { tier: Tier }) {
           borderRadius: 20, padding: "6px 18px", marginBottom: 20,
           fontSize: 14, fontWeight: 800, color: "#fff", letterSpacing: 0.5,
         }}>
-          ✦ DAILYMOOD PREMIUM
+          ✦ DAILYMOOD PRO
         </div>
         <h1 style={{ fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 800, color: "var(--ink)", lineHeight: 1.25, marginBottom: 10 }}>
           {isTh ? "เข้าใจตัวเองลึกขึ้น" : "Understand yourself deeper"}
@@ -131,6 +133,41 @@ export function PricingShell({ tier }: { tier: Tier }) {
           {isTh ? "วิเคราะห์ pattern · เปรียบเทียบช่วงเวลา · ถาม AI ได้ทุกเรื่อง" : "Analyze patterns · Compare periods · Ask AI anything"}
         </p>
       </div>
+
+      {/* Trial CTA — only for users who haven't tried */}
+      {!hasUsedTrial && tier === "free" && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #FAF7FE 0%, #FFF4EB 100%)",
+            border: "1.5px solid #F2E8FF",
+            borderRadius: 20, padding: "22px 24px", marginBottom: 28,
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>
+            {isTh ? "ยังไม่แน่ใจ? ลองก่อนได้" : "Not sure yet? Try it first"}
+          </div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 16, lineHeight: 1.5 }}>
+            {isTh
+              ? "ทดลองใช้ทุกฟีเจอร์ฟรี 14 วัน ไม่ต้องใส่บัตรเครดิต หมดแล้วกลับเป็น Free อัตโนมัติ"
+              : "Try all features free for 14 days. No credit card needed. Auto-reverts to Free when done."}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowTrialConfirm(true)}
+            style={{
+              padding: "12px 28px", borderRadius: 16,
+              border: "none",
+              background: "linear-gradient(135deg, #FCA45B 0%, #A673F1 100%)",
+              color: "#fff", fontSize: 15, fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            {isTh ? "เริ่มทดลองฟรี 14 วัน →" : "Start 14-day free trial →"}
+          </button>
+          <TrialConfirmSheet open={showTrialConfirm} onClose={() => setShowTrialConfirm(false)} />
+        </div>
+      )}
 
       {/* Plan Picker */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
@@ -167,10 +204,10 @@ export function PricingShell({ tier }: { tier: Tier }) {
           marginBottom: 10,
         }}
       >
-        {loading ? (isTh ? "กำลังเตรียม..." : "Loading...") : `✨ ${isTh ? "เริ่มทดลองฟรี 7 วัน" : "Start 7-day free trial"} →`}
+        {loading ? (isTh ? "กำลังเตรียม..." : "Loading...") : `✨ ${isTh ? "สมัคร Pro" : "Subscribe to Pro"} →`}
       </button>
       <p style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", marginBottom: 32 }}>
-        {isTh ? "ยกเลิกเมื่อไหร่ก็ได้ · ไม่มีค่าใช้จ่ายในช่วงทดลอง" : "Cancel anytime · No charge during trial"}
+        {isTh ? "ยกเลิกเมื่อไหร่ก็ได้ · ชำระเงินอย่างปลอดภัยผ่าน Stripe" : "Cancel anytime · Secure payment via Stripe"}
       </p>
 
       {/* Features grid */}
@@ -208,14 +245,14 @@ export function PricingShell({ tier }: { tier: Tier }) {
         padding: "24px 20px", marginBottom: 32,
       }}>
         <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 16 }}>
-          {isTh ? "Free vs Premium" : "Free vs Premium"}
+          {isTh ? "Free vs Pro" : "Free vs Pro"}
         </h3>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, tableLayout: "fixed" }}>
           <thead>
             <tr>
               <th style={{ textAlign: "left", padding: "8px 0", color: "var(--ink-3)", fontWeight: 600 }}></th>
               <th style={{ textAlign: "center", padding: "8px 12px", color: "var(--ink-3)", fontWeight: 600 }}>Free</th>
-              <th style={{ textAlign: "center", padding: "8px 12px", color: "#A673F1", fontWeight: 700 }}>Premium</th>
+              <th style={{ textAlign: "center", padding: "8px 12px", color: "#A673F1", fontWeight: 700 }}>Pro</th>
             </tr>
           </thead>
           <tbody>
