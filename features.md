@@ -18,12 +18,13 @@
 - เปิดให้คนทั่วไปใช้ (public)
 
 ## Business Model
-- Free / Premium (Stripe)
-- Stripe checkout/webhook ยังไม่ได้ wire — premium flag flip ผ่าน DB ก่อน
+- Free / Pro (Stripe)
+- In-app 14-day free Pro trial — click to activate, no credit card, auto-reverts to Free
+- Stripe checkout/webhook for paid subscriptions (monthly ฿99, yearly ฿790)
 
 ## User Tiers
 
-| | Guest | Free | Premium |
+| | Guest | Free | Pro |
 |---|---|---|---|
 | Storage | localStorage (24h TTL) | D1 | D1 |
 | Quick Icons | ✓ | ✓ | ✓ |
@@ -31,6 +32,16 @@
 | AI NLP (Gemini) | — | 3 ครั้ง/วัน | ไม่จำกัด |
 | AI Vision (Gemini) | — | — | ✓ |
 | Custom Moods | — | — | ✓ (สูงสุด 13 เพิ่มเติม) |
+
+### Free Trial
+- 14-day free Pro trial — ทุก free user กดเปิดใช้ได้ 1 ครั้ง ไม่ต้องใส่บัตรเครดิต
+- Global banner บนทุกหน้า: activate CTA (ยังไม่เปิดใช้) / countdown (กำลังใช้) / warning (เหลือ ≤3 วัน)
+- Confirmation bottom sheet ก่อนเปิดใช้ — เน้นว่าไม่มีค่าใช้จ่าย หมดแล้วกลับ Free อัตโนมัติ
+- หมดอายุ auto-downgrade ทันที (computed per-request ใน `getSessionInfo()`, ไม่ใช้ cron)
+- DB: `users.trial_activated_at` (one-time guard), `users.trial_ends_at` (expiry)
+- Atomic activation: `UPDATE ... WHERE trial_activated_at IS NULL` ป้องกัน double-activate
+- Rate limit: 5/hr/IP + 3/hr/user
+- API: `POST /api/trial/activate`
 
 ## Features
 
@@ -110,9 +121,10 @@
 - [x] Login wall — unauthenticated users redirect to `/login`
 - [x] Rate limiting on email-sending routes (5/hr register+forgot, 3/hr resend-verify) via D1
 - [ ] Guest Mode — disabled (app is login-only; `dailymood.me` landing TBD)
-- [x] Stripe Checkout + Webhook + Customer Portal
-- [x] Premium gating (via `users.isPremium`)
-- [x] Subscription Management (`/profile/subscription`) — hero card (plan name, status pill, renewal date, next charge, member-for stats), billing action rows (payment method, billing history — all via Stripe Customer Portal), switch nudge (monthly→yearly save 20%), cancel with BottomSheet confirmation → portal. Free users see upgrade CTA. DB: `stripeSubscriptionId`, `currentPeriodEnd`, `cancelAtPeriodEnd`, `planInterval` on `users` table, populated by webhook. API: `GET /api/subscription`
+- [x] Stripe Checkout + Webhook + Customer Portal (paid subscriptions only, no Stripe trial)
+- [x] In-app 14-day free Pro trial — click-to-activate, no credit card, confirmation sheet, global countdown banner, auto-downgrade on expiry
+- [x] Pro gating (via `getSessionInfo()` — effective premium = Stripe active OR trial active)
+- [x] Subscription Management (`/profile/subscription`) — 3 states: Free (trial CTA + Free vs Pro cards), Trial (countdown card + subscribe CTA), Paid Pro (dark card + billing portal + cancel). DB: `stripeSubscriptionId`, `currentPeriodEnd`, `cancelAtPeriodEnd`, `planInterval`, `trialActivatedAt`, `trialEndsAt` on `users` table. API: `GET /api/subscription`
 - [x] User Menu — burger dropdown (avatar + ☰) → Settings, Logout
 - [x] Profile tab (You) — bottom nav tab → `/profile` (replaces old `/settings`); `/settings` redirects to `/profile/settings`
 
@@ -173,14 +185,15 @@
 | POST | `/api/profile/avatar` | premium | Upload avatar: FormData image (≤2MB), optimize client-side, R2 upload, delete old, update users.imageKey |
 | DELETE | `/api/profile/avatar` | auth | Remove custom avatar: delete R2 object, set users.imageKey to null |
 | GET | `/api/profile/achievements` | auth | Achievements: badge progress, earned dates. Auto-earns newly completed badges |
-| GET | `/api/subscription` | auth | Subscription state: isPremium, currentPeriodEnd, cancelAtPeriodEnd, planInterval, memberSince |
-| POST | `/api/stripe/checkout` | auth | Create Stripe Checkout session (monthly/yearly) |
+| GET | `/api/subscription` | auth | Subscription state: isPremium, currentPeriodEnd, cancelAtPeriodEnd, planInterval, memberSince, trialActivatedAt, trialEndsAt, trialDaysLeft, isTrialing |
+| POST | `/api/trial/activate` | auth | Activate 14-day free Pro trial (one-time, atomic, dual rate-limited 5/hr/IP + 3/hr/user) |
+| POST | `/api/stripe/checkout` | auth | Create Stripe Checkout session (monthly/yearly, no trial period) |
 | POST | `/api/stripe/portal` | auth | Create Stripe Customer Portal session (return_url: /profile/subscription) |
 | POST | `/api/stripe/webhook` | — | Stripe webhook: checkout.session.completed, customer.subscription.updated/deleted → sync isPremium + subscription columns |
 
 ## Database Schema (Drizzle on PostgreSQL)
 
-- `users` — id, email, image, **imageKey** (R2 avatar key, Premium upload), **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, locale, **bio**, **accentColor**, createdAt
+- `users` — id, email, image, **imageKey** (R2 avatar key, Pro upload), **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, **trialActivatedAt** (one-time guard), **trialEndsAt** (expiry timestamp), locale, **bio**, **accentColor**, createdAt
 - `accounts`, `sessions` — NextAuth
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
@@ -200,7 +213,7 @@
 - `personal_events` — id PK, userId (FK cascade), label, labelTh, month (1-12), day (1-31), emoji, createdAt — user's recurring important dates (birthday, anniversary). Free: max 3, Premium: unlimited
 - `holiday_cache` — (year, countryCode) PK, data JSON (array of {date, name, localName}), fetchedAt — caches Nager.Date API response per year (30-day TTL)
 
-Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`, `0018_activities.sql`. Seed: `drizzle/seed.sql` (7 default moods).
+Migrations: `drizzle/0000_smart_logging.sql`, `0001_add_mood_pack.sql`, `0002_email_password.sql`, `0003_rate_limits.sql`, `0004_ai_summary.sql`, `0005_calendar_ai_cache.sql`, `0006_insights_cache_and_feedback.sql`, `0007_profile_achievements.sql`, `0008_privacy_settings.sql`, `0009_feedback.sql`, `0010_reminders.sql`, `0011_subscription_columns.sql`, `0012_mood_packs.sql`, `0017_avatar.sql`, `0018_activities.sql`, `0019_trial_fields.sql`. Seed: `drizzle/seed.sql` (7 default moods).
 
 ## Setup Notes (Railway)
 

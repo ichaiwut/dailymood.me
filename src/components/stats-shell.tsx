@@ -577,11 +577,8 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
 
       {loading ? (
         <LoadingSkeleton />
-      ) : !stats ? (
-        <div className="text-center py-16 fade-in">
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📊</div>
-          <p style={{ fontSize: 14, color: "var(--ink-3)" }}>{t("noData")}</p>
-        </div>
+      ) : !stats || (stats.total ?? 0) < 7 ? (
+        <TooFewEntries total={stats?.total ?? 0} locale={locale} />
       ) : (
         <>
           {/* ── AI INSIGHTS SUMMARY ─── */}
@@ -924,6 +921,73 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
 }
 
 /* ── Skeleton ──────────────────────────────────────────── */
+
+const MIN_ENTRIES = 7;
+
+function TooFewEntries({ total, locale }: { total: number; locale: string }) {
+  const isTh = locale === "th";
+  const remaining = Math.max(0, MIN_ENTRIES - total);
+  const dots = Array.from({ length: MIN_ENTRIES }, (_, i) => i < total);
+
+  return (
+    <div className="fade-in" style={{ paddingTop: 8 }}>
+      <div style={{
+        background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 22,
+        padding: "40px 24px", textAlign: "center", maxWidth: 480, margin: "0 auto",
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
+          {isTh ? `ต้องการอีก ${remaining} วัน` : `${remaining} more day${remaining !== 1 ? "s" : ""} needed`}
+        </div>
+        <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 20, lineHeight: 1.5 }}>
+          {isTh
+            ? `คุณบันทึก ${total} ครั้งแล้ว · ต้องครบ ${MIN_ENTRIES} ครั้งจึงจะเห็นกราฟและเทรนด์`
+            : `You've logged ${total} time${total !== 1 ? "s" : ""} · Need ${MIN_ENTRIES} to see charts and trends`}
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 24 }}>
+          {dots.map((done, i) => (
+            <div
+              key={i}
+              style={{
+                width: 36, height: 36, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 14, fontWeight: 700,
+                background: done ? undefined : "#F2F0F5",
+                color: done ? "#fff" : "var(--ink-3)",
+              }}
+            >
+              {done ? (
+                <div style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: i === 0 ? "#F5A623" : i === 1 ? "#F7C948" : "#7FDCB0",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              ) : (
+                i + 1
+              )}
+            </div>
+          ))}
+        </div>
+
+        <a
+          href="/"
+          style={{
+            display: "inline-block", padding: "12px 28px", borderRadius: 16,
+            background: "#FCA45B", color: "#fff",
+            fontSize: 15, fontWeight: 700, textDecoration: "none",
+          }}
+        >
+          {isTh ? "+ บันทึกวันนี้" : "+ Log today"}
+        </a>
+      </div>
+    </div>
+  );
+}
 
 function LoadingSkeleton() {
   return (

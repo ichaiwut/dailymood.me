@@ -30,16 +30,14 @@ export async function TopBar() {
       }
 
       const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
-      if (!stripeActive && !row?.isPremium) {
-        if (!row?.trialActivatedAt) {
-          trialBannerMode = "activate";
-        } else if (row?.trialEndsAt) {
+      if (!stripeActive) {
+        if (row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now()) {
           const msLeft = row.trialEndsAt.getTime() - Date.now();
-          if (msLeft > 0) {
-            trialBannerMode = "countdown";
-            trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
-            trialWarning = trialDaysLeft <= 3;
-          }
+          trialBannerMode = "countdown";
+          trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
+          trialWarning = trialDaysLeft <= 3;
+        } else if (!row?.trialActivatedAt && !row?.isPremium) {
+          trialBannerMode = "activate";
         }
       }
     } catch {

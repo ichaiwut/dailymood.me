@@ -11,9 +11,6 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
   const locale = useLocale();
   const router = useRouter();
 
-  const [checkinOn, setCheckinOn] = useState(true);
-  const [reminderTime] = useState("9:00 PM");
-  const [reminderDays] = useState("Mon · Tue · Wed · Thu · Fri");
   const [selectedTheme, setSelectedTheme] = useState<"light" | "dark" | "auto">("light");
   const [selectedPalette, setSelectedPalette] = useState<"neon" | "tempered" | "mono">("neon");
   const [hidePreview, setHidePreview] = useState(false);
@@ -51,26 +48,6 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
         </button>
         <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)" }}>{t("settingsTitle")}</div>
       </div>
-
-      {/* Reminders */}
-      <Section label={t("reminders")}>
-        <SettingCard>
-          <ToggleRow
-            icon="🔔" iconBg="#FCA45B"
-            title={t("dailyCheckin")}
-            subtitle={t("dailyCheckinSub", { time: reminderTime })}
-            value={checkinOn} onChange={setCheckinOn}
-          />
-          {checkinOn && (
-            <>
-              <Divider />
-              <NavRow icon="🕐" iconBg="#A673F1" title={t("reminderTime")} value={reminderTime} />
-              <Divider />
-              <NavRow icon="📅" iconBg="#85ECCB" title={t("reminderDays")} value={reminderDays} />
-            </>
-          )}
-        </SettingCard>
-      </Section>
 
       {/* Appearance */}
       <Section label={t("appearance")}>

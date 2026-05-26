@@ -320,23 +320,48 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
               <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.85, letterSpacing: "0.5px", marginBottom: 12 }}>
                 {locale === "th" ? "สรุปสัปดาห์ · เขียนโดย AI" : "Weekly summary · by AI"}
               </div>
-              <p
-                style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.45, margin: "0 0 20px" }}
-                dangerouslySetInnerHTML={{
-                  __html: ((expanded ? data.summary : data.headline) ?? "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
-                }}
-              />
 
-              {!isLocked && (
-                <div className="flex items-center gap-3 flex-wrap">
-                  {!expanded && (
-                    <button onClick={() => setExpanded(true)} style={HERO_BTN}>
-                      {locale === "th" ? "อ่านฉบับเต็ม →" : "Read full →"}
-                    </button>
+              {data.headline ? (
+                <>
+                  <p
+                    style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.45, margin: "0 0 8px" }}
+                    dangerouslySetInnerHTML={{
+                      __html: data.headline.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                    }}
+                  />
+
+                  {expanded && data.summary && (
+                    <p
+                      className="fade-in"
+                      style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.6, margin: "0 0 8px", opacity: 0.92 }}
+                      dangerouslySetInnerHTML={{
+                        __html: data.summary.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                      }}
+                    />
                   )}
-                  <button onClick={handleShare} style={HERO_BTN}>
-                    {copied ? t("copied") : `📩 ${locale === "th" ? "อีเมล / แชร์" : "Email / Share"}`}
-                  </button>
+
+                  <div style={{ height: 12 }} />
+
+                  {!isLocked && (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {!expanded && (
+                        <button onClick={() => setExpanded(true)} style={HERO_BTN}>
+                          {locale === "th" ? "อ่านฉบับเต็ม →" : "Read full →"}
+                        </button>
+                      )}
+                      <button onClick={handleShare} style={HERO_BTN}>
+                        {copied ? t("copied") : `📩 ${locale === "th" ? "อีเมล / แชร์" : "Email / Share"}`}
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ margin: "8px 0 12px" }}>
+                  <p style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.5, opacity: 0.9, margin: 0 }}>
+                    {locale === "th"
+                      ? "สัปดาห์นี้ยังไม่มีข้อมูลเพียงพอให้ AI สรุป ลองบันทึกอารมณ์เพิ่มอีกสักหน่อย แล้ว AI จะเริ่มวิเคราะห์ให้"
+                      : "Not enough entries this week for AI to summarize. Log a few more moods and AI will generate your recap."}
+                  </p>
                 </div>
               )}
 
