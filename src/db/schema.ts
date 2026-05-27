@@ -19,6 +19,7 @@ export const users = pgTable("users", {
   subscriptionStatus: text("subscription_status"),
   trialActivatedAt: timestamp("trial_activated_at"),
   trialEndsAt: timestamp("trial_ends_at"),
+  welcomeShownAt: timestamp("welcome_shown_at"),
   bio: text("bio"),
   accentColor: text("accent_color"),
   hidePreview: boolean("hide_preview").notNull().default(false),

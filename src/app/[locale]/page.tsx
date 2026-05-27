@@ -4,7 +4,7 @@ import { redirect } from "@/i18n/navigation";
 import { getSessionInfo } from "@/lib/tier";
 import { HomeShell } from "@/components/home-shell";
 import { getDb } from "@/lib/cf";
-import { moodTypes } from "@/db/schema";
+import { users, moodTypes } from "@/db/schema";
 import { asc, eq, isNull, or } from "drizzle-orm";
 
 
@@ -17,6 +17,14 @@ export default async function Home() {
   }
 
   const { userId, tier, moodPack, iconFormat, hidePreview } = await getSessionInfo();
+
+  if (userId) {
+    const db = getDb();
+    const [u] = await db.select({ welcomeShownAt: users.welcomeShownAt }).from(users).where(eq(users.id, userId)).limit(1);
+    if (!u?.welcomeShownAt) {
+      redirect({ href: "/welcome" as "/", locale });
+    }
+  }
 
   const db = getDb();
   const allMoods = userId
