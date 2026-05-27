@@ -26,6 +26,14 @@ export const metadata: Metadata = {
   title: "Dailymood — your mood, every day",
   description: "Track your mood, journal, and discover patterns. AI-powered.",
   robots: { index: false, follow: false },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Dailymood",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default async function RootLayout({
@@ -39,6 +47,9 @@ export default async function RootLayout({
       lang={locale}
       className={`${sans.variable} ${thai.variable} h-full antialiased`}
     >
+      <head>
+        <meta name="theme-color" content="#f9a8d4" />
+      </head>
       <body className="min-h-full flex flex-col">
         {isProd && (
           <>
