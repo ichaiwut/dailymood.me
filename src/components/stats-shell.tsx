@@ -183,7 +183,7 @@ function MoodLineChart({
 
         {[1, 2, 3, 4, 5].map((s) => (
           <g key={s}>
-            <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="#F2F0F5" strokeWidth={1} strokeDasharray="4 3" />
+            <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="var(--surface-3)" strokeWidth={1} strokeDasharray="4 3" />
             <image
               href={moodIconUrl(SCORE_MOODS[s], moodPack, iconFormat)}
               x={PX - 28}
@@ -367,7 +367,7 @@ function MoodDonut({ distribution, period, locale }: { distribution: Record<stri
   if (total === 0) {
     return (
       <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: "block" }}>
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke="#F2F0F5" strokeWidth={stroke} />
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--surface-3)" strokeWidth={stroke} />
         <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3)">{periodLabels[period]}</text>
         <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3)">MOODS</text>
       </svg>
@@ -427,7 +427,7 @@ function ActivityBar({ impact }: { impact: number }) {
   return (
     <svg viewBox={`0 0 ${barW} 10`} width={barW} height={10} style={{ flexShrink: 0 }}>
       <rect x={0} y={3} width={barW} height={4} rx={2} fill="#F2F0F5" />
-      <line x1={mid} y1={0} x2={mid} y2={10} stroke="#E0DDE5" strokeWidth={1} />
+      <line x1={mid} y1={0} x2={mid} y2={10} stroke="var(--hairline-2)" strokeWidth={1} />
       <rect x={x} y={2} width={len} height={6} rx={3} fill={isPositive ? "var(--mint)" : "#F4A8A8"} />
     </svg>
   );
@@ -840,7 +840,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                                   {pct}%
                                 </span>
                               </div>
-                              <div style={{ marginLeft: 28, height: 6, borderRadius: 3, background: "#F2F0F5", overflow: "hidden" }}>
+                              <div style={{ marginLeft: 28, height: 6, borderRadius: 3, background: "var(--surface-3)", overflow: "hidden" }}>
                                 <div style={{ width: `${pct}%`, height: "100%", borderRadius: 3, background: m.color }} />
                               </div>
                             </div>
@@ -879,9 +879,9 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                           #{act.tag.replace(/^#/, "")}
                         </span>
                         <div style={{ flex: 1, position: "relative", height: 10 }}>
-                          <div style={{ position: "absolute", inset: 0, borderRadius: 5, background: "#F2F0F5" }} />
+                          <div style={{ position: "absolute", inset: 0, borderRadius: 5, background: "var(--surface-3)" }} />
                           <div style={{ position: "absolute", top: 0, height: "100%", left: isPositive ? "50%" : undefined, right: isPositive ? undefined : "50%", width: `${barPct}%`, borderRadius: 5, background: isPositive ? "var(--mint, #85ECCB)" : "#F4A8A8" }} />
-                          <div style={{ position: "absolute", top: -2, bottom: -2, left: "50%", width: 1, background: "#E0DDE5" }} />
+                          <div style={{ position: "absolute", top: -2, bottom: -2, left: "50%", width: 1, background: "var(--hairline-2)" }} />
                         </div>
                         <span style={{ fontSize: 14, fontWeight: 700, color: isPositive ? "#2DA963" : "#E05A5A", width: 40, textAlign: "right", flexShrink: 0 }}>
                           {isPositive ? "+" : ""}{(act.impact / 100).toFixed(1)}

@@ -253,7 +253,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           {status.aiQuota && (
             <div className="flex items-center gap-2" style={{ color: "var(--ink-3)" }}>
               <span>Ask AI {status.aiQuota.used}/{status.aiQuota.limit}</span>
-              <div style={{ width: 60, height: 4, borderRadius: 2, background: "#F2F0F5", overflow: "hidden" }}>
+              <div style={{ width: 60, height: 4, borderRadius: 2, background: "var(--surface-3)", overflow: "hidden" }}>
                 <div style={{
                   width: `${(status.aiQuota.used / status.aiQuota.limit) * 100}%`,
                   height: "100%", borderRadius: 2,
@@ -578,7 +578,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                 <div className="flex items-center gap-2 mb-2">
                   <span style={{
                     width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "#E8FFF5", fontSize: 16,
+                    background: "var(--surface-2)", fontSize: 16,
                   }}>📩</span>
                   {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
                 </div>
@@ -658,7 +658,7 @@ function TogglePill({ enabled, disabled, onChange }: { enabled: boolean; disable
       onClick={() => !disabled && onChange(!enabled)}
       style={{
         width: 44, height: 24, borderRadius: 12, border: "none", padding: 2,
-        background: disabled ? "#E8E8E8" : enabled ? "#A673F1" : "#D8D5DD",
+        background: disabled ? "var(--surface-3)" : enabled ? "var(--purple)" : "var(--surface-3)",
         cursor: disabled ? "default" : "pointer", flexShrink: 0, marginTop: 4,
         transition: "background 0.2s",
       }}
@@ -724,7 +724,7 @@ function EnergyBars({ hourly, peakHour }: { hourly: number[]; peakHour: number }
 
   return (
     <svg viewBox="0 0 120 120" width="100%" style={{ display: "block", margin: "4px 0" }}>
-      <circle cx={cx} cy={cy} r={innerR - 2} fill="none" stroke="#F2F0F5" strokeWidth={0.5} />
+      <circle cx={cx} cy={cy} r={innerR - 2} fill="none" stroke="var(--surface-3)" strokeWidth={0.5} />
       {hourly.map((v, i) => {
         const angle = (Math.PI * 2 * i) / 24 - Math.PI / 2;
         const barLen = v > 0 ? Math.max(3, (v / maxVal) * maxBarLen) : 2;
@@ -805,7 +805,7 @@ function ActivityTags({ description }: { description: string }) {
   return (
     <div className="flex flex-wrap gap-1.5" style={{ marginTop: 12 }}>
       {all.map((tag, i) => (
-        <span key={i} style={{ background: "#FFF3E6", color: "#E08A2B", fontSize: 14, fontWeight: 700, padding: "4px 10px", borderRadius: 8 }}>
+        <span key={i} style={{ background: "var(--accent-soft)", color: "#E08A2B", fontSize: 14, fontWeight: 700, padding: "4px 10px", borderRadius: 8 }}>
           {tag}
         </span>
       ))}

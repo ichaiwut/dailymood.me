@@ -493,7 +493,7 @@ export function SmartLogModal({
                   {/* Spinning ring + brain */}
                   <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 20px" }}>
                     <svg width="100" height="100" viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0 }}>
-                      <circle cx="50" cy="50" r="44" fill="none" stroke="#E8E4EC" strokeWidth="4" />
+                      <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface-3)" strokeWidth="4" />
                     </svg>
                     <svg width="100" height="100" viewBox="0 0 100 100" className="ai-spin" style={{ position: "absolute", top: 0, left: 0 }}>
                       <defs>
