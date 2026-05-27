@@ -119,7 +119,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
               fontWeight: 600,
               whiteSpace: "nowrap",
               background: !activeCategory ? "var(--peach)" : "var(--surface)",
-              color: !activeCategory ? "#fff" : "var(--ink-2)",
+              color: !activeCategory ? "var(--bg)" : "var(--ink-2)",
               boxShadow: !activeCategory ? "none" : "inset 0 0 0 1px var(--hairline)",
             }}
           >
@@ -138,7 +138,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
                 fontWeight: 600,
                 whiteSpace: "nowrap",
                 background: activeCategory === cat.slug ? "var(--peach)" : "var(--surface)",
-                color: activeCategory === cat.slug ? "#fff" : "var(--ink-2)",
+                color: activeCategory === cat.slug ? "var(--bg)" : "var(--ink-2)",
                 boxShadow: activeCategory === cat.slug ? "none" : "inset 0 0 0 1px var(--hairline)",
               }}
             >

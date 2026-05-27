@@ -452,7 +452,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)" }}>
                 {th ? "สถานที่" : "Location"}
               </div>
-              <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: showLocationSearch ? "var(--ink)" : "var(--surface)", border: "1px solid var(--hairline)", cursor: "pointer", fontSize: 14, fontWeight: 600, color: showLocationSearch ? "#fff" : "var(--ink-2)" }}>
+              <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: showLocationSearch ? "var(--ink)" : "var(--surface)", border: "1px solid var(--hairline)", cursor: "pointer", fontSize: 14, fontWeight: 600, color: showLocationSearch ? "var(--bg)" : "var(--ink-2)" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor" /></svg>
                 {th ? "เพิ่ม" : "Add"}
               </button>

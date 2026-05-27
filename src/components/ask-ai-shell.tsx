@@ -382,7 +382,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               style={{
                 width: 36, height: 36, borderRadius: "50%", border: "none",
                 background: input.trim() && !sending ? "#FCA45B" : "#F2F0F5",
-                color: input.trim() && !sending ? "#fff" : "var(--ink-3)",
+                color: input.trim() && !sending ? "var(--bg)" : "var(--ink-3)",
                 fontSize: 18, fontWeight: 700, cursor: input.trim() && !sending ? "pointer" : "default",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}

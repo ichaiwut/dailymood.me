@@ -132,7 +132,7 @@ export function TimelineFeed({
               border: "none",
               cursor: "pointer",
               background: activeFilter === chip.key ? "var(--ink)" : "var(--surface-2)",
-              color: activeFilter === chip.key ? "#fff" : "var(--ink)",
+              color: activeFilter === chip.key ? "var(--bg)" : "var(--ink)",
               transition: "all 0.15s ease",
             }}
           >
@@ -276,7 +276,7 @@ function SkeletonGroup() {
       <div style={{ height: 14, width: 120, background: "var(--surface-2)", borderRadius: 6, opacity: 0.6, marginBottom: 12 }} />
       <div className="space-y-3">
         {[1, 2].map((i) => (
-          <div key={i} style={{ background: "#fff", border: "1.5px solid var(--hairline)", borderRadius: 18, padding: 14, display: "flex", gap: 14 }}>
+          <div key={i} style={{ background: "var(--surface)", border: "1.5px solid var(--hairline)", borderRadius: 18, padding: 14, display: "flex", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 100, background: "var(--surface-2)", opacity: 0.6, flexShrink: 0 }} />
             <div className="flex-1 space-y-2 py-1">
               <div style={{ height: 14, width: "50%", background: "var(--surface-2)", borderRadius: 6, opacity: 0.6 }} />

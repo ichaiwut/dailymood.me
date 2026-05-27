@@ -158,7 +158,7 @@ export function ActivityManager({ isPremium }: { isPremium: boolean }) {
           border: "none",
           background: label.trim() && !atLimit ? "var(--primary)" : "var(--hairline)",
           fontSize: 14, fontWeight: 700,
-          color: label.trim() && !atLimit ? "#fff" : "var(--ink-3)",
+          color: label.trim() && !atLimit ? "var(--bg)" : "var(--ink-3)",
           cursor: label.trim() && !atLimit ? "pointer" : "default",
           marginBottom: 4,
         }}

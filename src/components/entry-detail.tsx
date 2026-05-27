@@ -343,7 +343,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
               disabled={deleting}
               style={{
                 fontSize: 14, fontWeight: 700, cursor: "pointer", borderRadius: 100,
-                color: confirmDelete ? "#fff" : "var(--ink-3)",
+                color: confirmDelete ? "var(--bg)" : "var(--ink-3)",
                 background: confirmDelete ? "#D14343" : "none",
                 border: confirmDelete ? "none" : "none",
                 padding: confirmDelete ? "8px 20px" : 0,

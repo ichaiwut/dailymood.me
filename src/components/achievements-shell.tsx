@@ -121,7 +121,7 @@ export function AchievementsShell() {
                   width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "14px 16px", border: "none", cursor: "pointer",
                   background: filter === f.key ? "var(--ink)" : "transparent",
-                  color: filter === f.key ? "#fff" : "var(--ink)",
+                  color: filter === f.key ? "var(--bg)" : "var(--ink)",
                   fontSize: 15, fontWeight: filter === f.key ? 700 : 500,
                   borderBottom: "1px solid var(--hairline)",
                   fontFamily: "inherit",

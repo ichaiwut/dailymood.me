@@ -346,7 +346,7 @@ export function CalendarShell({
               padding: "5px 10px",
               borderRadius: 100,
               background: aiPatternsVisible ? "var(--ink)" : "var(--surface-2)",
-              color: aiPatternsVisible ? "#fff" : "var(--ink-2)",
+              color: aiPatternsVisible ? "var(--bg)" : "var(--ink-2)",
               border: "none",
               fontSize: 14,
               fontWeight: 700,
