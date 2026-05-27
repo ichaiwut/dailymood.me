@@ -255,7 +255,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const isNewThread = !activeThreadId || messages.length === 0;
 
   return (
-    <div className="ask-ai-wrap" style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div className="ask-ai-wrap" style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
       <div style={{ padding: "8px 16px 0", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
         <AiSubTabs active="ask-ai" locale={locale} />
         {threads.length > 0 && (
@@ -274,7 +274,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
           className={`ask-ai-sidebar ${showHistory ? "ask-ai-sidebar-open" : ""}`}
           style={{
             width: 320, flexShrink: 0, borderRight: "1.5px solid var(--hairline-2)",
-            padding: "16px", overflowY: "auto", background: "#FAFAF8",
+            padding: "16px", overflowY: "auto", background: "var(--bg)",
           }}
         >
           <button
@@ -381,7 +381,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               disabled={!input.trim() || sending}
               style={{
                 width: 36, height: 36, borderRadius: "50%", border: "none",
-                background: input.trim() && !sending ? "#FCA45B" : "#F2F0F5",
+                background: input.trim() && !sending ? "var(--peach)" : "var(--surface-3)",
                 color: input.trim() && !sending ? "var(--bg)" : "var(--ink-3)",
                 fontSize: 18, fontWeight: 700, cursor: input.trim() && !sending ? "pointer" : "default",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -435,7 +435,7 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
                   transition: "background 0.15s",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "var(--primary-bg)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--surface)"; }}
               >
                 {q}
               </button>
@@ -458,7 +458,7 @@ function UserBubble({ msg, locale }: { msg: Message; locale: string }) {
           {locale === "th" ? "คุณเอง" : "You"} · {time}
         </div>
         <div style={{
-          background: "#F8F6FB", borderRadius: 16, padding: "14px 18px",
+          background: "var(--surface-2)", borderRadius: 16, padding: "14px 18px",
           fontSize: 15, color: "var(--ink)", lineHeight: 1.5,
         }}>
           {msg.content}
