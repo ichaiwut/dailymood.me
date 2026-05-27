@@ -359,7 +359,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         </div>
 
         {/* Input bar */}
-        <div style={{ borderTop: "1.5px solid var(--hairline-2)", padding: "16px 32px 20px" }}>
+        <div className="ask-ai-input-bar" style={{ borderTop: "1.5px solid var(--hairline-2)", padding: "16px 32px 20px" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
             background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 16, padding: "10px 16px",
