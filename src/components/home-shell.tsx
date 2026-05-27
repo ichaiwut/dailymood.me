@@ -525,7 +525,7 @@ export function HomeShell({
               style={{
                 width: 36, height: 36, borderRadius: 10,
                 background: showComposerLocationSearch ? "var(--ink)" : undefined,
-                color: showComposerLocationSearch ? "#fff" : undefined,
+                color: showComposerLocationSearch ? "var(--bg)" : undefined,
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

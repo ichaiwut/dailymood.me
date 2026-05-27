@@ -450,9 +450,9 @@ export function SmartLogModal({
                   {tier !== "premium" && <span style={{ position: "absolute", top: -6, right: -4, background: "var(--ink)", color: "var(--bg)", fontSize: 14, fontWeight: 800, padding: "1px 5px", borderRadius: 4 }}>PRO</span>}
                   {tier === "premium" && <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); } }} />}
                 </label>
-                <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 100, border: "1px solid var(--hairline)", background: showLocationSearch ? "var(--ink)" : "#fff", cursor: "pointer" }}>
+                <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 100, border: "1px solid var(--hairline)", background: showLocationSearch ? "var(--ink)" : "var(--surface-2)", cursor: "pointer" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={showLocationSearch ? "#fff" : "currentColor"} />
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={showLocationSearch ? "var(--bg)" : "currentColor"} />
                   </svg>
                 </button>
                 {aiLimit !== null && aiRemaining !== null && (
