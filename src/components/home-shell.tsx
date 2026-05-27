@@ -13,6 +13,7 @@ import { Link } from "@/i18n/navigation";
 import { trackMoodLog } from "@/lib/analytics";
 import { SpecialDayBanner } from "./special-day-banner";
 import { ActivityPicker } from "./activity-picker";
+import { InstallAppPrompt } from "./install-app-prompt";
 import type { SpecialDay } from "@/db/schema";
 
 type Tier = "guest" | "free" | "premium";
@@ -770,6 +771,8 @@ export function HomeShell({
           }}
         />
       )}
+      {/* ── INSTALL APP PROMPT ─── */}
+      <InstallAppPrompt />
       {/* ── TOAST ─── */}
       {toast && (
         <div
