@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface BottomSheetProps {
   open: boolean;
@@ -48,7 +49,7 @@ export function BottomSheet({
 
   if (!open && !closing) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Scrim */}
       <div
@@ -56,7 +57,7 @@ export function BottomSheet({
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 50,
+          zIndex: 9998,
           background: "rgba(10,10,10,0.4)",
           backdropFilter: "blur(4px)",
           animation: closing ? "fadeOut 200ms ease forwards" : "fadeIn 200ms ease forwards",
@@ -76,7 +77,7 @@ export function BottomSheet({
         }}
         style={{
           position: "fixed",
-          zIndex: 50,
+          zIndex: 9999,
           background: "var(--surface, #fff)",
           maxHeight,
           overflowY: "auto",
@@ -117,6 +118,7 @@ export function BottomSheet({
         @keyframes modalIn { from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
         @keyframes modalOut { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } }
       `}</style>
-    </>
+    </>,
+    document.body,
   );
 }
