@@ -394,7 +394,7 @@ export function ProfileEditShell() {
         <div
           style={{
             position: "fixed", bottom: 100, left: "50%", transform: "translateX(-50%)",
-            background: "var(--ink)", color: "#fff", padding: "12px 28px",
+            background: "var(--ink)", color: "var(--bg)", padding: "12px 28px",
             borderRadius: 20, fontSize: 15, fontWeight: 700, zIndex: 200,
             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
           }}

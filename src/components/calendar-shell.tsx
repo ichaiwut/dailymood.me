@@ -589,7 +589,7 @@ export function CalendarShell({
             transform: "translateX(-50%)",
             zIndex: 60,
             background: "var(--ink)",
-            color: "#fff",
+            color: "var(--bg)",
             padding: "10px 20px",
             borderRadius: 100,
             fontSize: 14,

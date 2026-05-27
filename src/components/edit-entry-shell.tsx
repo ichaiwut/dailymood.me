@@ -833,7 +833,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
         <div
           style={{
             position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 60,
-            background: "var(--ink)", color: "#fff", padding: "10px 20px", borderRadius: 100,
+            background: "var(--ink)", color: "var(--bg)", padding: "10px 20px", borderRadius: 100,
             fontSize: 14, fontWeight: 700, boxShadow: "0 8px 24px rgba(0,0,0,0.15)", whiteSpace: "nowrap",
           }}
         >

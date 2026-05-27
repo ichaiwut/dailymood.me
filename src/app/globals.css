@@ -397,7 +397,7 @@ button { font-family: inherit; cursor: pointer; }
   cursor: pointer;
 }
 .w-btn-primary { background: var(--peach); color: #fff; box-shadow: 0 6px 16px -6px rgba(252,164,91,.55); }
-.w-btn-ink { background: var(--ink); color: #fff; }
+.w-btn-ink { background: var(--ink); color: var(--bg); }
 .w-btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--hairline); }
 .w-btn-purple { background: var(--purple); color: #fff; }
 

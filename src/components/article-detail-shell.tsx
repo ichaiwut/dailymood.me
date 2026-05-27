@@ -306,7 +306,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
           <ArticleBody body={body} toneColor={tone.hue} toneBg={tone.bgHue} />
 
           {/* Outro CTA */}
-          <div style={{ background: "var(--ink)", color: "#fff", borderRadius: 20, padding: "28px 30px", marginTop: 36, marginBottom: 32, position: "relative", overflow: "hidden" }}>
+          <div style={{ background: "var(--ink)", color: "var(--bg)", borderRadius: 20, padding: "28px 30px", marginTop: 36, marginBottom: 32, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: `radial-gradient(circle, ${tone.hue}, transparent 70%)`, opacity: .4 }} />
             <div style={{ position: "relative" }}>
               <div style={{ fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", opacity: .7, marginBottom: 10 }}>
@@ -437,7 +437,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
           }}
         >
           <div style={{
-            background: "var(--ink)", color: "#fff",
+            background: "var(--ink)", color: "var(--bg)",
             borderRadius: 18, padding: "16px 22px",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
             boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1)",

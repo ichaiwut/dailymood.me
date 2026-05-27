@@ -291,7 +291,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
             onClick={() => { setActiveThreadId(null); setMessages([]); setShowHistory(false); }}
             style={{
               width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
-              background: "var(--ink)", color: "#fff", fontSize: 15, fontWeight: 700,
+              background: "var(--ink)", color: "var(--bg)", fontSize: 15, fontWeight: 700,
               cursor: "pointer", marginBottom: 20,
             }}
           >

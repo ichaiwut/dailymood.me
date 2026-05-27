@@ -246,7 +246,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           <button onClick={() => setViewYear((y) => y + 1)} className="w-btn w-btn-ghost" style={{ fontSize: 14 }}>
             {viewYear + 1} →
           </button>
-          <button onClick={handleExport} disabled={!data} className="w-btn" style={{ background: "var(--ink)", color: "#fff", fontSize: 14, gap: 6, display: "inline-flex", alignItems: "center" }}>
+          <button onClick={handleExport} disabled={!data} className="w-btn w-btn-ink" style={{ fontSize: 14, gap: 6, display: "inline-flex", alignItems: "center" }}>
             📸 Export PNG
           </button>
         </div>
@@ -430,7 +430,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
               <Link
                 href={`/year-in-pixels/story?year=${viewYear}` as "/"}
                 className="w-btn"
-                style={{ background: "var(--ink)", color: "#fff", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+                style={{ background: "var(--purple)", color: "#fff", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
               >
                 {isTh ? "เล่าให้ฟังต่อ" : "Tell me more"} →
               </Link>

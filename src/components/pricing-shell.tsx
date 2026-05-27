@@ -77,7 +77,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
           onClick={() => router.push("/" as "/")}
           style={{
             padding: "14px 32px", borderRadius: 20,
-            border: "none", background: "var(--ink)", color: "#fff",
+            border: "none", background: "var(--ink)", color: "var(--bg)",
             fontSize: 16, fontWeight: 700, cursor: "pointer",
           }}
         >
