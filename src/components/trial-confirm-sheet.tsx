@@ -20,7 +20,7 @@ export function TrialConfirmSheet({ open, onClose }: TrialConfirmSheetProps) {
     try {
       const res = await fetch("/api/trial/activate", { method: "POST" });
       if (res.ok) {
-        globalThis.location.reload();
+        globalThis.location.assign("/welcome-pro");
       } else {
         onClose();
       }
