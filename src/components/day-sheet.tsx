@@ -129,7 +129,7 @@ export function DaySheet({
                   </div>
                   <button
                     onClick={() => router.push(`/entry/${e.id}/edit` as "/")}
-                    style={{ padding: "8px 18px", borderRadius: 10, border: "1.5px solid var(--hairline)", background: "#fff", fontSize: 14, fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
+                    style={{ padding: "8px 18px", borderRadius: 10, border: "1.5px solid var(--hairline)", background: "var(--surface)", fontSize: 14, fontWeight: 700, color: "var(--ink)", cursor: "pointer" }}
                   >
                     {locale === "th" ? "แก้ไข" : "Edit"}
                   </button>
@@ -187,7 +187,7 @@ export function DaySheet({
                 {/* View full entry link */}
                 <button
                   onClick={() => router.push(`/entry/${e.id}` as "/")}
-                  style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "1.5px solid var(--hairline)", background: "#fff", fontSize: 14, fontWeight: 700, color: "var(--ink)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "1.5px solid var(--hairline)", background: "var(--surface)", fontSize: 14, fontWeight: 700, color: "var(--ink)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                 >
                   {locale === "th" ? "ดูบันทึกเต็ม" : "View full entry"} →
                 </button>

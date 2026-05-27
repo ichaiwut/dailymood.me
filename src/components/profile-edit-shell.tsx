@@ -221,7 +221,7 @@ export function ProfileEditShell() {
       {/* Avatar Card */}
       <div
         style={{
-          background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 24,
+          background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 24,
           padding: "28px 20px", textAlign: "center", marginBottom: 16,
         }}
       >
@@ -317,7 +317,7 @@ export function ProfileEditShell() {
       {/* Form Card */}
       <div
         style={{
-          background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 24,
+          background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 24,
           padding: "24px 20px", marginBottom: 16,
         }}
       >
@@ -380,7 +380,7 @@ export function ProfileEditShell() {
           type="button"
           style={{
             padding: "10px 20px", borderRadius: 14,
-            border: "1.5px solid #F5DADA", background: "#fff",
+            border: "1.5px solid #F5DADA", background: "var(--surface)",
             fontSize: 14, fontWeight: 700, color: "#D94444", cursor: "pointer",
             flexShrink: 0,
           }}

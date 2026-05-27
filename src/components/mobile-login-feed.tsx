@@ -69,7 +69,7 @@ export function MobileLoginFeed({
             href={`/articles/${featured.slug}`}
             style={{
               display: "block", textDecoration: "none", color: "inherit",
-              background: "#fff", borderRadius: 16, overflow: "hidden",
+              background: "var(--surface)", borderRadius: 16, overflow: "hidden",
               border: "1px solid rgba(26,19,32,0.08)",
               boxShadow: "0 6px 20px -14px rgba(26,19,32,.25)",
               marginBottom: 16,
@@ -138,7 +138,7 @@ export function MobileLoginFeed({
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             marginTop: 16, padding: "12px 14px", borderRadius: 12,
-            background: "#fff", border: "1px solid rgba(26,19,32,0.08)",
+            background: "var(--surface)", border: "1px solid rgba(26,19,32,0.08)",
             textDecoration: "none", color: "#1A1320", fontSize: 13, fontWeight: 700,
           }}
         >
@@ -151,7 +151,7 @@ export function MobileLoginFeed({
       <div style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20,
         padding: "16px 24px calc(24px + env(safe-area-inset-bottom, 0px))",
-        background: "#fff",
+        background: "var(--surface)",
         borderTop: "1px solid rgba(26,19,32,0.08)",
         boxShadow: "0 -10px 30px -16px rgba(26,19,32,.18)",
       }}>
@@ -163,7 +163,7 @@ export function MobileLoginFeed({
             onClick={() => signIn("google", { callbackUrl: "/" })}
             style={{
               flex: 1, height: 46, borderRadius: 12,
-              background: "#fff", border: "1.5px solid rgba(26,19,32,0.12)",
+              background: "var(--surface)", border: "1.5px solid rgba(26,19,32,0.12)",
               fontFamily: "inherit", fontWeight: 700, fontSize: 13, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}

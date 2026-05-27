@@ -210,7 +210,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
         style={{
           borderRadius: 16,
           padding: "10px 12px 10px 18px",
-          background: "#fff",
+          background: "var(--surface)",
           border: "1.5px solid var(--hairline)",
           boxShadow: expanded ? "0 4px 20px -4px rgba(166,115,241,.15)" : "0 2px 8px -2px rgba(0,0,0,.04)",
           display: "flex",

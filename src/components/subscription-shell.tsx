@@ -21,7 +21,7 @@ interface SubData {
 }
 
 const CARD: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   border: "1.5px solid var(--hairline-2)",
   borderRadius: 22,
   padding: 20,
@@ -393,7 +393,7 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
             onClick={() => setShowTrialConfirm(true)}
             style={{
               padding: "14px 32px", borderRadius: 16,
-              background: "#fff", border: "none",
+              background: "var(--surface)", border: "none",
               color: "#A673F1", fontSize: 16, fontWeight: 800,
               cursor: "pointer",
             }}
@@ -502,7 +502,7 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
             onClick={handleCheckout}
             style={{
               width: "100%", padding: "14px 0", borderRadius: 16,
-              background: "#fff", border: "none", color: "#A673F1",
+              background: "var(--surface)", border: "none", color: "#A673F1",
               fontSize: 15, fontWeight: 800, cursor: "pointer",
             }}
           >
@@ -575,7 +575,7 @@ function TrialState({ data, locale }: { data: SubData; locale: string }) {
           <button
             onClick={handleCheckout}
             style={{
-              background: "#fff", border: "none",
+              background: "var(--surface)", border: "none",
               borderRadius: 14, padding: "10px 18px",
               fontSize: 14, fontWeight: 700, cursor: "pointer",
               color: "#A673F1",

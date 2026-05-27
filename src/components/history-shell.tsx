@@ -213,7 +213,7 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
   return (
     <div
       style={{
-        background: "#fff",
+        background: "var(--surface)",
         border: "1.5px solid var(--hairline-2)",
         borderRadius: 22,
         padding: 14,
@@ -290,7 +290,7 @@ function SkeletonGroup() {
           <div
             key={i}
             style={{
-              background: "#fff",
+              background: "var(--surface)",
               border: "1.5px solid var(--hairline-2)",
               borderRadius: 22,
               padding: 14,

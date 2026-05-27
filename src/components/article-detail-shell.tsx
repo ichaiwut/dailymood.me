@@ -366,7 +366,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
           {article.tags && article.tags.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 32 }}>
               {article.tags.map((tag) => (
-                <span key={tag} style={{ padding: "6px 12px", borderRadius: 100, background: "#fff", border: "1px solid var(--hairline)", fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>
+                <span key={tag} style={{ padding: "6px 12px", borderRadius: 100, background: "var(--surface)", border: "1px solid var(--hairline)", fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>
                   #{tag}
                 </span>
               ))}
@@ -459,7 +459,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
               style={{
                 flexShrink: 0, height: 38, padding: "0 20px",
                 borderRadius: 12, fontSize: 14, fontWeight: 700,
-                background: "#fff", color: "var(--ink)",
+                background: "var(--surface)", color: "var(--ink)",
                 display: "inline-flex", alignItems: "center",
                 textDecoration: "none",
               }}

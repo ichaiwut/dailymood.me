@@ -289,7 +289,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
                       alt={entry.location}
                       style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }}
                     />
-                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
+                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "var(--surface)", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
                       <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>G</span>
                       <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>Maps</span>
                     </div>

@@ -263,7 +263,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               key={i}
               style={{
                 padding: 22, borderRadius: 18,
-                background: "#fff", border: "1px solid rgba(26,19,32,0.08)",
+                background: "var(--surface)", border: "1px solid rgba(26,19,32,0.08)",
                 boxShadow: "0 14px 30px -22px rgba(26,19,32,0.30)",
                 position: "relative", overflow: "hidden",
                 transform: i % 2 === 1 ? "translateY(20px)" : undefined,
@@ -279,7 +279,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               {/* Icon tile */}
               <div style={{
                 width: 40, height: 40, borderRadius: 11, marginBottom: 12,
-                background: "#fff", border: "1px solid rgba(26,19,32,0.08)",
+                background: "var(--surface)", border: "1px solid rgba(26,19,32,0.08)",
                 boxShadow: "0 2px 8px rgba(26,19,32,0.06)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 20, position: "relative",

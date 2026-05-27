@@ -217,7 +217,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
       <div className="pricing-features" style={{ marginBottom: 32 }}>
         {FEATURES.map((f, i) => (
           <div key={i} style={{
-            background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 18,
+            background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 18,
             padding: "18px 16px", display: "flex", gap: 14, alignItems: "start",
           }}>
             <div style={{
@@ -241,7 +241,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
 
       {/* Comparison */}
       <div style={{
-        background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 22,
+        background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 22,
         padding: "24px 20px", marginBottom: 32,
       }}>
         <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 16 }}>

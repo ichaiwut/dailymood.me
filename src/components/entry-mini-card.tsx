@@ -41,7 +41,7 @@ export function EntryMiniCard({ entry, pack = DEFAULT_MOOD_PACK, iconFormat = "s
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter") router.push(`/entry/${entry.id}` as "/"); }}
       style={{
-        background: "#fff",
+        background: "var(--surface)",
         border: "1.5px solid var(--hairline)",
         borderRadius: 18,
         padding: "16px 18px",

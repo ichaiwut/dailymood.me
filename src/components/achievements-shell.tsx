@@ -160,7 +160,7 @@ function BadgeCard({ badge, t, locale }: { badge: Badge; t: (k: string, v?: Reco
   return (
     <div
       style={{
-        background: "#fff",
+        background: "var(--surface)",
         borderRadius: 18, padding: "20px 16px",
         border: `2px ${isInProgress ? "dashed" : "solid"} ${borderColor}`,
         opacity: isLocked ? 0.5 : 1,

@@ -806,7 +806,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
           <div style={{ display: "flex", gap: 12, width: "100%", maxWidth: 768, margin: "0 auto" }}>
             <button
               onClick={() => router.back()}
-              style={{ height: 48, padding: "0 20px", background: "#fff", border: "1.5px solid var(--hairline)", borderRadius: 100, fontWeight: 700, fontSize: 14, color: "var(--ink)" }}
+              style={{ height: 48, padding: "0 20px", background: "var(--surface)", border: "1.5px solid var(--hairline)", borderRadius: 100, fontWeight: 700, fontSize: 14, color: "var(--ink)" }}
             >
               {t("cancel")}
             </button>
@@ -844,7 +844,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
       {/* ── Delete Confirm Overlay ── */}
       {showDeleteConfirm && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-          <div style={{ background: "#fff", borderRadius: 24, padding: "28px 24px", width: "min(340px, 90vw)", textAlign: "center" }}>
+          <div style={{ background: "var(--surface)", borderRadius: 24, padding: "28px 24px", width: "min(340px, 90vw)", textAlign: "center" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
               {t("deleteConfirmTitle")}
             </div>

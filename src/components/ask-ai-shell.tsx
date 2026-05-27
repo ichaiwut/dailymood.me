@@ -190,13 +190,13 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               {isTh ? "คุยกับข้อมูลของคุณ" : "Chat with your data"}
             </h1>
             <div style={{
-              background: "#fff", borderRadius: 22, padding: 20, marginBottom: 14,
+              background: "var(--surface)", borderRadius: 22, padding: 20, marginBottom: 14,
               border: "1.5px solid var(--hairline-2)", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
             }}>
               <div style={{ fontSize: 14, color: "var(--ink)" }}>{isTh ? "ทำไมวันจันทร์มักจะแย่?" : "Why are Mondays usually bad?"}</div>
             </div>
             <div style={{
-              background: "#fff", borderRadius: 22, padding: 20, height: 120,
+              background: "var(--surface)", borderRadius: 22, padding: 20, height: 120,
               border: "1.5px solid var(--hairline-2)", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
             }} />
           </div>
@@ -237,7 +237,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               onClick={handleCheckout}
               style={{
                 width: "100%", padding: "14px 0", borderRadius: 16,
-                background: "#fff", border: "none", color: "#A673F1",
+                background: "var(--surface)", border: "none", color: "#A673F1",
                 fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
               }}
             >
@@ -362,7 +362,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         <div style={{ borderTop: "1.5px solid var(--hairline-2)", padding: "16px 32px 20px" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 16, padding: "10px 16px",
+            background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 16, padding: "10px 16px",
           }}>
             <input
               type="text"
@@ -430,7 +430,7 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
                 onClick={() => onAsk(q)}
                 style={{
                   textAlign: "left", padding: "14px 16px", borderRadius: 14,
-                  border: "1.5px solid var(--hairline-2)", background: "#fff", cursor: "pointer",
+                  border: "1.5px solid var(--hairline-2)", background: "var(--surface)", cursor: "pointer",
                   fontSize: 15, fontWeight: 600, color: "var(--ink)", lineHeight: 1.4,
                   transition: "background 0.15s",
                 }}

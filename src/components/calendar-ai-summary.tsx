@@ -155,7 +155,7 @@ function Chip({ iconUrl, emoji, label, sub }: { iconUrl?: string | null; emoji: 
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        background: "#fff",
+        background: "var(--surface)",
         border: "1.5px solid var(--hairline-2)",
         borderRadius: 100,
         padding: "7px 14px",

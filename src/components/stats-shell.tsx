@@ -543,7 +543,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   border: "none",
                   cursor: "pointer",
                   transition: "all 0.2s",
-                  background: period === p ? "#fff" : "transparent",
+                  background: period === p ? "var(--surface)" : "transparent",
                   color: period === p ? "var(--ink, #1a1a1a)" : "var(--ink-3, #999)",
                   boxShadow: period === p ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                   opacity: p === "year" && tier !== "premium" ? 0.5 : 1,

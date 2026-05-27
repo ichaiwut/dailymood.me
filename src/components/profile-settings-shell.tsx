@@ -364,7 +364,7 @@ function ToggleRow({
       >
         <div style={{
           width: 22, height: 22, borderRadius: "50%",
-          background: "#fff", position: "absolute",
+          background: "var(--surface)", position: "absolute",
           top: 3, left: value ? 25 : 3,
           transition: "left 0.2s",
           boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
