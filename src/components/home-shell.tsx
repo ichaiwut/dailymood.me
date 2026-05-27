@@ -263,7 +263,7 @@ export function HomeShell({
           style={{
             borderRadius: 18,
             padding: "32px 36px",
-            background: "linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%)",
+            background: "var(--hero-grad)",
             position: "relative",
             overflow: "hidden",
             marginBottom: 24,
@@ -286,7 +286,7 @@ export function HomeShell({
                   flex: "0 0 auto",
                   padding: "14px 8px 10px",
                   borderRadius: 14,
-                  background: "#fff",
+                  background: "var(--surface)",
                   border: i === 0 ? "2px solid var(--peach)" : "1.5px solid rgba(0,0,0,.06)",
                   cursor: "pointer",
                   display: "flex",
@@ -363,10 +363,10 @@ export function HomeShell({
             rows={3}
             className="w-full resize-none"
             style={{
-              background: "#FAF7FE",
+              background: "var(--surface-2)",
               color: "var(--ink)",
               borderRadius: 16,
-              border: "1.5px solid #E6DBF7",
+              border: "1.5px solid var(--hairline-2)",
               padding: "12px 14px",
               fontSize: 15,
               lineHeight: 1.5,
@@ -440,7 +440,7 @@ export function HomeShell({
                       borderRadius: 100,
                       fontSize: 14,
                       fontWeight: 700,
-                      border: active ? "none" : "1.5px solid #F0EAF7",
+                      border: active ? "none" : "1.5px solid var(--hairline-2)",
                     }}
                   >
                     <img src={customIcon(m)} alt="" width={16} height={16} />
@@ -455,7 +455,7 @@ export function HomeShell({
           {composerSuggestion && !composerAnalyzing && composerTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2 fade-in">
               {composerTags.map((tag, i) => (
-                <span key={i} className="flex items-center gap-1" style={{ background: "#fff", border: "1.5px solid #F0EAF7", padding: "5px 10px", borderRadius: 100, fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+                <span key={i} className="flex items-center gap-1" style={{ background: "var(--surface)", border: "1.5px solid var(--hairline-2)", padding: "5px 10px", borderRadius: 100, fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
                   {tag}
                   <button onClick={() => setComposerTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", display: "flex" }}>
                     <svg width="8" height="8" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>

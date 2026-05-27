@@ -221,7 +221,7 @@ export function ProfileEditShell() {
       {/* Avatar Card */}
       <div
         style={{
-          background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 24,
+          background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 24,
           padding: "28px 20px", textAlign: "center", marginBottom: 16,
         }}
       >
@@ -317,7 +317,7 @@ export function ProfileEditShell() {
       {/* Form Card */}
       <div
         style={{
-          background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 24,
+          background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 24,
           padding: "24px 20px", marginBottom: 16,
         }}
       >
@@ -419,7 +419,7 @@ const LABEL_STYLE: React.CSSProperties = {
 
 const INPUT_STYLE: React.CSSProperties = {
   width: "100%", padding: "14px 16px", borderRadius: 16,
-  border: "1.5px solid #F2F0F5", background: "#FAFAFA",
+  border: "1.5px solid var(--hairline-2)", background: "#FAFAFA",
   fontSize: 16, fontWeight: 500, color: "var(--ink)",
   outline: "none", fontFamily: "inherit",
 };

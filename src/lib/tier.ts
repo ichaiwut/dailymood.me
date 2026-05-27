@@ -43,7 +43,7 @@ export async function getSessionInfo(): Promise<SessionInfo> {
     .limit(1);
 
   const now = new Date();
-  const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
+  const stripeActive = row?.isPremium === true;
   const inAppTrialActive = !!row?.trialEndsAt && row.trialEndsAt.getTime() > now.getTime();
   const effectivePremium = stripeActive || inAppTrialActive;
 

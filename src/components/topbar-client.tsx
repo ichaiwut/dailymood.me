@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { Link } from "@/i18n/navigation";
 import { SmartLogModal } from "./smart-log-modal";
 import { DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { useTheme } from "./theme-provider";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -184,6 +185,8 @@ function MobileTopbar({
 }) {
   const isHome = pathname === "/" || pathname === "";
   const firstName = name?.split(" ")[0] ?? name;
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark" || (theme === "auto" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const [dayLabel, setDayLabel] = useState("");
   const [greeting, setGreeting] = useState<"greetMorning" | "greetAfternoon" | "greetEvening">("greetAfternoon");
@@ -221,16 +224,19 @@ function MobileTopbar({
                 </p>
               </div>
             </div>
-            <div ref={menuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="grid place-items-center"
-                style={{ width: 36, height: 36, borderRadius: 10, background: "var(--surface)", border: "1px solid var(--hairline)" }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" /></svg>
-              </button>
-              <UserMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} name={name} email={email} tc={tc} />
+            <div className="flex items-center gap-2">
+              <ThemeToggle isDark={isDark} onToggle={() => setTheme(isDark ? "light" : "dark")} />
+              <div ref={menuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="grid place-items-center"
+                  style={{ width: 36, height: 36, borderRadius: 10, background: "var(--surface)", border: "1px solid var(--hairline)" }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" /></svg>
+                </button>
+                <UserMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} name={name} email={email} tc={tc} />
+              </div>
             </div>
           </div>
         ) : (
@@ -239,10 +245,12 @@ function MobileTopbar({
               <DMLogo />
               <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em" }}>DailyMood</span>
             </Link>
-            <div ref={menuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
+            <div className="flex items-center gap-2">
+              <ThemeToggle isDark={isDark} onToggle={() => setTheme(isDark ? "light" : "dark")} />
+              <div ref={menuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(!menuOpen)}
                 style={{
                   width: 32,
                   height: 32,
@@ -265,11 +273,43 @@ function MobileTopbar({
                 )}
               </button>
               <UserMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} name={name} email={email} tc={tc} />
+              </div>
             </div>
           </div>
         )}
       </div>
     </header>
+  );
+}
+
+function ThemeToggle({ isDark, onToggle }: { isDark: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        background: "var(--surface)",
+        border: "1px solid var(--hairline)",
+        display: "grid",
+        placeItems: "center",
+        cursor: "pointer",
+      }}
+    >
+      {isDark ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="5" stroke="var(--ink)" strokeWidth="2" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </button>
   );
 }
 
@@ -370,7 +410,7 @@ function LanguageToggle({ locale }: { locale: string }) {
         padding: "6px 12px",
         borderRadius: 100,
         border: "1px solid var(--hairline)",
-        background: "#fff",
+        background: "var(--surface)",
         fontFamily: "inherit",
         fontWeight: 700,
         fontSize: 14,

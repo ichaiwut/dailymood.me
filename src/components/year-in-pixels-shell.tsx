@@ -204,7 +204,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
   return (
     <div className="fade-in" style={{ paddingTop: 16, paddingBottom: 80 }}>
       {/* View Toggle — same as calendar page */}
-      <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2, marginBottom: 20 }}>
+      <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 12, padding: 3, gap: 2, marginBottom: 20 }}>
         <Link
           href={"/calendar" as "/"}
           style={{ flex: 1, padding: "8px 0", fontSize: 14, fontWeight: 600, borderRadius: 10, border: "none", textDecoration: "none", textAlign: "center", background: "transparent", color: "var(--ink-3)" }}
@@ -218,7 +218,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           {tc("tabTimeline")}
         </Link>
         <div
-          style={{ flex: 1, padding: "8px 0", fontSize: 14, fontWeight: 600, borderRadius: 10, textAlign: "center", background: "#fff", color: "var(--ink)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
+          style={{ flex: 1, padding: "8px 0", fontSize: 14, fontWeight: 600, borderRadius: 10, textAlign: "center", background: "var(--surface)", color: "var(--ink)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
         >
           {tc("tabYear")}
         </div>
@@ -259,7 +259,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           style={{
             borderRadius: 22,
             padding: "24px 24px 20px",
-            background: "linear-gradient(135deg, #FAF7FE 0%, #E9DEF6 100%)",
+            background: "var(--hero-grad)",
             marginBottom: 24,
             position: "relative",
             overflow: "hidden",
@@ -270,11 +270,11 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
               <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
               </div>
-              <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
                 AI {isTh ? "สรุปทั้งปี" : "Year Summary"} · {viewYear}
               </span>
             </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", background: "rgba(255,255,255,.6)", padding: "4px 12px", borderRadius: 100 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", background: "var(--surface-2)", padding: "4px 12px", borderRadius: 100 }}>
               ✨ Pro
             </span>
           </div>
@@ -299,19 +299,19 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
 
           {/* Mini stat chips */}
           <div className="yip-stat-chips" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
-            <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>😊 {isTh ? "อารมณ์เด่น" : "Dominant"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{data.dominantMood ? `${getMoodLabel(data.dominantMood, locale) ?? "—"} · ${data.dominantPct}%` : "—"}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>🔥 Streak {isTh ? "สูงสุด" : "best"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{data.streak.days} {isTh ? "วัน" : "days"}{data.streak.month > 0 ? ` · ${monthLabels[data.streak.month - 1]}` : ""}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>📝 {isTh ? "บันทึกทั้งหมด" : "Total entries"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{data.totalDays} {isTh ? "ครั้ง" : "entries"}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 2 }}>💡 Trigger {isTh ? "เด่น" : "top"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)" }}>{data.topTrigger ? `"${data.topTrigger.tag}" · ${data.topTrigger.count} ${isTh ? "ครั้ง" : "×"}` : "—"}</div>
             </div>
@@ -319,7 +319,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
 
           {/* Compare with previous year */}
           {compareData && compareData.totalDays === 0 ? (
-            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.6)", borderRadius: 16, padding: "28px 20px", textAlign: "center" }}>
+            <div className="fade-in" style={{ marginBottom: 16, background: "var(--surface-2)", borderRadius: 16, padding: "28px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
                 {isTh ? `ยังไม่มีข้อมูลปี ${viewYear - 1}` : `No data for ${viewYear - 1}`}
@@ -329,7 +329,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
               </div>
             </div>
           ) : compareData ? (
-            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.6)", borderRadius: 16, padding: "20px 22px" }}>
+            <div className="fade-in" style={{ marginBottom: 16, background: "var(--surface-2)", borderRadius: 16, padding: "20px 22px" }}>
               {/* Header + year legend */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--purple)" }}>

@@ -214,7 +214,7 @@ function EntryCard({ entry, locale }: { entry: Entry; locale: string }) {
     <div
       style={{
         background: "#fff",
-        border: "1.5px solid #F2F0F5",
+        border: "1.5px solid var(--hairline-2)",
         borderRadius: 22,
         padding: 14,
         display: "flex",
@@ -291,7 +291,7 @@ function SkeletonGroup() {
             key={i}
             style={{
               background: "#fff",
-              border: "1.5px solid #F2F0F5",
+              border: "1.5px solid var(--hairline-2)",
               borderRadius: 22,
               padding: 14,
               display: "flex",

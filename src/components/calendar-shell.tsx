@@ -36,7 +36,7 @@ const WEEKDAYS_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 const MONTH_NAMES_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MONTH_NAMES_TH = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 const MONTH_SHORT_EN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const EMPTY_COLOR = "#F4F2F7";
+const EMPTY_COLOR = "var(--surface-2)";
 
 function getMoodColor(moodId: string | null): string {
   if (!moodId) return EMPTY_COLOR;
@@ -237,7 +237,7 @@ export function CalendarShell({
       </div>
 
       {/* ── View Toggle ── */}
-      <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2, marginBottom: 16 }}>
+      <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 12, padding: 3, gap: 2, marginBottom: 16 }}>
         {(["calendar", "timeline"] as CalView[]).map((v) => (
           <button
             key={v}
@@ -251,7 +251,7 @@ export function CalendarShell({
               border: "none",
               cursor: "pointer",
               transition: "all 0.18s ease",
-              background: calView === v ? "#fff" : "transparent",
+              background: calView === v ? "var(--surface)" : "transparent",
               color: calView === v ? "var(--ink)" : "var(--ink-3)",
               boxShadow: calView === v ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
             }}
@@ -315,7 +315,7 @@ export function CalendarShell({
           href="/profile/subscription"
           style={{
             display: "block", textDecoration: "none", marginBottom: 16,
-            background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+            background: "var(--hero-grad)",
             borderRadius: 18, padding: "16px 20px",
           }}
         >
@@ -364,7 +364,7 @@ export function CalendarShell({
               {aiData.patterns.some((p) => p.type === "best") && (
                 <span className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
                   <span style={{
-                    width: 14, height: 14, borderRadius: 100, background: "#FDE8DA",
+                    width: 14, height: 14, borderRadius: 100, background: "var(--accent-soft)",
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     fontSize: 14, color: "#FCA45B", flexShrink: 0,
                   }}>★</span>
@@ -443,7 +443,7 @@ export function CalendarShell({
                   justifyContent: "center",
                   fontSize: 14,
                   fontWeight: 700,
-                  color: moodId ? "rgba(0,0,0,0.5)" : "var(--ink-3)",
+                  color: moodId ? "rgba(0,0,0,0.55)" : "var(--ink-3)",
                   border: isSelected
                     ? "2.5px solid var(--ink)"
                     : isToday
@@ -464,7 +464,7 @@ export function CalendarShell({
                     width: 16,
                     height: 16,
                     borderRadius: 100,
-                    background: "#FDE8DA",
+                    background: "var(--accent-soft)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

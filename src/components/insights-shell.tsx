@@ -90,8 +90,8 @@ interface DnaData {
 /* ── Constants ─────────────────────────────────────────── */
 
 const CARD: React.CSSProperties = {
-  background: "#fff",
-  border: "1.5px solid #F2F0F5",
+  background: "var(--surface)",
+  border: "1.5px solid var(--hairline-2)",
   borderRadius: 22,
   padding: 20,
 };
@@ -598,7 +598,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 /* ── Hero button style ────────────────────────────────── */
 
 const WEEK_NAV_BTN: React.CSSProperties = {
-  background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 20,
+  background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 20,
   padding: "6px 14px", fontSize: 14, fontWeight: 700, color: "var(--ink)",
   cursor: "pointer",
 };
@@ -664,7 +664,7 @@ function TogglePill({ enabled, disabled, onChange }: { enabled: boolean; disable
       }}
     >
       <div style={{
-        width: 20, height: 20, borderRadius: 10, background: "#fff",
+        width: 20, height: 20, borderRadius: 10, background: "var(--surface)",
         transform: enabled && !disabled ? "translateX(20px)" : "translateX(0)",
         transition: "transform 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
       }} />
@@ -861,7 +861,7 @@ function LockedCard({ icon, title, description, delay }: { icon: string; title: 
 function LoadingSkeleton() {
   return (
     <div className="space-y-4 fade-in" style={{ paddingTop: 60 }}>
-      <div style={{ height: 20, width: 200, borderRadius: 10, background: "#F0EAFF", opacity: 0.6 }} />
+      <div style={{ height: 20, width: 200, borderRadius: 10, background: "var(--surface-2)", opacity: 0.6 }} />
       <div style={{ height: 240, borderRadius: 28, background: "linear-gradient(135deg, #E8DDF5, #F4EEFB)", opacity: 0.5 }} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[...Array(4)].map((_, i) => <div key={i} style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.4 }} />)}
@@ -944,8 +944,8 @@ function FreeGate({ locale }: { locale: string }) {
         {/* Left: blurred preview */}
         <div>
           <div style={{
-            background: "#fff", borderRadius: 22, padding: 20,
-            border: "1.5px solid #F2F0F5", marginBottom: 14,
+            background: "var(--surface)", borderRadius: 22, padding: 20,
+            border: "1.5px solid var(--hairline-2)", marginBottom: 14,
             filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
           }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
@@ -956,8 +956,8 @@ function FreeGate({ locale }: { locale: string }) {
             </div>
           </div>
           <div style={{
-            background: "#fff", borderRadius: 22, padding: 20, height: 200,
-            border: "1.5px solid #F2F0F5",
+            background: "var(--surface)", borderRadius: 22, padding: 20, height: 200,
+            border: "1.5px solid var(--hairline-2)",
             filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
           }} />
         </div>
@@ -1008,7 +1008,7 @@ function FreeGate({ locale }: { locale: string }) {
             onClick={handleCheckout}
             style={{
               width: "100%", padding: "14px 0", borderRadius: 16,
-              background: "#fff", border: "none", color: "#A673F1",
+              background: "var(--surface)", border: "none", color: "#A673F1",
               fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
             }}
           >

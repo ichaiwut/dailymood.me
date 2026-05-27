@@ -855,7 +855,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1"
-                style={{ height: 44, background: "#F4F2F7", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, color: "var(--ink)" }}
+                style={{ height: 44, background: "var(--surface-2)", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, color: "var(--ink)" }}
               >
                 {t("deleteCancel")}
               </button>

@@ -322,7 +322,7 @@ export function SmartLogModal({
           maxWidth: 720,
           width: "calc(100% - 32px)",
           maxHeight: "90vh",
-          background: "#fff",
+          background: "var(--surface)",
           borderRadius: 22,
           boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)",
           overflow: "hidden",
@@ -382,7 +382,7 @@ export function SmartLogModal({
                   <span>{locale === "th" ? "วันนี้ใช้ไปแล้ว" : "Used today"}</span>
                   <span style={{ color: "var(--ink)" }}>{rateLimitInfo.used} / {rateLimitInfo.limit}</span>
                 </div>
-                <div style={{ height: 8, borderRadius: 100, background: "#E8E4EC", overflow: "hidden" }}>
+                <div style={{ height: 8, borderRadius: 100, background: "var(--surface-3)", overflow: "hidden" }}>
                   <div style={{ height: "100%", borderRadius: 100, background: "linear-gradient(90deg, #A673F1, #FCA45B)", width: `${Math.min(100, (rateLimitInfo.used / rateLimitInfo.limit) * 100)}%`, transition: "width 0.4s ease" }} />
                 </div>
                 {countdown > 0 && (
@@ -415,7 +415,7 @@ export function SmartLogModal({
                 onChange={(e) => { setText(e.target.value); if (suggestion) setSuggestion(null); }}
                 className="w-textarea"
                 placeholder={promptLoading ? (locale === "th" ? "✦ กำลังเตรียมคำถามให้..." : "✦ Preparing your prompt...") : (journalPrompt ?? (locale === "th" ? FALLBACK_PROMPT.th : FALLBACK_PROMPT.en))}
-                style={{ minHeight: 130, fontSize: 16, lineHeight: 1.6 }}
+                style={{ minHeight: 130, fontSize: 16, lineHeight: 1.6, background: "var(--surface-2)" }}
               />
 
               {/* Image preview */}
@@ -430,7 +430,7 @@ export function SmartLogModal({
 
               {/* Location tag below textarea */}
               {location && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "#F4EEFB", maxWidth: "100%" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "var(--surface-2)", maxWidth: "100%" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" />
                   </svg>
@@ -444,7 +444,7 @@ export function SmartLogModal({
               {/* Mic + Image + Location buttons + AI count */}
               <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "center" }}>
                 <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
-                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "#fff", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 14, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "var(--surface)", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 14, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   <span>{locale === "th" ? "รูป" : "Photo"}</span>
                   {tier !== "premium" && <span style={{ position: "absolute", top: -6, right: -4, background: "var(--ink)", color: "#fff", fontSize: 14, fontWeight: 800, padding: "1px 5px", borderRadius: 4 }}>PRO</span>}
@@ -473,7 +473,7 @@ export function SmartLogModal({
 
               {/* Error (non-rate-limit) */}
               {error && (
-                <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "#FEF0F0", border: "1px solid #F5D0D0" }}>
+                <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "var(--surface-2)", border: "1px solid var(--hairline-2)" }}>
                   <p style={{ fontSize: 14, fontWeight: 600, color: "#D14343", margin: 0 }}>
                     {t(`err.${error}` as never) || (locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong.")}
                   </p>
@@ -550,7 +550,7 @@ export function SmartLogModal({
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", minWidth: 50 }}>{locale === "th" ? "แท็ก:" : "Tags:"}</span>
                     {tags.map((tag, i) => (
-                      <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 100, background: "#fff", color: "var(--ink)", border: "1px solid var(--hairline)", fontSize: 14, fontWeight: 600 }}>
+                      <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 100, background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--hairline)", fontSize: 14, fontWeight: 600 }}>
                         #{tag}
                         <button onClick={() => setTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex" }}>×</button>
                       </span>
@@ -576,7 +576,7 @@ export function SmartLogModal({
 
               {/* Pro teaser (no suggestion yet, free user) */}
               {!suggestion && !analyzing && tier !== "premium" && (
-                <a href="/pricing" style={{ display: "block", textDecoration: "none", marginTop: 18, background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)", borderRadius: 14, padding: "14px 16px" }}>
+                <a href="/pricing" style={{ display: "block", textDecoration: "none", marginTop: 18, background: "var(--hero-grad)", borderRadius: 14, padding: "14px 16px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <div style={{ width: 24, height: 24, borderRadius: 6, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
@@ -594,7 +594,7 @@ export function SmartLogModal({
               <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                 <button onClick={onClose} className="w-btn w-btn-ghost">{locale === "th" ? "ยกเลิก" : "Cancel"}</button>
                 {!suggestion && !analyzing && (
-                  <button onClick={handleAnalyze} disabled={!hasInput || (aiRemaining !== null && aiRemaining <= 0)} className="w-btn" style={{ background: "#fff", border: "1px solid var(--hairline)", opacity: (!hasInput || (aiRemaining !== null && aiRemaining <= 0)) ? 0.4 : 1 }}>
+                  <button onClick={handleAnalyze} disabled={!hasInput || (aiRemaining !== null && aiRemaining <= 0)} className="w-btn" style={{ background: "var(--surface)", border: "1px solid var(--hairline)", opacity: (!hasInput || (aiRemaining !== null && aiRemaining <= 0)) ? 0.4 : 1 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" /></svg>
                     {aiRemaining !== null && aiRemaining <= 0 ? (locale === "th" ? "หมดโควต้า" : "Quota reached") : (locale === "th" ? "วิเคราะห์" : "Analyze")}
                   </button>

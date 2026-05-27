@@ -32,8 +32,8 @@ interface StatsData {
 /* ── Constants ─────────────────────────────────────────── */
 
 const CARD: React.CSSProperties = {
-  background: "#fff",
-  border: "1.5px solid #F2F0F5",
+  background: "var(--surface)",
+  border: "1.5px solid var(--hairline-2)",
   borderRadius: 24,
   padding: 20,
 };
@@ -524,7 +524,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
       <section className="mb-5 fade-in" style={{ paddingTop: 8 }}>
         <div className="flex items-center justify-between stats-header">
           <h1 style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.02em" }}>{t("title")}</h1>
-          <div style={{ display: "flex", background: "#F4F2F7", borderRadius: 12, padding: 3, gap: 2 }}>
+          <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 12, padding: 3, gap: 2 }}>
             {PERIODS.map((p) => (
               <button
                 key={p}
@@ -561,7 +561,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
             style={{
               display: "block", marginTop: 8,
               padding: "8px 14px",
-              background: "#F0EAFF",
+              background: "var(--surface-2)",
               color: "#A673F1",
               fontSize: 14,
               fontWeight: 600,
@@ -932,7 +932,7 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
   return (
     <div className="fade-in" style={{ paddingTop: 8 }}>
       <div style={{
-        background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 22,
+        background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 22,
         padding: "40px 24px", textAlign: "center", maxWidth: 480, margin: "0 auto",
       }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>

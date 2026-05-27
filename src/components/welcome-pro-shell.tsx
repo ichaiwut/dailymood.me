@@ -56,7 +56,7 @@ export function WelcomeProShell({ source }: { source: "trial" | "stripe" }) {
 
       {/* Feature checklist */}
       <div style={{
-        background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 20,
+        background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 20,
         padding: "20px 24px", textAlign: "left", marginBottom: 32,
       }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 14 }}>

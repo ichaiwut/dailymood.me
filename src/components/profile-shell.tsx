@@ -8,6 +8,7 @@ import { trackExportData, trackUpgradeClick, trackFeatureUse } from "@/lib/analy
 import { signOut } from "next-auth/react";
 import { CustomMoodManager } from "./custom-mood-manager";
 import { PersonalEventsManager } from "./personal-events-manager";
+import { useTheme } from "./theme-provider";
 import { R2_PUBLIC_URL, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { DEFAULT_MOOD_IDS } from "@/lib/default-moods";
 
@@ -98,6 +99,9 @@ export function ProfileShell() {
   const [selectedPack, setSelectedPack] = useState(DEFAULT_MOOD_PACK);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // theme
+  const { theme: selectedTheme, setTheme: setSelectedTheme } = useTheme();
 
   // settings state
   const [hidePreview, setHidePreview] = useState(false);
@@ -435,6 +439,50 @@ export function ProfileShell() {
                 />
               </label>
             ))}
+          </div>
+        </SettingCard>
+      </Section>
+
+      {/* Theme */}
+      <Section label={locale === "th" ? "ธีม" : "Theme"} delay="240ms">
+        <SettingCard>
+          <div style={{ padding: "12px 20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              {(["light", "dark", "auto"] as const).map((th) => (
+                <button
+                  key={th}
+                  type="button"
+                  onClick={() => setSelectedTheme(th)}
+                  style={{
+                    height: 64, borderRadius: 14, cursor: "pointer",
+                    border: selectedTheme === th ? "2.5px solid var(--primary)" : "1.5px solid var(--hairline-2)",
+                    background: th === "dark" ? "#1A1A1A" : th === "auto" ? "linear-gradient(135deg, #fff 50%, #1A1A1A 50%)" : "#fff",
+                    position: "relative", overflow: "hidden",
+                  }}
+                >
+                  {selectedTheme === th && (
+                    <div style={{
+                      position: "absolute", top: 5, right: 5,
+                      width: 18, height: 18, borderRadius: "50%",
+                      background: "var(--primary)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  )}
+                  <div style={{
+                    position: "absolute", bottom: 6, left: 0, right: 0, textAlign: "center",
+                    fontSize: 14, fontWeight: 600, color: th === "dark" ? "#fff" : "#1A1320",
+                  }}>
+                    {th === "light" ? (locale === "th" ? "สว่าง" : "Light")
+                      : th === "dark" ? (locale === "th" ? "มืด" : "Dark")
+                      : (locale === "th" ? "อัตโนมัติ" : "Auto")}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </SettingCard>
       </Section>
@@ -994,7 +1042,7 @@ function ToggleRow({
       >
         <div style={{
           width: 22, height: 22, borderRadius: "50%",
-          background: "#fff", position: "absolute",
+          background: "var(--surface)", position: "absolute",
           top: 3, left: value ? 25 : 3,
           transition: "left 0.2s",
           boxShadow: "0 1px 3px rgba(0,0,0,0.15)",

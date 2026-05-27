@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { TopBar } from "@/components/topbar";
 import { BottomNav } from "@/components/bottom-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { ThemeProvider } from "@/components/theme-provider";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -25,18 +26,20 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      {showChrome ? (
-        <>
-          <TopBar />
-          <main className="w-container main-content" style={{ flex: 1, position: "relative", zIndex: 0 }}>
-            {children}
-          </main>
-          <SiteFooter />
-          <BottomNav />
-        </>
-      ) : (
-        <>{children}</>
-      )}
+      <ThemeProvider>
+        {showChrome ? (
+          <>
+            <TopBar />
+            <main className="w-container main-content" style={{ flex: 1, position: "relative", zIndex: 0 }}>
+              {children}
+            </main>
+            <SiteFooter />
+            <BottomNav />
+          </>
+        ) : (
+          <>{children}</>
+        )}
+      </ThemeProvider>
     </NextIntlClientProvider>
   );
 }

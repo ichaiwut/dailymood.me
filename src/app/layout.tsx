@@ -45,10 +45,12 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
+      suppressHydrationWarning
       className={`${sans.variable} ${thai.variable} h-full antialiased`}
     >
       <head>
         <meta name="theme-color" content="#f9a8d4" />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("theme")||"light";var d=t==="auto"?window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light":t;if(d==="dark")document.documentElement.classList.add("dark")}catch(e){}})()` }} />
       </head>
       <body className="min-h-full flex flex-col">
         {isProd && (

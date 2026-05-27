@@ -5,13 +5,14 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { CustomMoodManager } from "./custom-mood-manager";
 import { ActivityManager } from "./activity-manager";
+import { useTheme } from "./theme-provider";
 
 export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
   const t = useTranslations("profile");
   const locale = useLocale();
   const router = useRouter();
 
-  const [selectedTheme, setSelectedTheme] = useState<"light" | "dark" | "auto">("light");
+  const { theme: selectedTheme, setTheme: setSelectedTheme } = useTheme();
   const [selectedPalette, setSelectedPalette] = useState<"neon" | "tempered" | "mono">("neon");
   const [hidePreview, setHidePreview] = useState(false);
   const [anonymousInsights, setAnonymousInsights] = useState(true);

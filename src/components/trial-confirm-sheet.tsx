@@ -69,7 +69,7 @@ export function TrialConfirmSheet({ open, onClose }: TrialConfirmSheetProps) {
             onClick={onClose}
             style={{
               flex: 1, padding: "14px 0", borderRadius: 16,
-              border: "1.5px solid #F2F0F5", background: "transparent",
+              border: "1.5px solid var(--hairline-2)", background: "transparent",
               fontSize: 15, fontWeight: 600, color: "var(--ink-3)", cursor: "pointer",
             }}
           >

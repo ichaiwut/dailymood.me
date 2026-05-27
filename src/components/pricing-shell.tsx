@@ -217,7 +217,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
       <div className="pricing-features" style={{ marginBottom: 32 }}>
         {FEATURES.map((f, i) => (
           <div key={i} style={{
-            background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 18,
+            background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 18,
             padding: "18px 16px", display: "flex", gap: 14, alignItems: "start",
           }}>
             <div style={{
@@ -241,7 +241,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
 
       {/* Comparison */}
       <div style={{
-        background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 22,
+        background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 22,
         padding: "24px 20px", marginBottom: 32,
       }}>
         <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 16 }}>
@@ -267,7 +267,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
               { label: "Custom Moods", free: "—", pro: "✓" },
               { label: "Export", free: "—", pro: "CSV" },
             ].map((row, i) => (
-              <tr key={i} style={{ borderTop: "1px solid #F2F0F5" }}>
+              <tr key={i} style={{ borderTop: "1px solid var(--hairline)" }}>
                 <td style={{ padding: "10px 0", color: "var(--ink)", fontWeight: 600 }}>{row.label}</td>
                 <td style={{ padding: "10px 12px", textAlign: "center", color: "var(--ink-3)" }}>{row.free}</td>
                 <td style={{ padding: "10px 12px", textAlign: "center", color: "var(--ink)", fontWeight: 700 }}>{row.pro}</td>
@@ -296,7 +296,7 @@ function PlanCard({ active, onClick, label, price, per, badge, sub }: {
       onClick={onClick}
       style={{
         padding: "20px 18px", borderRadius: 20, cursor: "pointer",
-        border: active ? "2.5px solid #A673F1" : "1.5px solid #F2F0F5",
+        border: active ? "2.5px solid #A673F1" : "1.5px solid var(--hairline-2)",
         background: active ? "#FAF7FE" : "#fff",
         textAlign: "left", position: "relative",
       }}

@@ -32,8 +32,12 @@
   --primary-on:#FFFFFF;
   --accent:    #FCA45B;
   --accent-soft:#FFF4EB;
+  --primary-bg:#F4EEFB;
   --sun:       #FCA45B;
   --sun-deep:  #E6952E;
+
+  --surface-3: #F2F0F5;
+  --hero-grad: linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%);
 
   --shadow-card: 4px 4px 16px rgba(66,66,66,0.08);
   --shadow-lift: 0 14px 40px rgba(0,0,0,0.10), 0 0 0 1px rgba(26,19,32,0.08);
@@ -52,6 +56,32 @@
 }
 
 :root { color-scheme: light; }
+
+/* ─── Dark theme ─── */
+.dark {
+  color-scheme: dark;
+
+  --bg:        #141018;
+  --bg-grad:   #141018;
+  --surface:   #1E1A27;
+  --surface-2: #2A2435;
+  --hairline:  rgba(255, 255, 255, 0.08);
+  --hairline-2: rgba(255, 255, 255, 0.14);
+
+  --ink:       #F0EBF5;
+  --ink-2:     #B8B0C4;
+  --ink-3:     #7E7690;
+
+  --primary-on: #FFFFFF;
+  --accent-soft: rgba(252, 164, 91, 0.12);
+  --primary-bg: rgba(166, 115, 241, 0.15);
+
+  --surface-3: #2F293B;
+  --hero-grad: linear-gradient(135deg, #2A1F2E 0%, #1E1A30 100%);
+
+  --shadow-card: 4px 4px 16px rgba(0,0,0,0.25);
+  --shadow-lift: 0 14px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+}
 
 html, body {
   background: var(--bg-grad);
@@ -122,7 +152,7 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: var(--radius-pill);
   padding: 0.85rem 1.4rem;
   font-size: var(--fs-md);
-  border: 1.5px solid #ECECEC;
+  border: 1.5px solid var(--hairline-2);
 }
 .btn-ghost:hover { color: var(--ink); border-color: var(--hairline-2); }
 
@@ -169,7 +199,7 @@ button { font-family: inherit; cursor: pointer; }
   font-size: var(--fs-xs);
   border-radius: var(--radius-pill);
   background: var(--surface);
-  border: 1.5px solid #ECECEC;
+  border: 1.5px solid var(--hairline-2);
   color: var(--ink);
   font-weight: 700;
 }
@@ -278,7 +308,7 @@ button { font-family: inherit; cursor: pointer; }
   padding: 0.3rem 0.8rem;
   font-size: 11px;
   font-weight: 700;
-  color: #9098A4;
+  color: var(--ink-3);
   text-decoration: none;
   transition: color 160ms;
   background: none;
@@ -323,7 +353,7 @@ button { font-family: inherit; cursor: pointer; }
 .w-topbar {
   height: 64px;
   border-bottom: 1px solid var(--hairline);
-  background: rgba(251, 246, 238, 0.85);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: saturate(180%) blur(10px);
   display: flex;
   align-items: center;
@@ -340,7 +370,7 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 8px;
 }
 .w-nav-link:hover { color: var(--ink); }
-.w-nav-link.active { color: var(--ink); background: rgba(26,19,32,0.05); }
+.w-nav-link.active { color: var(--ink); background: var(--hairline); }
 
 /* ─── eyebrow label ─── */
 .w-eyebrow {
@@ -378,10 +408,11 @@ button { font-family: inherit; cursor: pointer; }
   padding: 0 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--hairline);
-  background: #fff;
+  background: var(--surface);
   font-family: inherit;
   font-size: 14px;
   outline: none;
+  color: var(--ink);
 }
 .w-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(166,115,241,.15); }
 
@@ -390,7 +421,8 @@ button { font-family: inherit; cursor: pointer; }
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--hairline);
-  background: #fff;
+  background: var(--surface);
+  color: var(--ink);
   font-family: inherit;
   font-size: 14px;
   outline: none;
@@ -409,16 +441,16 @@ button { font-family: inherit; cursor: pointer; }
 /* ─── auth split screen ─── */
 .auth-split { display: grid; grid-template-columns: 1.1fr 1fr; min-height: 100vh; }
 .auth-brand {
-  background: #FBF6EE;
+  background: var(--bg);
   padding: 40px 56px 36px;
-  color: #1A1320;
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(26,19,32,0.08);
   overflow-y: auto;
 }
-.auth-form { padding: 64px 80px; display: flex; flex-direction: column; justify-content: center; background: #fff; }
-.auth-mobile { display: none; flex-direction: column; background: #FBF6EE; min-height: 100vh; position: relative; }
+.auth-form { padding: 64px 80px; display: flex; flex-direction: column; justify-content: center; background: var(--surface); }
+.auth-mobile { display: none; flex-direction: column; background: var(--bg); min-height: 100vh; position: relative; }
 
 /* ─── admin sidebar ─── */
 .admin-layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }

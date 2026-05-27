@@ -191,13 +191,13 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
             </h1>
             <div style={{
               background: "#fff", borderRadius: 22, padding: 20, marginBottom: 14,
-              border: "1.5px solid #F2F0F5", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+              border: "1.5px solid var(--hairline-2)", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
             }}>
               <div style={{ fontSize: 14, color: "var(--ink)" }}>{isTh ? "ทำไมวันจันทร์มักจะแย่?" : "Why are Mondays usually bad?"}</div>
             </div>
             <div style={{
               background: "#fff", borderRadius: 22, padding: 20, height: 120,
-              border: "1.5px solid #F2F0F5", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+              border: "1.5px solid var(--hairline-2)", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
             }} />
           </div>
 
@@ -262,7 +262,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
           <button
             className="ask-ai-history-btn"
             onClick={() => setShowHistory(!showHistory)}
-            style={{ display: "none", padding: "6px 12px", borderRadius: 10, border: "1.5px solid #F2F0F5", background: showHistory ? "#F0EAFF" : "#fff", color: "var(--ink)", fontSize: 14, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+            style={{ display: "none", padding: "6px 12px", borderRadius: 10, border: "1.5px solid var(--hairline-2)", background: showHistory ? "#F0EAFF" : "#fff", color: "var(--ink)", fontSize: 14, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
           >
             📋 {threads.length}
           </button>
@@ -273,7 +273,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         <div
           className={`ask-ai-sidebar ${showHistory ? "ask-ai-sidebar-open" : ""}`}
           style={{
-            width: 320, flexShrink: 0, borderRight: "1.5px solid #F2F0F5",
+            width: 320, flexShrink: 0, borderRight: "1.5px solid var(--hairline-2)",
             padding: "16px", overflowY: "auto", background: "#FAFAF8",
           }}
         >
@@ -359,10 +359,10 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         </div>
 
         {/* Input bar */}
-        <div style={{ borderTop: "1.5px solid #F2F0F5", padding: "16px 32px 20px" }}>
+        <div style={{ borderTop: "1.5px solid var(--hairline-2)", padding: "16px 32px 20px" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            background: "#fff", border: "1.5px solid #F2F0F5", borderRadius: 16, padding: "10px 16px",
+            background: "#fff", border: "1.5px solid var(--hairline-2)", borderRadius: 16, padding: "10px 16px",
           }}>
             <input
               type="text"
@@ -430,7 +430,7 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
                 onClick={() => onAsk(q)}
                 style={{
                   textAlign: "left", padding: "14px 16px", borderRadius: 14,
-                  border: "1.5px solid #F2F0F5", background: "#fff", cursor: "pointer",
+                  border: "1.5px solid var(--hairline-2)", background: "#fff", cursor: "pointer",
                   fontSize: 15, fontWeight: 600, color: "var(--ink)", lineHeight: 1.4,
                   transition: "background 0.15s",
                 }}
@@ -508,7 +508,7 @@ function AiBubble({ msg, locale, feedbackSent, onFeedback }: {
           <button
             onClick={() => { navigator.clipboard.writeText(msg.content); }}
             style={{
-              background: "none", border: "1.5px solid #F2F0F5", borderRadius: 20,
+              background: "none", border: "1.5px solid var(--hairline-2)", borderRadius: 20,
               padding: "6px 14px", fontSize: 14, fontWeight: 600, color: "var(--ink-2)",
               cursor: "pointer",
             }}
