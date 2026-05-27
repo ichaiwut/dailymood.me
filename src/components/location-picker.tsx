@@ -145,7 +145,7 @@ export function LocationSearch({ onSelect, onClose, locale }: LocationSearchProp
           }}
           style={{
             display: "flex", alignItems: "center", gap: 6, marginTop: 6, padding: "6px 12px",
-            borderRadius: 10, background: "#F4EEFB", border: "none", cursor: "pointer",
+            borderRadius: 10, background: "var(--primary-bg)", border: "none", cursor: "pointer",
             width: "100%", textAlign: "left",
           }}
         >

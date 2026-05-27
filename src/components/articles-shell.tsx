@@ -226,7 +226,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: 4,
                     padding: "4px 10px", borderRadius: 100,
-                    background: "rgba(255,255,255,0.85)", color: "var(--ink-2)",
+                    background: "var(--surface)", color: "var(--ink-2)",
                     fontSize: 12, fontWeight: 600,
                   }}>
                     ⏱ {featured.readingTimeMinutes} {t("minUnit")}

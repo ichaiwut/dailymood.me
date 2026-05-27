@@ -181,13 +181,13 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
           {entry.aiSummary && (
             <div style={{
               borderRadius: 18, padding: "18px 20px",
-              background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 60%, #FFF4EB 100%)",
+              background: "var(--hero-grad)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                 <div style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
               </div>
               <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
               <div style={{ marginTop: 10 }}>
@@ -200,7 +200,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
           {flashback && (
             <div style={{
               borderRadius: 18, padding: "18px 20px",
-              background: "linear-gradient(135deg, #F0F7FF 0%, #E8F4FD 50%, #F5F0FF 100%)",
+              background: "var(--hero-grad)",
               border: "1px solid rgba(154, 205, 226, 0.3)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
@@ -416,7 +416,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
           {/* Streak */}
           {streak > 1 && (
             <div className="card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: "#FDE8DA", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🔥</div>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🔥</div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>
                   {th ? `วันที่ ${streak} ของสตรีค` : `Day ${streak} of your streak`}

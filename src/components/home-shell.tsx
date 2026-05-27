@@ -389,7 +389,7 @@ export function HomeShell({
 
           {/* Location tag */}
           {composerLocation && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "#F4EEFB" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "var(--primary-bg)" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" /></svg>
               <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{composerLocation}</span>
               <button type="button" onClick={() => setComposerLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
@@ -400,8 +400,8 @@ export function HomeShell({
 
           {/* Error / Info */}
           {composerError && (
-            <div className="mt-2.5" style={{ padding: "10px 14px", borderRadius: 12, background: "#F4EEFB", border: "1px solid #E6DBF7" }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#7A4DD0" }}>
+            <div className="mt-2.5" style={{ padding: "10px 14px", borderRadius: 12, background: "var(--primary-bg)", border: "1px solid var(--hairline)" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)" }}>
                 {composerError}
               </p>
             </div>
@@ -409,14 +409,14 @@ export function HomeShell({
 
           {/* AI analyzing state */}
           {composerAnalyzing && (
-            <div className="mt-3 fade-in" style={{ padding: "14px", borderRadius: 18, background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)" }}>
+            <div className="mt-3 fade-in" style={{ padding: "14px", borderRadius: 18, background: "var(--hero-grad)" }}>
               <div className="flex items-center gap-2">
                 <div className="pulse" style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.4px" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.4px" }}>
                   {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI IS READING YOUR DAY..."}
                 </span>
               </div>
@@ -603,7 +603,7 @@ export function HomeShell({
               style={{
                 padding: "10px 14px",
                 borderRadius: 12,
-                background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)",
+                background: "var(--hero-grad)",
                 textDecoration: "none",
               }}
             >
@@ -623,7 +623,7 @@ export function HomeShell({
               }}>
                 PRO
               </div>
-              <p style={{ fontSize: 14, lineHeight: 1.4, color: "#7A4DD0", fontWeight: 600 }}>
+              <p style={{ fontSize: 14, lineHeight: 1.4, color: "var(--purple)", fontWeight: 600 }}>
                 {locale === "th"
                   ? "ใช้ AI ได้ 3 ครั้ง/วัน — อัปเกรด Pro เพื่อใช้ได้ไม่จำกัด"
                   : "3 free AI analyses per day — upgrade to Pro for unlimited"}

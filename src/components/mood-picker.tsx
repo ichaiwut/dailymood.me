@@ -210,7 +210,7 @@ export function MoodPicker({ tier }: Props) {
           {tier === "guest" && (
             <span
               className="text-xs font-medium px-2 py-0.5 rounded-full"
-              style={{ background: "#FFF4EB", color: "#FCA45B" }}
+              style={{ background: "var(--accent-soft)", color: "#FCA45B" }}
             >
               {t("guestNoticeShort")}
             </span>

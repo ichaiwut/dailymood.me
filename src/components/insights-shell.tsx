@@ -239,7 +239,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           <div className="flex items-center gap-2">
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: status.ready ? "#F0EAFF" : "#F5F5F5",
+              background: status.ready ? "var(--primary-bg)" : "var(--surface-2)",
               color: status.ready ? "#A673F1" : "var(--ink-3)",
               padding: "4px 12px", borderRadius: 20, fontWeight: 700,
             }}>
@@ -273,8 +273,8 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           gap: 10,
           padding: "12px 16px",
           borderRadius: 14,
-          background: "#FAF7FE",
-          border: "1px solid #E6DBF7",
+          background: "var(--surface-2)",
+          border: "1px solid var(--hairline)",
           marginBottom: 12,
         }}
       >
@@ -564,7 +564,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                     width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                     background: "linear-gradient(135deg, #FCA45B, #A673F1)", fontSize: 16,
                   }}>🤖</span>
-                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
+                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
                 </div>
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{t("aiCoachTitle")}</h3>
                 <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0 }}>{t("aiCoachDesc")}</p>
@@ -580,7 +580,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                     width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                     background: "#E8FFF5", fontSize: 16,
                   }}>📩</span>
-                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
+                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
                 </div>
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{t("weeklyDigestTitle")}</h3>
                 <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0 }}>{t("weeklyDigestDesc")}</p>
@@ -633,7 +633,7 @@ function FeatureTeaser({ icon, label, desc, locked, comingSoon, locale }: {
     <div style={{ ...CARD, height: "100%", display: "flex", flexDirection: "column", opacity: comingSoon ? 0.7 : 1 }}>
       <div className="flex items-center gap-1.5 mb-2">
         <span style={{ fontSize: 16 }}>{icon}</span>
-        {locked && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
+        {locked && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
       </div>
       <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>{label}</div>
       <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0, flex: 1 }}>{desc}</p>
@@ -821,7 +821,7 @@ function FeedbackPill({ label, active, onClick }: { label: string; active: boole
       onClick={onClick}
       disabled={active}
       style={{
-        background: active ? "#F0EAFF" : "#fff",
+        background: active ? "var(--primary-bg)" : "var(--surface)",
         color: active ? "#A673F1" : "var(--ink-2, #666)",
         border: `1.5px solid ${active ? "#A673F1" : "#F2F0F5"}`,
         borderRadius: 20, padding: "7px 14px", fontSize: 14, fontWeight: 700,
@@ -840,10 +840,10 @@ function LockedCard({ icon, title, description, delay }: { icon: string; title: 
   return (
     <section className="mb-4 fade-in" style={{ animationDelay: delay }}>
       <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-        <div style={{ background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)", borderRadius: 22, padding: 20 }}>
+        <div style={{ background: "var(--hero-grad)", borderRadius: 22, padding: 20 }}>
           <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
             <span style={{ fontSize: 20 }}>{icon}</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
           </div>
           <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{title}</h3>
           <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 8 }}>{description}</p>
@@ -862,7 +862,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-4 fade-in" style={{ paddingTop: 60 }}>
       <div style={{ height: 20, width: 200, borderRadius: 10, background: "var(--surface-2)", opacity: 0.6 }} />
-      <div style={{ height: 240, borderRadius: 28, background: "linear-gradient(135deg, #E8DDF5, #F4EEFB)", opacity: 0.5 }} />
+      <div style={{ height: 240, borderRadius: 28, background: "var(--hero-grad)", opacity: 0.5 }} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[...Array(4)].map((_, i) => <div key={i} style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.4 }} />)}
       </div>

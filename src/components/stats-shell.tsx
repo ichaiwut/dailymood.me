@@ -587,7 +587,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
               style={{
                 borderRadius: 22,
                 padding: "22px 20px 20px",
-                background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 60%, #FFF4EB 100%)",
+                background: "var(--hero-grad)",
                 position: "relative",
                 overflow: "hidden",
               }}
@@ -608,11 +608,11 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                     <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.5px" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.5px" }}>
                   {t("viewInsights").toUpperCase()} · {t("week").toUpperCase()}
                 </span>
                 {tier !== "premium" && (
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
                     PRO
                   </span>
                 )}
@@ -773,7 +773,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                           className="flex items-center gap-3"
                           style={{
                             marginBottom: 20,
-                            background: "#FFF8F0",
+                            background: "var(--accent-soft)",
                             borderRadius: 14,
                             padding: "14px 16px",
                           }}
@@ -897,7 +897,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
               <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
                 <div className="flex items-center gap-2">
                   <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "#F4EEFB", borderRadius: 6, padding: "2px 6px" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>
                     PRO
                   </span>
                 </div>
@@ -992,7 +992,7 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
 function LoadingSkeleton() {
   return (
     <div className="space-y-4 fade-in">
-      <div style={{ height: 120, borderRadius: 22, background: "linear-gradient(135deg, #F0EAF8, #F4EEFB)", opacity: 0.5 }} />
+      <div style={{ height: 120, borderRadius: 22, background: "var(--hero-grad)", opacity: 0.5 }} />
       <div style={{ height: 220, borderRadius: 24, background: "var(--surface-2, #F8F6FB)", opacity: 0.5 }} />
       <div className="grid grid-cols-2 gap-4" style={{ maxWidth: 480 }}>
         <div style={{ height: 180, borderRadius: 24, background: "var(--surface-2)", opacity: 0.4 }} />

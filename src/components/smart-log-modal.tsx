@@ -529,7 +529,7 @@ export function SmartLogModal({
 
               {/* AI suggestion result */}
               {suggestion && !analyzing && (
-                <div style={{ marginTop: 24, padding: 18, borderRadius: 14, background: "linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%)" }}>
+                <div style={{ marginTop: 24, padding: 18, borderRadius: 14, background: "var(--hero-grad)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: ".03em" }}>{locale === "th" ? "AI วิเคราะห์ให้" : "AI ANALYSIS"}</span>
@@ -563,7 +563,7 @@ export function SmartLogModal({
                   <ActivityPicker value={activityId} onChange={setActivityId} />
                   {/* Summary */}
                   {suggestion.aiSummary && (
-                    <div style={{ padding: 12, background: "rgba(255,255,255,.6)", borderRadius: 10 }}>
+                    <div style={{ padding: 12, background: "var(--surface-2)", borderRadius: 10 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: ".03em", marginBottom: 6 }}>{locale === "th" ? "สรุป" : "Summary"}</div>
                       <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
                     </div>

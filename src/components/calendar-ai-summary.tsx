@@ -63,7 +63,7 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
       style={{
         borderRadius: 22,
         padding: "22px 20px 20px",
-        background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 60%, #FFF4EB 100%)",
+        background: "var(--hero-grad)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -85,7 +85,7 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
           {t("summaryHeader", { month: monthLabel.toUpperCase() })}
         </span>
       </div>
@@ -199,7 +199,7 @@ function FreeTeaser({ monthLabel }: { monthLabel: string }) {
       style={{
         borderRadius: 22,
         padding: "22px 20px 20px",
-        background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 60%, #FFF4EB 100%)",
+        background: "var(--hero-grad)",
       }}
     >
       <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
@@ -218,7 +218,7 @@ function FreeTeaser({ monthLabel }: { monthLabel: string }) {
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
           {t("summaryHeader", { month: monthLabel.toUpperCase() })}
         </span>
       </div>

@@ -262,7 +262,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
           <button
             className="ask-ai-history-btn"
             onClick={() => setShowHistory(!showHistory)}
-            style={{ display: "none", padding: "6px 12px", borderRadius: 10, border: "1.5px solid var(--hairline-2)", background: showHistory ? "#F0EAFF" : "#fff", color: "var(--ink)", fontSize: 14, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+            style={{ display: "none", padding: "6px 12px", borderRadius: 10, border: "1.5px solid var(--hairline-2)", background: showHistory ? "var(--primary-bg)" : "var(--surface)", color: "var(--ink)", fontSize: 14, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
           >
             📋 {threads.length}
           </button>
@@ -311,7 +311,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               style={{
                 width: "100%", textAlign: "left", padding: "14px 14px",
                 borderRadius: 14, border: "none", cursor: "pointer", marginBottom: 4,
-                background: activeThreadId === t.id ? "#F0EAFF" : "transparent",
+                background: activeThreadId === t.id ? "var(--primary-bg)" : "transparent",
                 borderLeft: activeThreadId === t.id ? "3px solid #A673F1" : "3px solid transparent",
               }}
             >
@@ -434,7 +434,7 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
                   fontSize: 15, fontWeight: 600, color: "var(--ink)", lineHeight: 1.4,
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#FAF7FE"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--primary-bg)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
               >
                 {q}
@@ -527,7 +527,7 @@ function FbBtn({ label, active, disabled, onClick }: { label: string; active: bo
       onClick={onClick}
       disabled={disabled || active}
       style={{
-        background: active ? "#F0EAFF" : "#fff",
+        background: active ? "var(--primary-bg)" : "var(--surface)",
         color: active ? "#A673F1" : "var(--ink-2)",
         border: `1.5px solid ${active ? "#A673F1" : "#F2F0F5"}`,
         borderRadius: 20, padding: "6px 14px", fontSize: 14, fontWeight: 600,

@@ -138,7 +138,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
       {!hasUsedTrial && tier === "free" && (
         <div
           style={{
-            background: "linear-gradient(135deg, #FAF7FE 0%, #FFF4EB 100%)",
+            background: "var(--hero-grad)",
             border: "1.5px solid #F2E8FF",
             borderRadius: 20, padding: "22px 24px", marginBottom: 28,
             textAlign: "center",
@@ -222,7 +222,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
           }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
-              background: "#FAF7FE", display: "flex", alignItems: "center", justifyContent: "center",
+              background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 20, flexShrink: 0,
             }}>
               {f.icon}
@@ -297,7 +297,7 @@ function PlanCard({ active, onClick, label, price, per, badge, sub }: {
       style={{
         padding: "20px 18px", borderRadius: 20, cursor: "pointer",
         border: active ? "2.5px solid #A673F1" : "1.5px solid var(--hairline-2)",
-        background: active ? "#FAF7FE" : "#fff",
+        background: active ? "var(--primary-bg)" : "var(--surface)",
         textAlign: "left", position: "relative",
       }}
     >

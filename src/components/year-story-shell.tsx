@@ -259,7 +259,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
           <Reveal>
             <section style={{ paddingBottom: "clamp(40px, 6vh, 72px)" }}>
               <div className="ys-month-card" style={{ borderLeft: "4px solid var(--purple)", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "#7A4DD0", marginBottom: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--purple)", marginBottom: 12 }}>
                   {th ? "เดือนที่ท้าทาย" : "Toughest month"}
                 </div>
                 <div style={{ fontSize: "clamp(32px, 6vw, 52px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--ink)", marginBottom: 4 }}>

@@ -193,7 +193,7 @@ export function PersonalEventsManager({ isPremium }: { isPremium: boolean }) {
           href={"/profile/subscription" as "/"}
           style={{
             display: "block", textDecoration: "none", marginTop: 12,
-            background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+            background: "var(--hero-grad)",
             borderRadius: 16, padding: "14px 18px",
           }}
         >

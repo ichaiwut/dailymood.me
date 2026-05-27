@@ -246,7 +246,7 @@ function EntryCard({ entry, locale, pack, iconFormat }: { entry: TimelineEntry; 
                 fontSize: 14,
                 fontWeight: 600,
                 color: "#A673F1",
-                background: "#F4EEFB",
+                background: "var(--primary-bg)",
                 borderRadius: 8,
                 padding: "2px 8px",
               }}

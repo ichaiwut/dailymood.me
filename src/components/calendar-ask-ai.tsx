@@ -141,7 +141,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
           {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
         </span>
       </div>
@@ -153,7 +153,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
           gap: 12,
           padding: "14px 18px",
           borderRadius: 16,
-          background: "linear-gradient(135deg, #FAF7FE 0%, #FDE8DA 100%)",
+          background: "var(--hero-grad)",
           textDecoration: "none",
           transition: "transform 120ms",
         }}
@@ -194,7 +194,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "#7A4DD0", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
           {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
         </span>
       </div>
@@ -344,8 +344,8 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
                   key={date}
                   onClick={() => onDateSelect?.(date)}
                   style={{
-                    background: "#FAF7FE",
-                    border: "1px solid #E6DBF7",
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--hairline)",
                     borderRadius: 100,
                     padding: "4px 10px",
                     fontSize: 14,

@@ -430,11 +430,11 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   gap: 6,
                   padding: "7px 14px",
                   borderRadius: 10,
-                  background: analyzing ? "var(--surface-2)" : "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)",
+                  background: analyzing ? "var(--surface-2)" : "var(--hero-grad)",
                   border: "none",
                   fontWeight: 700,
                   fontSize: 14,
-                  color: "#7A4DD0",
+                  color: "var(--purple)",
                   cursor: "pointer",
                   opacity: !note.trim() || analyzing || aiCooldown ? 0.4 : 1,
                   whiteSpace: "nowrap",
@@ -458,7 +458,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               </button>
             </div>
             {location && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, padding: "6px 12px", borderRadius: 100, background: "#F4EEFB" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, padding: "6px 12px", borderRadius: 100, background: "var(--primary-bg)" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" /></svg>
                 <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{location}</span>
                 <button type="button" onClick={() => setLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
@@ -473,10 +473,10 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
 
           {/* ── AI Suggestion Result ── */}
           {suggestion && (
-            <div className="fade-in" style={{ padding: "16px 18px", borderRadius: 16, background: "linear-gradient(135deg, #F4EBFE 0%, #FDE8DA 100%)" }}>
+            <div className="fade-in" style={{ padding: "16px 18px", borderRadius: 16, background: "var(--hero-grad)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                 <SparkleIcon />
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#7A4DD0" }}>{th ? "AI วิเคราะห์แล้ว" : "AI analysis complete"}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)" }}>{th ? "AI วิเคราะห์แล้ว" : "AI analysis complete"}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: suggestion.tags.length > 0 ? 10 : 0 }}>
                 {mood && <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={28} height={28} />}
@@ -490,7 +490,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               {suggestion.tags.length > 0 && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {suggestion.tags.map((st, i) => (
-                    <span key={i} style={{ padding: "4px 10px", borderRadius: 100, background: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+                    <span key={i} style={{ padding: "4px 10px", borderRadius: 100, background: "var(--surface-2)", fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
                       #{st}
                     </span>
                   ))}
@@ -504,8 +504,8 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
 
           {/* ── Error ── */}
           {error && (
-            <div style={{ padding: "10px 14px", borderRadius: 12, background: "#F4EEFB", border: "1px solid #E6DBF7" }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#7A4DD0", margin: 0 }}>{error}</p>
+            <div style={{ padding: "10px 14px", borderRadius: 12, background: "var(--primary-bg)", border: "1px solid var(--hairline)" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", margin: 0 }}>{error}</p>
             </div>
           )}
 

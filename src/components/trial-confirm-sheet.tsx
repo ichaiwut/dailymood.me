@@ -45,7 +45,7 @@ export function TrialConfirmSheet({ open, onClose }: TrialConfirmSheetProps) {
         </div>
 
         <div style={{
-          background: "#F0FFF4", border: "1.5px solid #C6F6D5", borderRadius: 14,
+          background: "var(--surface-2)", border: "1.5px solid var(--hairline-2)", borderRadius: 14,
           padding: "14px 18px", marginBottom: 24, textAlign: "left",
         }}>
           <div style={{ display: "flex", alignItems: "start", gap: 10 }}>

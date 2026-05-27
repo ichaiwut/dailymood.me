@@ -210,7 +210,7 @@ export function DaySheet({
           <button disabled style={{ padding: "10px 24px", borderRadius: 100, border: "1.5px solid var(--hairline)", background: "var(--surface-2)", fontSize: 14, fontWeight: 700, color: "var(--ink-3)", cursor: "not-allowed" }}>
             🔒 {locale === "th" ? "ยังบันทึกไม่ได้" : "Can't log yet"}
           </button>
-          <div style={{ marginTop: 20, padding: "12px 16px", borderRadius: 12, background: "#FFF8F0", border: "1px solid #FDE8DA" }}>
+          <div style={{ marginTop: 20, padding: "12px 16px", borderRadius: 12, background: "var(--accent-soft)", border: "1px solid var(--hairline)" }}>
             <span style={{ fontSize: 14, color: "var(--ink-2)" }}>
               💡 {locale === "th" ? "Tip: ตั้ง reminder ให้บันทึกตอนเย็น 21:00" : "Tip: Set a reminder to log at 9 PM"}
             </span>
