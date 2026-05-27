@@ -238,7 +238,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
                 {th ? "AI จะช่วยดึงบันทึกเก่าที่คุณเคยผ่านช่วงเวลาคล้ายๆ กันมาได้ พร้อมข้อความให้กำลังใจ" : "AI finds past entries where you overcame similar moments, with an encouraging reflection"}
               </div>
               <a href="/pricing" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 700, color: "#A673F1", textDecoration: "none" }}>
-                ✦ {th ? "ปลดล็อกด้วย Premium" : "Unlock with Premium"} — PRO
+                ✦ {th ? "ปลดล็อกด้วย Pro" : "Unlock with Pro"}
               </a>
             </div>
           )}

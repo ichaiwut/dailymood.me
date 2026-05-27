@@ -76,7 +76,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
           {th ? "ดู insight, pattern, และสรุปจาก AI ที่เป็นเอกลักษณ์ของคุณ" : "See insights, patterns, and a unique AI summary of your year"}
         </p>
         <Link href={"/pricing" as "/"} className="w-btn w-btn-primary" style={{ textDecoration: "none", fontSize: 15, padding: "12px 28px", height: "auto" }}>
-          {th ? "ดู Premium" : "View Premium"}
+          {th ? "ดู Pro" : "View Pro"}
         </Link>
       </div>
     </div>

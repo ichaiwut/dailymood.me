@@ -371,8 +371,8 @@ export function SmartLogModal({
                     : <>You&apos;ve used Smart Log AI <b>3 times / 5 min</b> — wait a moment and try again</>
                 ) : (
                   locale === "th"
-                    ? <>คุณใช้ Smart Log AI ครบ <b>{rateLimitInfo.limit} ครั้ง / วัน</b> (Free) แล้ว — รีเซ็ตเที่ยงคืน หรืออัพเป็น Premium ใช้ไม่จำกัด</>
-                    : <>You&apos;ve used all <b>{rateLimitInfo.limit} daily</b> Smart Log AI (Free) — resets at midnight, or upgrade to Premium for unlimited</>
+                    ? <>คุณใช้ Smart Log AI ครบ <b>{rateLimitInfo.limit} ครั้ง / วัน</b> (Free) แล้ว — รีเซ็ตเที่ยงคืน หรืออัปเกรดเป็น Pro ใช้ไม่จำกัด</>
+                    : <>You&apos;ve used all <b>{rateLimitInfo.limit} daily</b> Smart Log AI (Free) — resets at midnight, or upgrade to Pro for unlimited</>
                 )}
               </div>
 
@@ -397,7 +397,7 @@ export function SmartLogModal({
                 {tier !== "premium" && (
                   <a href="/pricing" className="w-btn w-btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
-                    {locale === "th" ? "อัพเป็น Premium" : "Upgrade to Premium"}
+                    {locale === "th" ? "อัปเกรดเป็น Pro" : "Upgrade to Pro"}
                   </a>
                 )}
                 <button onClick={handleSave} disabled={busy} className="w-btn w-btn-ghost">

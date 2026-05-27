@@ -51,7 +51,7 @@ export function PersonalEventsManager({ isPremium }: { isPremium: boolean }) {
       if (!res.ok) {
         const j = (await res.json()) as { error?: string };
         if (j.error === "limit_reached") {
-          setError(locale === "th" ? `ครบ ${FREE_PERSONAL_EVENTS_LIMIT} วันแล้ว อัปเกรด Premium เพื่อเพิ่มอีก` : `Reached ${FREE_PERSONAL_EVENTS_LIMIT} events. Upgrade to Premium for more.`);
+          setError(locale === "th" ? `ครบ ${FREE_PERSONAL_EVENTS_LIMIT} วันแล้ว อัปเกรด Pro เพื่อเพิ่มอีก` : `Reached ${FREE_PERSONAL_EVENTS_LIMIT} events. Upgrade to Pro for more.`);
         } else {
           setError(locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong. Try again.");
         }
@@ -205,7 +205,7 @@ export function PersonalEventsManager({ isPremium }: { isPremium: boolean }) {
               fontSize: 16, color: "#fff", flexShrink: 0,
             }}>✦</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: 0.4, color: "#A673F1" }}>PREMIUM</div>
+              <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: 0.4, color: "#A673F1" }}>PRO</div>
               <div style={{ fontSize: 14, color: "var(--ink)" }}>
                 {locale === "th" ? "เพิ่มวันสำคัญได้ไม่จำกัด" : "Unlimited special days"}
               </div>

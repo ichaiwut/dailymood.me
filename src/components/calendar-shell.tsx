@@ -326,7 +326,7 @@ export function CalendarShell({
                 AI สรุป + แพทเทิร์น + ถาม AI
               </div>
               <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
-                ปลดล็อกด้วย Premium
+                ปลดล็อกด้วย Pro
               </div>
             </div>
             <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>อัปเกรด →</span>

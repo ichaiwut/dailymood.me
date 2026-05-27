@@ -974,7 +974,7 @@ function FreeGate({ locale }: { locale: string }) {
             background: "rgba(255,255,255,0.2)", borderRadius: 20,
             padding: "4px 12px", fontSize: 14, fontWeight: 700,
           }}>
-            ✨ PREMIUM
+            ✨ PRO
           </div>
           <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
             {isTh ? "AI Insights รายสัปดาห์" : "Weekly AI Insights"}

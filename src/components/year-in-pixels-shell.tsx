@@ -194,7 +194,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
             style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", fontSize: 16, padding: "12px 28px", height: "auto" }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
-            {isTh ? "อัพเป็น Premium" : "Upgrade to Premium"}
+            {isTh ? "อัปเกรดเป็น Pro" : "Upgrade to Pro"}
           </Link>
         </div>
       </div>
@@ -275,7 +275,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
               </span>
             </div>
             <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", background: "rgba(255,255,255,.6)", padding: "4px 12px", borderRadius: 100 }}>
-              ✨ Premium
+              ✨ Pro
             </span>
           </div>
 
