@@ -26,9 +26,7 @@ export default async function AdminEntriesPage({
   const d7 = daysAgo(7);
   const d30 = daysAgo(30);
 
-  const EXCLUDED_EMAILS = ["ichaiwut.s@gmail.com"];
-
-  const excludeCond = sql`${moodEntries.userId} NOT IN (SELECT id FROM users WHERE email = ANY(${EXCLUDED_EMAILS}))`;
+  const excludeCond = sql`${moodEntries.userId} NOT IN (SELECT id FROM users WHERE email IN ('ichaiwut.s@gmail.com'))`;
   const where = userId
     ? and(eq(moodEntries.userId, userId), excludeCond)
     : excludeCond;
