@@ -103,6 +103,9 @@ export const aiUsage = pgTable("ai_usage", {
   date: text("date").notNull(),
   nlpCount: integer("nlp_count").notNull().default(0),
   visionCount: integer("vision_count").notNull().default(0),
+  tokensIn: integer("tokens_in").notNull().default(0),
+  tokensOut: integer("tokens_out").notNull().default(0),
+  estimatedCostThb: real("estimated_cost_thb").notNull().default(0),
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.date] }),
 }));
@@ -142,6 +145,9 @@ export const feedbacks = pgTable("feedbacks", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   message: text("message").notNull(),
+  type: text("type"),
+  rating: integer("rating"),
+  status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 });
 

@@ -128,13 +128,15 @@
 - [x] User Menu — burger dropdown (avatar + ☰) → Settings, Logout
 - [x] Profile tab (You) — bottom nav tab → `/profile` (replaces old `/settings`); `/settings` redirects to `/profile/settings`
 
-#### Admin Panel
-- [x] Admin Dashboard (`/admin`) — sidebar layout (240px fixed), auth via `ADMIN_EMAILS` env var (email hardcode), TH-only UI. Dashboard overview with stat cards (total users, premium count, total entries, 7d entries, new users 30d, AI calls today/30d, feedback count) + recent feedback list.
-- [x] User Management (`/admin/users`) — searchable user table with filter pills (All/Premium/Free), pagination (50/page). Toggle premium status, delete user (cascade + R2 cleanup). User detail page (`/admin/users/[id]`) with full profile info, Stripe data, auth providers, recent entries, AI usage stats.
-- [x] Entry Browser (`/admin/entries`) — all entries table with user email, mood emoji+label, AI source badge, image indicator. Privacy-first: note/tags/AI summary never sent to admin. Filter by userId. Delete entry (+ R2 cleanup). Pagination.
-- [x] AI Usage Dashboard (`/admin/ai`) — stat cards (NLP/Vision 7d + 30d, calendar/insights cache row counts). Stacked bar chart of daily AI calls (30 days). Top 10 AI users leaderboard.
-- [x] Feedback Hub (`/admin/feedback`) — two-panel layout: user feedback messages (paginated, deletable, linked to user detail) + AI suggestion feedback aggregation (title, thumbs up/down/routine counts).
-- [x] Mood Pack Manager (`/admin/packs`) — CRUD for mood icon packs. Create pack (ID + label + premium flag), edit label/premium, delete (resets users to default). Upload 7 SVG icons per pack to R2 (`{packId}/{moodId}.svg`). Icon preview grid. DB: `mood_packs` table (id, label, premium, createdAt). API: `GET/POST /api/admin/packs`, `GET/PATCH/DELETE /api/admin/packs/[id]`, `POST /api/admin/packs/[id]/upload`. User-facing: `GET /api/moods/packs` returns dynamic pack list.
+#### Admin Panel (Redesigned)
+- [x] **Shared primitives:** `admin-ui.ts` (style constants), `admin-icons.tsx` (SVG nav icons), `AdminPageHeader`, `AdminStatCard` (with delta/trend), `AdminBarChart` (SVG), `AdminBadge` (status/type), upgraded `DataTable` (with rowKey, emptyText, pending state, page number buttons). All admin shells use shared primitives.
+- [x] **Sidebar:** Dark sidebar (240px, `var(--ink)` bg) with SVG icons (Home, Users, Edit, Heart, Sparkle, AI), peach active indicator, version footer. 6 nav items: ภาพรวม, ผู้ใช้, บันทึก, Feedback, Mood Packs, AI Usage. Articles/Categories removed from nav.
+- [x] Admin Dashboard (`/admin`) — 4 KPI stat cards with delta (users, premium, revenue MTD via Stripe API, AI calls today), DAU bar chart (30 days, approximate from mood_entries distinct users), recent feedback. Stripe revenue via `getStripeRevenueMTD()` with try/catch fallback.
+- [x] User Management (`/admin/users`) — DataTable with avatar circles, name+email columns, plan badge (Premium gradient/Free), entry count, date. Search + select filter. Pagination with page numbers. Toggle premium, delete user.
+- [x] Entry Browser (`/admin/entries`) — DataTable with AdminBadge for AI source. Filter by userId with clear button.
+- [x] AI Usage Dashboard (`/admin/ai`) — 4 stat cards (tokens, cost in THB, NLP calls, Vision calls) + cache stats. AdminBarChart for daily calls. Top users leaderboard. DB: `ai_usage` table extended with `tokens_in`, `tokens_out`, `estimated_cost_thb` columns.
+- [x] Feedback Hub (`/admin/feedback`) — Status filter tabs (ทั้งหมด/รอดู/ตอบแล้ว/เก็บถาวร), feedback items with type emoji, star rating, status badge, archive action. DB: `feedbacks` table extended with `type`, `rating`, `status` columns. Server Actions: `archiveFeedback`, `setFeedbackStatus`.
+- [x] Mood Pack Manager (`/admin/packs`) — 3-column grid of pack cards with icon preview, AdminBadge for tier, edit/upload/delete actions. Shared style constants.
 
 #### Admin Notifications
 - [x] LINE OA — Push message to admin LINE account on new user signup (Credentials + Google) and successful Stripe checkout. **No user PII** — generic event signals only (`มีคนสมัครใหม่`, `มีคนสั่งซื้อ` + plan/amount). Fire-and-forget via `notifyAdmin()` in `src/lib/line.ts`. Env vars (Railway production only): `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`

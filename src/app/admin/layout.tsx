@@ -16,8 +16,8 @@ export default async function AdminLayout({
         style={{
           flex: 1,
           marginLeft: 240,
-          background: "var(--surface-2)",
-          padding: "32px 32px 64px",
+          background: "var(--bg)",
+          padding: "24px 28px 64px",
           minHeight: "100vh",
         }}
       >

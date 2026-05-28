@@ -4,7 +4,7 @@ import React, { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { togglePremium, deleteUser } from "@/lib/admin-actions";
-import { StatCard } from "./stat-card";
+import { AdminStatCard as StatCard } from "./admin-stat-card";
 
 interface UserData {
   id: string;

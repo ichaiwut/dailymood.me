@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { A } from "./admin-ui";
 
 export interface Column<T> {
   key: string;
@@ -9,27 +10,7 @@ export interface Column<T> {
   render?: (row: T) => React.ReactNode;
 }
 
-const TH: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: 0.5,
-  textTransform: "uppercase",
-  color: "var(--ink-3)",
-  padding: "10px 14px",
-  textAlign: "left",
-  borderBottom: "1.5px solid var(--hairline)",
-  background: "var(--surface-2)",
-};
-
-const TD: React.CSSProperties = {
-  padding: "10px 14px",
-  fontSize: 13,
-  color: "var(--ink)",
-  borderBottom: "1px solid var(--hairline)",
-  verticalAlign: "middle",
-};
-
-export function DataTable<T extends Record<string, unknown>>({
+export function DataTable<T extends object>({
   columns,
   rows,
   page = 0,
@@ -37,6 +18,9 @@ export function DataTable<T extends Record<string, unknown>>({
   total,
   onPageChange,
   onRowClick,
+  emptyText = "ไม่มีข้อมูล",
+  rowKey,
+  pending,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -45,17 +29,26 @@ export function DataTable<T extends Record<string, unknown>>({
   total?: number;
   onPageChange?: (page: number) => void;
   onRowClick?: (row: T) => void;
+  emptyText?: string;
+  rowKey?: (row: T) => string;
+  pending?: boolean;
 }) {
   const totalPages = total != null ? Math.ceil(total / pageSize) : undefined;
 
   return (
-    <div>
+    <div
+      style={{
+        ...A.cardFlush,
+        opacity: pending ? 0.6 : 1,
+        transition: "opacity 200ms",
+      }}
+    >
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
               {columns.map((col) => (
-                <th key={col.key} style={{ ...TH, width: col.width }}>
+                <th key={col.key} style={{ ...A.th, width: col.width }}>
                   {col.label}
                 </th>
               ))}
@@ -66,23 +59,30 @@ export function DataTable<T extends Record<string, unknown>>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  style={{ ...TD, textAlign: "center", color: "var(--ink-3)", padding: 32 }}
+                  style={{
+                    ...A.td,
+                    textAlign: "center",
+                    color: "var(--ink-3)",
+                    padding: 32,
+                  }}
                 >
-                  ไม่มีข้อมูล
+                  {emptyText}
                 </td>
               </tr>
             )}
             {rows.map((row, i) => (
               <tr
-                key={i}
+                key={rowKey ? rowKey(row) : i}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 style={{
                   cursor: onRowClick ? "pointer" : undefined,
-                  background: i % 2 === 1 ? "var(--surface-2)" : "var(--surface)",
+                  background:
+                    i % 2 === 1 ? "var(--surface-2)" : "var(--surface)",
                   transition: "background 100ms",
                 }}
                 onMouseEnter={(e) => {
-                  if (onRowClick) e.currentTarget.style.background = "#F0EDFA";
+                  if (onRowClick)
+                    e.currentTarget.style.background = "var(--primary-bg)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background =
@@ -90,10 +90,10 @@ export function DataTable<T extends Record<string, unknown>>({
                 }}
               >
                 {columns.map((col) => (
-                  <td key={col.key} style={TD}>
+                  <td key={col.key} style={A.td}>
                     {col.render
                       ? col.render(row)
-                      : String(row[col.key] ?? "")}
+                      : String((row as Record<string, unknown>)[col.key] ?? "")}
                   </td>
                 ))}
               </tr>
@@ -111,39 +111,52 @@ export function DataTable<T extends Record<string, unknown>>({
             padding: "12px 14px",
             fontSize: 13,
             color: "var(--ink-2)",
+            borderTop: "1px solid var(--hairline)",
           }}
         >
           <span>
-            หน้า {page + 1} / {totalPages} ({total} รายการ)
+            แสดง {rows.length} จาก {total?.toLocaleString()} · หน้า{" "}
+            {page + 1} / {totalPages}
           </span>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 4 }}>
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page === 0}
               style={{
-                padding: "6px 14px",
-                borderRadius: 8,
-                border: "1px solid var(--hairline)",
-                background: "var(--surface)",
-                cursor: page === 0 ? "default" : "pointer",
+                ...A.btnSmall,
                 opacity: page === 0 ? 0.4 : 1,
+                background: "var(--surface)",
               }}
             >
-              ก่อนหน้า
+              ←
             </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, k) => {
+              const p = Math.max(0, Math.min(page - 2, totalPages - 5)) + k;
+              if (p >= totalPages) return null;
+              return (
+                <button
+                  key={p}
+                  onClick={() => onPageChange(p)}
+                  style={{
+                    ...A.btnSmall,
+                    background: p === page ? "var(--ink)" : "var(--surface)",
+                    color: p === page ? "#fff" : "var(--ink-2)",
+                  }}
+                >
+                  {p + 1}
+                </button>
+              );
+            })}
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page + 1 >= totalPages}
               style={{
-                padding: "6px 14px",
-                borderRadius: 8,
-                border: "1px solid var(--hairline)",
-                background: "var(--surface)",
-                cursor: page + 1 >= totalPages ? "default" : "pointer",
+                ...A.btnSmall,
                 opacity: page + 1 >= totalPages ? 0.4 : 1,
+                background: "var(--surface)",
               }}
             >
-              ถัดไป
+              →
             </button>
           </div>
         </div>

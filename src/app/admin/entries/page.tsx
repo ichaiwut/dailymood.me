@@ -1,9 +1,13 @@
 import { requireAdmin } from "@/lib/admin-auth";
 import { getDb } from "@/lib/cf";
 import { moodEntries, users, moodTypes } from "@/db/schema";
-import { sql, eq, desc } from "drizzle-orm";
+import { sql, eq, desc, gte, and } from "drizzle-orm";
 import { EntriesShell } from "@/components/admin/entries-shell";
+import { ymdICT, todayICT } from "@/lib/timezone";
 
+function daysAgo(n: number): string {
+  return ymdICT(new Date(Date.now() - n * 86400_000));
+}
 
 export default async function AdminEntriesPage({
   searchParams,
@@ -17,20 +21,40 @@ export default async function AdminEntriesPage({
   const pageSize = 50;
 
   const db = getDb();
+  const today = todayICT();
+  const yesterday = daysAgo(1);
+  const d7 = daysAgo(7);
+  const d30 = daysAgo(30);
 
   const where = userId ? eq(moodEntries.userId, userId) : undefined;
 
-  const [rows, [{ total }]] = await Promise.all([
+  const [
+    rows,
+    [{ total }],
+    [{ entriesToday }],
+    [{ entriesYesterday }],
+    [{ entries7d }],
+    [{ entries30d }],
+    [{ withImage7d }],
+    [{ aiTagged30d }],
+    moodDist,
+  ] = await Promise.all([
     db
       .select({
         id: moodEntries.id,
         userId: moodEntries.userId,
         userEmail: users.email,
         userName: users.name,
+        userImage: users.image,
         moodTypeId: moodEntries.moodTypeId,
         moodEmoji: moodTypes.emoji,
         moodLabel: moodTypes.label,
+        moodLabelTh: moodTypes.labelTh,
+        moodColor: moodTypes.color,
         aiSource: moodEntries.aiSource,
+        note: moodEntries.note,
+        tags: moodEntries.tags,
+        aiSummary: moodEntries.aiSummary,
         hasImage: sql<boolean>`${moodEntries.imageKey} IS NOT NULL`,
         date: moodEntries.date,
         createdAt: moodEntries.createdAt,
@@ -46,6 +70,55 @@ export default async function AdminEntriesPage({
       .select({ total: sql<number>`count(*)` })
       .from(moodEntries)
       .where(where),
+    db
+      .select({ entriesToday: sql<number>`count(*)` })
+      .from(moodEntries)
+      .where(eq(moodEntries.date, today)),
+    db
+      .select({ entriesYesterday: sql<number>`count(*)` })
+      .from(moodEntries)
+      .where(eq(moodEntries.date, yesterday)),
+    db
+      .select({ entries7d: sql<number>`count(*)` })
+      .from(moodEntries)
+      .where(gte(moodEntries.date, d7)),
+    db
+      .select({ entries30d: sql<number>`count(*)` })
+      .from(moodEntries)
+      .where(gte(moodEntries.date, d30)),
+    db
+      .select({ withImage7d: sql<number>`count(*)` })
+      .from(moodEntries)
+      .where(
+        and(
+          gte(moodEntries.date, d7),
+          sql`${moodEntries.imageKey} IS NOT NULL`,
+        ),
+      ),
+    db
+      .select({
+        aiTagged30d: sql<number>`count(*)`,
+      })
+      .from(moodEntries)
+      .where(
+        and(
+          gte(moodEntries.date, d30),
+          sql`${moodEntries.aiSource} != 'manual'`,
+        ),
+      ),
+    db
+      .select({
+        moodEmoji: moodTypes.emoji,
+        moodLabel: moodTypes.label,
+        moodLabelTh: moodTypes.labelTh,
+        moodColor: moodTypes.color,
+        count: sql<number>`count(*)`,
+      })
+      .from(moodEntries)
+      .leftJoin(moodTypes, eq(moodEntries.moodTypeId, moodTypes.id))
+      .where(gte(moodEntries.date, d30))
+      .groupBy(moodTypes.emoji, moodTypes.label, moodTypes.labelTh, moodTypes.color)
+      .orderBy(desc(sql`count(*)`)),
   ]);
 
   const data = rows.map((r) => ({
@@ -53,12 +126,35 @@ export default async function AdminEntriesPage({
     userId: r.userId,
     userEmail: r.userEmail ?? "—",
     userName: r.userName,
+    userImage: r.userImage,
     moodEmoji: r.moodEmoji ?? "",
     moodLabel: r.moodLabel ?? r.moodTypeId,
+    moodLabelTh: r.moodLabelTh,
+    moodColor: r.moodColor,
     aiSource: r.aiSource,
+    note: r.note,
+    tags: (r.tags as string[] | null) ?? [],
+    aiSummary: r.aiSummary,
     hasImage: !!r.hasImage,
     date: r.date,
     createdAt: r.createdAt.toISOString(),
+  }));
+
+  const stats = {
+    entriesToday: Number(entriesToday),
+    entriesYesterday: Number(entriesYesterday),
+    entries7d: Number(entries7d),
+    entries30d: Number(entries30d),
+    withImage7d: Number(withImage7d),
+    aiTagged30d: Number(aiTagged30d),
+  };
+
+  const moodDistribution = moodDist.map((m) => ({
+    emoji: m.moodEmoji ?? "",
+    label: m.moodLabel ?? "",
+    labelTh: m.moodLabelTh ?? m.moodLabel ?? "",
+    color: m.moodColor ?? "var(--ink-3)",
+    count: Number(m.count),
   }));
 
   return (
@@ -68,6 +164,8 @@ export default async function AdminEntriesPage({
       page={page}
       pageSize={pageSize}
       userId={userId}
+      stats={stats}
+      moodDistribution={moodDistribution}
     />
   );
 }

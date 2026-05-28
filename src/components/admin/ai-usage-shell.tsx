@@ -2,11 +2,16 @@
 
 import React from "react";
 import Link from "next/link";
+import { AdminBarChart } from "./admin-bar-chart";
+import { A } from "./admin-ui";
 
 interface DailyRow {
   date: string;
   nlp: number;
   vision: number;
+  tokensIn: number;
+  tokensOut: number;
+  cost: number;
 }
 
 interface TopUser {
@@ -15,13 +20,6 @@ interface TopUser {
   total: number;
 }
 
-const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline)",
-  borderRadius: 16,
-  padding: 24,
-};
-
 export function AiUsageShell({
   daily,
   topUsers,
@@ -29,104 +27,48 @@ export function AiUsageShell({
   daily: DailyRow[];
   topUsers: TopUser[];
 }) {
-  const maxVal = Math.max(1, ...daily.map((d) => d.nlp + d.vision));
+  const chartData = daily.map((d) => ({
+    label: d.date.slice(5),
+    bars: [
+      { value: d.vision, color: "var(--peach)", key: "vision" },
+      { value: d.nlp, color: "var(--purple)", key: "nlp" },
+    ],
+  }));
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20 }}>
-      <div style={CARD}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
-          AI Calls 30 วันล่าสุด
-        </h2>
-        {daily.length === 0 ? (
-          <div style={{ color: "var(--ink-3)", fontSize: 14 }}>ไม่มีข้อมูล</div>
-        ) : (
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 160 }}>
-            {daily.map((d) => {
-              const nlpH = (d.nlp / maxVal) * 140;
-              const visH = (d.vision / maxVal) * 140;
-              return (
-                <div
-                  key={d.date}
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    height: "100%",
-                  }}
-                  title={`${d.date}\nNLP: ${d.nlp}\nVision: ${d.vision}`}
-                >
-                  <div
-                    style={{
-                      width: "100%",
-                      maxWidth: 16,
-                      borderRadius: "4px 4px 0 0",
-                      background: "var(--peach)",
-                      height: visH,
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: "100%",
-                      maxWidth: 16,
-                      borderRadius: d.vision > 0 ? 0 : "4px 4px 0 0",
-                      background: "var(--purple)",
-                      height: nlpH,
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        )}
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            justifyContent: "center",
-            marginTop: 12,
-            fontSize: 12,
-            color: "var(--ink-3)",
-          }}
-        >
-          <span>
-            <span
-              style={{
-                display: "inline-block",
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                background: "var(--purple)",
-                marginRight: 4,
-              }}
-            />
-            NLP
-          </span>
-          <span>
-            <span
-              style={{
-                display: "inline-block",
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                background: "var(--peach)",
-                marginRight: 4,
-              }}
-            />
-            Vision
-          </span>
-        </div>
-      </div>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 360px",
+        gap: 20,
+      }}
+    >
+      <AdminBarChart
+        title="AI Calls 30 วันล่าสุด"
+        data={chartData}
+        height={180}
+        legend={[
+          { key: "nlp", color: "var(--purple)", label: "NLP" },
+          { key: "vision", color: "var(--peach)", label: "Vision" },
+        ]}
+      />
 
-      <div style={CARD}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
+      <div style={A.card}>
+        <h2 style={{ ...A.sectionTitle, marginBottom: 16 }}>
           ผู้ใช้ AI สูงสุด (30 วัน)
         </h2>
         {topUsers.length === 0 ? (
-          <div style={{ color: "var(--ink-3)", fontSize: 14 }}>ไม่มีข้อมูล</div>
+          <div style={{ color: "var(--ink-3)", fontSize: 14 }}>
+            ไม่มีข้อมูล
+          </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
             {topUsers.map((u, i) => (
               <div
                 key={u.userId}
@@ -135,7 +77,10 @@ export function AiUsageShell({
                   alignItems: "center",
                   gap: 10,
                   padding: "6px 0",
-                  borderBottom: i < topUsers.length - 1 ? "1px solid var(--hairline)" : "none",
+                  borderBottom:
+                    i < topUsers.length - 1
+                      ? "1px solid var(--hairline)"
+                      : "none",
                 }}
               >
                 <span
@@ -153,7 +98,7 @@ export function AiUsageShell({
                   href={`/admin/users/${u.userId}`}
                   style={{
                     flex: 1,
-                    fontSize: 13,
+                    fontSize: 14,
                     color: "var(--purple)",
                     textDecoration: "none",
                     overflow: "hidden",
@@ -163,7 +108,13 @@ export function AiUsageShell({
                 >
                   {u.email}
                 </Link>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "var(--ink)",
+                  }}
+                >
                   {u.total}
                 </span>
               </div>

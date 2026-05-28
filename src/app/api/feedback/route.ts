@@ -4,6 +4,7 @@ import { getDb } from "@/lib/cf";
 import { feedbacks } from "@/db/schema";
 import { ulid } from "@/lib/ulid";
 import { eq, desc } from "drizzle-orm";
+import { notifyAdmin } from "@/lib/line";
 
 
 const COOLDOWN_MS = 30 * 60 * 1000;
@@ -59,6 +60,8 @@ export async function POST(req: NextRequest) {
   }
 
   await db.insert(feedbacks).values({ id: ulid(), userId, message });
+
+  notifyAdmin("💬 มีคนส่ง feedback ใหม่");
 
   return NextResponse.json({ ok: true });
 }

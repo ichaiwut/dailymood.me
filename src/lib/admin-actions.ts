@@ -49,3 +49,26 @@ export async function deleteFeedback(feedbackId: string) {
   await db.delete(feedbacks).where(eq(feedbacks.id, feedbackId));
   revalidatePath("/admin/feedback");
 }
+
+export async function archiveFeedback(feedbackId: string) {
+  await requireAdminAction();
+  const db = getDb();
+  await db
+    .update(feedbacks)
+    .set({ status: "archived" })
+    .where(eq(feedbacks.id, feedbackId));
+  revalidatePath("/admin/feedback");
+}
+
+export async function setFeedbackStatus(
+  feedbackId: string,
+  status: "pending" | "replied" | "archived",
+) {
+  await requireAdminAction();
+  const db = getDb();
+  await db
+    .update(feedbacks)
+    .set({ status })
+    .where(eq(feedbacks.id, feedbackId));
+  revalidatePath("/admin/feedback");
+}

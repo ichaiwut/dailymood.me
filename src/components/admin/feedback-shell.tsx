@@ -3,13 +3,19 @@
 import React, { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { deleteFeedback } from "@/lib/admin-actions";
+import { deleteFeedback, archiveFeedback } from "@/lib/admin-actions";
+import { AdminPageHeader } from "./admin-page-header";
+import { AdminStatCard } from "./admin-stat-card";
+import { A } from "./admin-ui";
 
 interface FeedbackRow {
   id: string;
   userId: string;
   email: string;
   message: string;
+  type: string | null;
+  rating: number | null;
+  status: string;
   createdAt: string;
 }
 
@@ -21,188 +27,210 @@ interface SuggestionRow {
   total: number;
 }
 
-const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline)",
-  borderRadius: 16,
-  padding: 24,
+const TYPE_EMOJI: Record<string, string> = {
+  nps: "📈",
+  bug: "🐛",
+  request: "💡",
+  praise: "❤️",
 };
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const hours = Math.floor(diff / 3600_000);
+  if (hours < 1) return `${Math.max(1, Math.floor(diff / 60_000))}m`;
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
+function Stars({ count }: { count: number }) {
+  return (
+    <span style={{ fontSize: 14, letterSpacing: 1 }}>
+      {"⭐".repeat(Math.min(count, 5))}
+    </span>
+  );
+}
 
 export function FeedbackShell({
   feedback,
   totalFeedback,
+  pendingCount,
   page,
   pageSize,
+  statusFilter,
   suggestions,
 }: {
   feedback: FeedbackRow[];
   totalFeedback: number;
+  pendingCount: number;
   page: number;
   pageSize: number;
+  statusFilter: string;
   suggestions: SuggestionRow[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const totalPages = Math.ceil(totalFeedback / pageSize);
 
+  const bugCount = feedback.filter((f) => f.type === "bug").length;
+  const requestCount = feedback.filter((f) => f.type === "request").length;
+  const praiseCount = feedback.filter((f) => f.type === "praise").length;
+
   return (
     <div style={{ opacity: pending ? 0.6 : 1, transition: "opacity 200ms" }}>
-      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>ความคิดเห็น</h1>
+      <AdminPageHeader
+        title="Feedback"
+        subtitle={`${pendingCount} รายการรอตอบ`}
+      />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 20 }}>
-        <div style={CARD}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
-            จากผู้ใช้ ({totalFeedback})
-          </h2>
+      {/* Stat cards row */}
+      <div style={A.statGrid}>
+        <AdminStatCard label="NPS" value="—" sub="ยังไม่มีข้อมูล" />
+        <AdminStatCard label="Bugs" value={bugCount} />
+        <AdminStatCard label="Requests" value={requestCount} />
+        <AdminStatCard label="Praise" value={praiseCount} />
+      </div>
 
-          {feedback.length === 0 ? (
-            <div style={{ color: "var(--ink-3)", fontSize: 14 }}>ไม่มีความคิดเห็น</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {feedback.map((fb) => (
-                <div
-                  key={fb.id}
-                  style={{
-                    padding: "14px 16px",
-                    background: "var(--surface-2)",
-                    borderRadius: 12,
-                    fontSize: 13,
-                  }}
-                >
-                  <div style={{ color: "var(--ink)", marginBottom: 6 }}>
-                    {fb.message}
-                  </div>
+      {/* Feedback list */}
+      <div style={A.cardFlush}>
+        {feedback.length === 0 ? (
+          <div
+            style={{
+              padding: 40,
+              textAlign: "center",
+              color: "var(--ink-3)",
+              fontSize: 14,
+            }}
+          >
+            ยังไม่มี feedback ที่รอตอบ ✨
+          </div>
+        ) : (
+          feedback.map((fb, i) => {
+            const emoji = fb.type ? TYPE_EMOJI[fb.type] ?? "💬" : "💬";
+            return (
+              <div
+                key={fb.id}
+                style={{
+                  padding: 18,
+                  borderTop: i > 0 ? "1px solid var(--hairline)" : "none",
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "flex-start",
+                }}
+              >
+                {/* Type emoji */}
+                <div style={{ fontSize: 24, lineHeight: 1, paddingTop: 2 }}>
+                  {emoji}
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1 }}>
+                  {/* Stars + user + time */}
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
+                      gap: 8,
                       alignItems: "center",
+                      marginBottom: 4,
                     }}
                   >
-                    <div style={{ fontSize: 11, color: "var(--ink-3)" }}>
+                    {fb.rating && <Stars count={fb.rating} />}
+                    <span style={{ fontSize: 12, color: "var(--ink-3)" }}>
                       <Link
                         href={`/admin/users/${fb.userId}`}
-                        style={{ color: "var(--purple)", textDecoration: "none" }}
+                        style={{
+                          color: "var(--ink-3)",
+                          textDecoration: "none",
+                        }}
                       >
-                        {fb.email}
+                        {fb.email.split("@")[0]}@
                       </Link>
                       {" · "}
-                      {new Date(fb.createdAt).toLocaleDateString("th-TH")}
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (confirm("ลบความคิดเห็นนี้?"))
-                          startTransition(() => deleteFeedback(fb.id));
-                      }}
-                      style={{
-                        padding: "2px 8px",
-                        borderRadius: 4,
-                        border: "1px solid #FCC",
-                        background: "#FFF5F5",
-                        color: "#D44",
-                        fontSize: 11,
-                        cursor: "pointer",
-                      }}
-                    >
-                      ลบ
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginTop: 16,
-                fontSize: 13,
-                color: "var(--ink-2)",
-              }}
-            >
-              <span>
-                หน้า {page + 1} / {totalPages}
-              </span>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() =>
-                    router.push(`/admin/feedback?page=${page - 1}`)
-                  }
-                  disabled={page === 0}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: 8,
-                    border: "1px solid var(--hairline)",
-                    background: "var(--surface)",
-                    opacity: page === 0 ? 0.4 : 1,
-                  }}
-                >
-                  ก่อนหน้า
-                </button>
-                <button
-                  onClick={() =>
-                    router.push(`/admin/feedback?page=${page + 1}`)
-                  }
-                  disabled={page + 1 >= totalPages}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: 8,
-                    border: "1px solid var(--hairline)",
-                    background: "var(--surface)",
-                    opacity: page + 1 >= totalPages ? 0.4 : 1,
-                  }}
-                >
-                  ถัดไป
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div style={CARD}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
-            AI Suggestion Feedback
-          </h2>
-
-          {suggestions.length === 0 ? (
-            <div style={{ color: "var(--ink-3)", fontSize: 14 }}>ไม่มีข้อมูล</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {suggestions.map((s) => (
-                <div
-                  key={s.title}
-                  style={{
-                    padding: "12px 14px",
-                    background: "var(--surface-2)",
-                    borderRadius: 10,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "var(--ink)",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {s.title}
-                  </div>
-                  <div style={{ display: "flex", gap: 12, fontSize: 12 }}>
-                    <span style={{ color: "#16A34A" }}>👍 {s.up}</span>
-                    <span style={{ color: "#DC2626" }}>👎 {s.down}</span>
-                    <span style={{ color: "var(--purple)" }}>🔄 {s.routine}</span>
-                    <span style={{ color: "var(--ink-3)", marginLeft: "auto" }}>
-                      รวม {s.total}
+                      {timeAgo(fb.createdAt)}
                     </span>
                   </div>
+
+                  {/* Message */}
+                  <p style={{ margin: 0, fontSize: 14, color: "var(--ink)" }}>
+                    &ldquo;{fb.message}&rdquo;
+                  </p>
                 </div>
-              ))}
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <button
+                    style={{
+                      ...A.btnSmall,
+                      background: "var(--surface)",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    ตอบ
+                  </button>
+                  <button
+                    onClick={() =>
+                      startTransition(() => archiveFeedback(fb.id))
+                    }
+                    style={{
+                      ...A.btnSmall,
+                      background: "var(--surface)",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    เก็บ
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "12px 18px",
+              borderTop: "1px solid var(--hairline)",
+              fontSize: 12,
+              color: "var(--ink-3)",
+            }}
+          >
+            <span>
+              หน้า {page + 1} / {totalPages}
+            </span>
+            <div style={{ display: "flex", gap: 4 }}>
+              <button
+                onClick={() =>
+                  router.push(`/admin/feedback?page=${page - 1}`)
+                }
+                disabled={page === 0}
+                style={{
+                  ...A.btnSmall,
+                  background: "var(--surface)",
+                  opacity: page === 0 ? 0.4 : 1,
+                }}
+              >
+                ก่อนหน้า
+              </button>
+              <button
+                onClick={() =>
+                  router.push(`/admin/feedback?page=${page + 1}`)
+                }
+                disabled={page + 1 >= totalPages}
+                style={{
+                  ...A.btnSmall,
+                  background: "var(--surface)",
+                  opacity: page + 1 >= totalPages ? 0.4 : 1,
+                }}
+              >
+                ถัดไป
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
