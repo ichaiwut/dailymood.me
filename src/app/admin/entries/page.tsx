@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/admin-auth";
 import { getDb } from "@/lib/cf";
 import { moodEntries, users, moodTypes } from "@/db/schema";
-import { sql, eq, desc, gte, and } from "drizzle-orm";
+import { sql, eq, desc, gte, and, ne } from "drizzle-orm";
 import { EntriesShell } from "@/components/admin/entries-shell";
 import { ymdICT, todayICT } from "@/lib/timezone";
 
@@ -26,7 +26,12 @@ export default async function AdminEntriesPage({
   const d7 = daysAgo(7);
   const d30 = daysAgo(30);
 
-  const where = userId ? eq(moodEntries.userId, userId) : undefined;
+  const EXCLUDED_EMAILS = ["ichaiwut.s@gmail.com"];
+
+  const excludeCond = sql`${moodEntries.userId} NOT IN (SELECT id FROM users WHERE email = ANY(${EXCLUDED_EMAILS}))`;
+  const where = userId
+    ? and(eq(moodEntries.userId, userId), excludeCond)
+    : excludeCond;
 
   const [
     rows,
@@ -73,19 +78,19 @@ export default async function AdminEntriesPage({
     db
       .select({ entriesToday: sql<number>`count(*)` })
       .from(moodEntries)
-      .where(eq(moodEntries.date, today)),
+      .where(and(eq(moodEntries.date, today), excludeCond)),
     db
       .select({ entriesYesterday: sql<number>`count(*)` })
       .from(moodEntries)
-      .where(eq(moodEntries.date, yesterday)),
+      .where(and(eq(moodEntries.date, yesterday), excludeCond)),
     db
       .select({ entries7d: sql<number>`count(*)` })
       .from(moodEntries)
-      .where(gte(moodEntries.date, d7)),
+      .where(and(gte(moodEntries.date, d7), excludeCond)),
     db
       .select({ entries30d: sql<number>`count(*)` })
       .from(moodEntries)
-      .where(gte(moodEntries.date, d30)),
+      .where(and(gte(moodEntries.date, d30), excludeCond)),
     db
       .select({ withImage7d: sql<number>`count(*)` })
       .from(moodEntries)
@@ -93,6 +98,7 @@ export default async function AdminEntriesPage({
         and(
           gte(moodEntries.date, d7),
           sql`${moodEntries.imageKey} IS NOT NULL`,
+          excludeCond,
         ),
       ),
     db
@@ -104,6 +110,7 @@ export default async function AdminEntriesPage({
         and(
           gte(moodEntries.date, d30),
           sql`${moodEntries.aiSource} != 'manual'`,
+          excludeCond,
         ),
       ),
     db
@@ -116,7 +123,7 @@ export default async function AdminEntriesPage({
       })
       .from(moodEntries)
       .leftJoin(moodTypes, eq(moodEntries.moodTypeId, moodTypes.id))
-      .where(gte(moodEntries.date, d30))
+      .where(and(gte(moodEntries.date, d30), excludeCond))
       .groupBy(moodTypes.emoji, moodTypes.label, moodTypes.labelTh, moodTypes.color)
       .orderBy(desc(sql`count(*)`)),
   ]);
