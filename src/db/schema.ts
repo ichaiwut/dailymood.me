@@ -173,6 +173,22 @@ export const rateLimits = pgTable("rate_limits", {
   resetAt: timestamp("reset_at").notNull(),
 });
 
+// Guest mood analyses from the public landing page. A guest analyzes their mood
+// without an account; the result is parked here keyed by an opaque token. After
+// they log in, the token is redeemed (see /api/guest/claim) to create their first
+// real mood_entries row, then the row is marked claimed. Rows are short-lived.
+export const guestEntries = pgTable("guest_entries", {
+  token: text("token").primaryKey(),
+  moodTypeId: text("mood_type_id").notNull(),
+  note: text("note"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  sentiment: real("sentiment"),
+  aiSummary: text("ai_summary"),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  expiresAt: timestamp("expires_at").notNull(),
+  claimedAt: timestamp("claimed_at"),
+});
+
 export const yearAiCache = pgTable("year_ai_cache", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   year: text("year").notNull(),

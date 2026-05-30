@@ -33,6 +33,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` — build for production
 - `npm run lint` — run ESLint
 
+## Database migrations (PostgreSQL + Drizzle)
+
+The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tracked by Drizzle in a `__drizzle_migrations` table.
+
+- **Edit schema** → `src/db/schema.ts`
+- **Generate a migration** → `npm run db:generate` (writes the next `drizzle-pg/NNNN_*.sql` + journal entry; does not touch the DB)
+- **Apply migrations:**
+  - `npm run db:migrate:pg` — applies pending migrations using the **ambient** `DATABASE_URL`. Use this in **prod / CI / Railway**, where the env var is already injected.
+  - `npm run db:migrate:pg:local` — same, but loads `.env.local` first (via Node `--env-file`). Use this for **local dev**.
+
+> ⚠️ **Do NOT use `db:migrate:local` / `db:migrate:prod` / `db:seed:*`** for Postgres — those are stale `wrangler d1 …` scripts left over from the old Cloudflare D1 setup and target a database that no longer exists.
+
+> ⚠️ **`push` vs `migrate` don't mix on the same DB.** `drizzle-kit push` syncs the schema directly without recording a migration row, so a later `db:migrate:pg` will fail with *"relation … already exists"*. On a clean DB (prod) always use `db:migrate:pg`. If you used `push` locally, keep using `push` (or drop the affected tables and re-migrate).
+
 ## Important Rules
 
 - **UX Copy** — ข้อความทุกจุดที่ user เห็น (placeholder, label, button, error, toast) ต้องเขียนเป็นภาษามนุษย์ที่อ่านเข้าใจง่าย ห้ามใช้คำเทคนิค (เช่น tags, sentiment, NLP, Gemini, rate_limited) ตรงๆ ใน UI
@@ -92,3 +106,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Credentials ใน env (Railway เท่านั้น, ไม่ใส่ใน local `.env`): `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`
 - Helper: `notifyAdmin(message)` ใน `src/lib/line.ts` — fire-and-forget, ไม่กระทบ flow หลัก
 - ถ้าไม่มี env vars → `notifyAdmin` return ทันที (local dev ไม่ส่ง LINE)
+
+## Guest landing handoff (`/api/guest/*`)
+
+- **`/api/guest/analyze`** — public, unauthenticated, cross-origin (CORS allowlist = `dailymood.me`). เรียก Gemini + เขียน `guest_entries` แถวนึงต่อ request → **rate limit คือ defense เดียว** (3/ชม. + 10/วัน ต่อ IP).
+- **IP rate-limit bypass guard** — `clientIp()` เชื่อ `cf-connecting-ip`/`x-forwarded-for` ซึ่งปลอมได้ถ้ายิงตรงเข้า origin (ข้าม Cloudflare). ตั้ง env **`CF_ORIGIN_SECRET`** (Railway prod) แล้วเพิ่ม Cloudflare Transform Rule ให้ inject header `x-cf-origin-secret: <ค่าเดียวกัน>` ทุก request → origin reject request ที่ไม่มี header (403). ถ้าไม่ตั้ง env (local dev) → check ถูก skip.
+- **Cleanup** — ไม่มี cron; `/api/guest/analyze` ลบแถวที่ `expires_at` หมดอายุแบบ opportunistic ทุกครั้งที่ถูกเรียก.
+- **`/api/guest/claim`** — same-origin, ต้อง login. Redeem token เป็น mood entry **แรก** ของ user เท่านั้น (ถ้ามี entry อยู่แล้ว → consume token เฉยๆ ไม่ insert ซ้ำ).

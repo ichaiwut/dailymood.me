@@ -20,35 +20,24 @@ export async function rateLimit(opts: {
   const now = new Date();
   const resetAt = new Date(now.getTime() + opts.windowSec * 1000);
 
-  const [existing] = await db
-    .select({ count: rateLimits.count, resetAt: rateLimits.resetAt })
-    .from(rateLimits)
-    .where(sql`${rateLimits.key} = ${opts.key}`)
-    .limit(1);
+  // Single atomic upsert — increment within the live window, or reset the window
+  // if it has expired. Doing this in one statement (rather than read-then-write)
+  // closes the race where concurrent requests both read the same count and each
+  // write count+1, letting a burst slip past the limit.
+  const [row] = await db
+    .insert(rateLimits)
+    .values({ key: opts.key, count: 1, resetAt })
+    .onConflictDoUpdate({
+      target: rateLimits.key,
+      set: {
+        count: sql`case when ${rateLimits.resetAt} < ${now} then 1 else ${rateLimits.count} + 1 end`,
+        resetAt: sql`case when ${rateLimits.resetAt} < ${now} then ${resetAt} else ${rateLimits.resetAt} end`,
+      },
+    })
+    .returning({ count: rateLimits.count, resetAt: rateLimits.resetAt });
 
-  if (!existing) {
-    await db.insert(rateLimits).values({ key: opts.key, count: 1, resetAt });
-    return { ok: true };
-  }
-
-  const windowExpired = existing.resetAt < now;
-
-  if (windowExpired) {
-    await db
-      .update(rateLimits)
-      .set({ count: 1, resetAt })
-      .where(sql`${rateLimits.key} = ${opts.key}`);
-    return { ok: true };
-  }
-
-  const newCount = existing.count + 1;
-  await db
-    .update(rateLimits)
-    .set({ count: newCount })
-    .where(sql`${rateLimits.key} = ${opts.key}`);
-
-  if (newCount > opts.limit) {
-    const retryAfterSec = Math.max(1, Math.ceil((existing.resetAt.getTime() - now.getTime()) / 1000));
+  if (row.count > opts.limit) {
+    const retryAfterSec = Math.max(1, Math.ceil((row.resetAt.getTime() - now.getTime()) / 1000));
     return { ok: false, retryAfterSec };
   }
 

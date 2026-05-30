@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { trackLogin, trackSignUp } from "@/lib/analytics";
+import { GUEST_TOKEN_COOKIE } from "@/components/guest-entry-claim";
 
 type Step =
   | { kind: "landing" }
@@ -20,6 +21,22 @@ export function LoginForm() {
   const [step, setStep] = useState<Step>({ kind: "landing" });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Landing-page handoff: if we arrived with ?guestEntry=<token>, park it in a
+  // same-origin cookie so it survives the Google OAuth round-trip and the
+  // post-login redirects. GuestEntryClaim redeems it once the session exists.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get("guestEntry");
+    if (token) {
+      const secure = window.location.protocol === "https:" ? "; secure" : "";
+      document.cookie = `${GUEST_TOKEN_COOKIE}=${encodeURIComponent(token)}; max-age=7200; path=/; samesite=lax${secure}`;
+      // Strip the token from the visible URL so it doesn't linger in browser
+      // history or leak via the Referer header on the OAuth round-trip.
+      url.searchParams.delete("guestEntry");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   function reset() {
     setStep({ kind: "landing" });

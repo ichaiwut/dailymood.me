@@ -5,6 +5,7 @@ import { TopBar } from "@/components/topbar";
 import { BottomNav } from "@/components/bottom-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import { GuestEntryClaim } from "@/components/guest-entry-claim";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -27,6 +28,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <ThemeProvider>
+        <GuestEntryClaim loggedIn={isLoggedIn} />
         {showChrome ? (
           <>
             <TopBar />

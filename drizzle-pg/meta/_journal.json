@@ -78,6 +78,13 @@
       "when": 1779928367581,
       "tag": "0010_tranquil_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780127607197,
+      "tag": "0011_guest_entries",
+      "breakpoints": true
     }
   ]
 }
