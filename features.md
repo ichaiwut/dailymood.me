@@ -59,7 +59,7 @@
 #### Smart Logging (AI)
 - [x] Smart Log Modal — text + voice + image
 - [x] AI NLP Tagging (Gemini) — auto-extract mood + tags + sentiment + AI summary
-- [x] AI Summary — Gemini generates 1-3 sentence Thai summary with **bold** key phrases; saved to `mood_entries.ai_summary`; entries without summary show teaser fallback
+- [x] AI Summary — Gemini generates a Thai summary with **bold** key phrases; length scales with input (min 2-3 sentences even for very short notes — expanded via gentle reflection, not invented events — up to ~7 sentences / 800 output tokens for long notes); saved to `mood_entries.ai_summary`; also powers the guest landing "try the AI" card; entries without summary show teaser fallback
 - [x] AI Vision (Premium) — extract context tags from photo
 - [x] Voice input — Web Speech API (TH/EN)
 - [x] Confirm flow — user แก้/ยืนยัน suggestion ก่อน save

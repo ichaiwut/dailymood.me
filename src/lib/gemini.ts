@@ -36,7 +36,7 @@ const NLP_PROMPT = `Mood journal analyzer. Input: TH/EN text. Output JSON.
 suggestedMoodId: best enum match, default "neutral".
 sentiment: -1..1.
 tags: 3-8 lowercase keywords (activities/people/places/feelings).
-summary: 1-2 ประโยค ภาษาไทย อบอุ่น ใช้**ตัวหนา**วลีสำคัญ 1-2 จุด ห้ามขึ้นต้น"สรุปว่า" ห้ามใช้ครับ/ค่ะ/คะ — โทนเป็นกลาง`;
+summary: ภาษาไทย โทนอบอุ่นเป็นกลาง ไม่ตัดสิน ไม่สั่งสอน ไม่แนะนำให้ทำอะไร ใช้**ตัวหนา**เน้นวลีสำคัญ 1-3 จุด ห้ามขึ้นต้นด้วย"สรุปว่า" ห้ามใช้ครับ/ค่ะ/คะ. ต้องยาวอย่างน้อย 2-3 ประโยคเสมอ แม้ข้อความจะสั้นมาก โดยขยายด้วยการสะท้อนและรับรู้ความรู้สึกอย่างอ่อนโยน (ไม่ใช่การเพิ่มเหตุการณ์หรือรายละเอียดที่ผู้เขียนไม่ได้บอก); ถ้าข้อความยาวหรือมีหลายเรื่อง ให้สรุปยาวขึ้นครอบคลุมประเด็นหลักตามลำดับ (ไม่เกินราว 7 ประโยค). ห้ามแต่งเหตุการณ์ที่ผู้เขียนไม่ได้บอก`;
 
 interface ActivityOption {
   id: string;
@@ -64,13 +64,17 @@ export async function analyzeText(text: string, activityOptions?: ActivityOption
       responseMimeType: "application/json",
       responseSchema: schema,
       temperature: 0.4,
-      maxOutputTokens: 256,
+      // Summary scales with input length (min 2-3 sentences, longer for longer
+      // notes) — give it room. Output is summary + tags + a few scalar fields.
+      maxOutputTokens: 800,
       // @ts-expect-error -- thinkingConfig not yet in SDK types
       thinkingConfig: { thinkingBudget: 0 },
     },
     systemInstruction: NLP_PROMPT + activityLine,
   });
-  const r = await model.generateContent(text.slice(0, 500));
+  // Let the model see the full note (stored notes cap at 2000) so a long entry
+  // can produce a correspondingly longer summary.
+  const r = await model.generateContent(text.slice(0, 2000));
   return JSON.parse(r.response.text()) as NlpResult;
 }
 
