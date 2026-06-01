@@ -52,11 +52,21 @@ const NLP_SCHEMA_WITH_ACTIVITY: Schema = {
   required: ["suggestedMoodId", "sentiment", "tags", "summary"],
 };
 
-export async function analyzeText(text: string, activityOptions?: ActivityOption[]): Promise<NlpResult> {
+export async function analyzeText(
+  text: string,
+  activityOptions?: ActivityOption[],
+  moodHint?: string,
+): Promise<NlpResult> {
   const hasActivities = activityOptions && activityOptions.length > 0;
   const schema = hasActivities ? NLP_SCHEMA_WITH_ACTIVITY : NLP_SCHEMA;
   const activityLine = hasActivities
     ? `\nsuggestedActivityId: pick the best activity from: ${activityOptions.map((a) => `"${a.id}"=${a.label}`).join(", ")}. If none match, omit field.`
+    : "";
+  // The guest landing widget lets the user tap their own mood before analyzing.
+  // When they do, that pick is authoritative: echo it as suggestedMoodId and
+  // keep the summary consistent with it (tags/sentiment still come from the text).
+  const moodLine = moodHint
+    ? `\nThe user explicitly chose their mood as "${moodHint}". Set suggestedMoodId to "${moodHint}" and write the summary consistent with that feeling.`
     : "";
   const model = genAI.getGenerativeModel({
     model: MODEL,
@@ -70,7 +80,7 @@ export async function analyzeText(text: string, activityOptions?: ActivityOption
       // @ts-expect-error -- thinkingConfig not yet in SDK types
       thinkingConfig: { thinkingBudget: 0 },
     },
-    systemInstruction: NLP_PROMPT + activityLine,
+    systemInstruction: NLP_PROMPT + activityLine + moodLine,
   });
   // Let the model see the full note (stored notes cap at 2000) so a long entry
   // can produce a correspondingly longer summary.

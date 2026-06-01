@@ -3,12 +3,37 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/lib/cf";
 import { rateLimits } from "@/db/schema";
 
+// Collapse an IPv6 address to its /64 network prefix (first 4 hextets), expanding
+// any "::" run first. ISPs hand a single customer a whole /64 (or larger), so a
+// per-address limit lets them rotate through billions of IPs for free; keying on
+// the /64 applies the limit per-allocation instead.
+function ipv6Prefix64(addr: string): string {
+  const dbl = addr.indexOf("::");
+  let groups: string[];
+  if (dbl >= 0) {
+    const left = addr.slice(0, dbl).split(":").filter(Boolean);
+    const right = addr.slice(dbl + 2).split(":").filter(Boolean);
+    const fill = Math.max(0, 8 - left.length - right.length);
+    groups = [...left, ...Array(fill).fill("0"), ...right];
+  } else {
+    groups = addr.split(":");
+  }
+  return groups.slice(0, 4).map((g) => g || "0").join(":") + "::/64";
+}
+
 export function clientIp(req: NextRequest): string {
+  let ip = "unknown";
   const cf = req.headers.get("cf-connecting-ip");
-  if (cf) return cf;
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0].trim();
-  return "unknown";
+  if (cf) ip = cf;
+  else {
+    const xff = req.headers.get("x-forwarded-for");
+    if (xff) ip = xff.split(",")[0].trim();
+  }
+  if (ip === "unknown") return ip;
+  ip = ip.replace(/^\[|\]$/g, "").split("%")[0]; // strip [brackets] and %zone-id
+  if (!ip.includes(":")) return ip; // IPv4 → as-is
+  if (ip.includes(".")) return ip.split(":").pop() || ip; // IPv4-mapped (::ffff:1.2.3.4) → the v4 part
+  return ipv6Prefix64(ip); // true IPv6 → /64 bucket
 }
 
 export async function rateLimit(opts: {
