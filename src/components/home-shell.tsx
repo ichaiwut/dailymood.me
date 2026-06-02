@@ -465,6 +465,20 @@ export function HomeShell({
             </div>
           )}
 
+          {/* AI summary (after AI result) — was previously not surfaced here even
+              though it's captured and saved; the SmartLogModal shows it too. */}
+          {composerSuggestion && !composerAnalyzing && composerSuggestion.aiSummary && (
+            <div className="mt-2 fade-in" style={{ padding: "12px 14px", borderRadius: 14, background: "var(--surface-2)" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.03em", marginBottom: 6 }}>
+                {locale === "th" ? "สรุป" : "Summary"}
+              </div>
+              <div
+                style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink)" }}
+                dangerouslySetInnerHTML={{ __html: composerSuggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }}
+              />
+            </div>
+          )}
+
           {/* Activity picker */}
           {!composerAnalyzing && (
             <div style={{ marginTop: 10 }}>
