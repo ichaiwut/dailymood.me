@@ -108,6 +108,8 @@
 - [ ] AI Suggestions
 - [x] Weekly Digest Email (Premium) — ทุกวันจันทร์ 08:00 ICT ส่ง email สรุปสัปดาห์ ผ่าน Resend. ใช้ insights cache (reuse ถ้ามี, generate ใหม่ถ้าไม่มี). เนื้อหา: headline, summary, avg mood/streak/entries stats, patterns (3 อัน), suggestion card. Toggle on/off ผ่าน Insights page (`weeklyDigestEnabled` column). Cron: `/api/cron/weekly-digest`, registered ใน `cron-scheduler.ts` (Monday UTC day=1, hour=1)
 - [x] Email Template Branding — shared `email-parts.ts` ใช้ร่วมกันทุก email template (AI Coach + Weekly Digest). Header: `icon.png` logo + "DailyMood" bold. Footer: unsubscribe link "ไม่ต้องการรับอีก? ปิดได้ที่หน้า Insights"
+- [x] Trial Promo Email (Marketing) — one-off campaign นัดให้ user ที่ **ยังไม่ใช่ Pro และยังไม่เคยเปิด trial** มาเปิดใช้ trial 14 วัน. Segment: `is_premium = false AND trial_activated_at IS NULL AND marketing_opt_out = false AND trial_promo_sent_at IS NULL AND email_verified IS NOT NULL`. รูป hero เป็น JPEG (ไม่ใช่ WebP — Outlook ไม่รองรับ WebP ใน email) เก็บที่ R2 `promo/trial-14d.jpg`, copy localize TH/EN ตาม `locale`, CTA → `/profile/subscription`. ส่งผ่าน one-off script `scripts/send-trial-promo.ts` (มี DRY_RUN + TEST_TO mode), idempotent ด้วยคอลัมน์ `trial_promo_sent_at`. Template: `src/lib/promo-email.ts`. รูปอัปโหลดด้วย `scripts/upload-promo-image.ts`
+- [x] Marketing Unsubscribe — one-click opt-out (RFC 8058) สำหรับ marketing email. Token เป็น HMAC ของ userId (stateless, ไม่เก็บ DB) ใน `src/lib/email-unsub.ts` ใช้ env `UNSUBSCRIBE_SECRET` (fallback `AUTH_SECRET`/`NEXTAUTH_SECRET`). Route `/api/unsubscribe` (GET = หน้า confirm TH/EN, POST = one-click จาก Gmail/Yahoo) → ตั้ง `marketing_opt_out = true`. ทุก marketing email แนบ header `List-Unsubscribe` + `List-Unsubscribe-Post`
 - [ ] AI Chatbot
 
 #### Social & Sharing
@@ -158,6 +160,7 @@
 | POST | `/api/auth/resend-verify` | — | Re-issue verify token (rate-limited 3/hr/IP, silent on unknown email) |
 | POST | `/api/auth/forgot` | — | Send reset link (rate-limited 5/hr/IP, silent on unknown email) |
 | POST | `/api/auth/reset` | — | Set new password via reset token, auto-verifies email |
+| GET/POST | `/api/unsubscribe` | — | One-click marketing opt-out (HMAC token `?u=&sig=`) → `marketing_opt_out = true`. GET shows TH/EN confirm page; POST is RFC 8058 one-click |
 | POST | `/api/log/smart` | auth | Multipart text/image → Gemini → suggestion (no DB write) |
 | POST | `/api/log/confirm` | auth | Save final entry to D1 |
 | GET | `/api/log` | auth | List user entries (date filter, signed image URLs) |
@@ -230,4 +233,4 @@ npm run build
 git push origin master
 ```
 
-Required env (Railway): `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `R2_ACCOUNT_ID`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `RESEND_API_KEY`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `ADMIN_EMAIL`, `CRON_SECRET`, `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`.
+Required env (Railway): `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `R2_ACCOUNT_ID`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `RESEND_API_KEY`, `GEMINI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `ADMIN_EMAIL`, `CRON_SECRET`, `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_USER_ID`, `UNSUBSCRIBE_SECRET` (HMAC key สำหรับ one-click unsubscribe ของ marketing email — fallback ไปใช้ `AUTH_SECRET`/`NEXTAUTH_SECRET` ถ้าไม่ตั้ง).

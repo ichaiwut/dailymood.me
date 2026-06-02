@@ -78,6 +78,13 @@ The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tra
 - API key อยู่ใน `.env` (`RESEND_API_KEY`)
 - `from` = `Dailymood <hello@dailymood.me>` (ต้อง verify domain `dailymood.me` ใน Resend)
 - Auth emails (verify / reset) ใช้ template ใน `src/lib/auth-email.ts` (TH + EN)
+- **Email images ใช้ JPEG/PNG ไม่ใช่ WebP** — ต่างจาก app uploads (กฎ "always WebP" ใน Important Rules) เพราะ **Outlook/Windows desktop mail client ไม่ render WebP**. รูปใน email ต้องเป็น JPEG/PNG เสมอ
+
+## Marketing emails
+
+- **Segment** — campaign promotional ยิงไปที่ user ตาม Drizzle query ตรงๆ (ไม่มี marketing opt-in column แยก) แต่ **ต้อง** filter `marketing_opt_out = false` เสมอ. ตัวอย่าง trial-promo: `is_premium = false AND trial_activated_at IS NULL AND marketing_opt_out = false AND trial_promo_sent_at IS NULL AND email_verified IS NOT NULL`.
+- **Unsubscribe (บังคับสำหรับ marketing email)** — `src/lib/email-unsub.ts` sign userId เป็น HMAC token (stateless, env `UNSUBSCRIBE_SECRET`, fallback `AUTH_SECRET`/`NEXTAUTH_SECRET`). Route `/api/unsubscribe` (GET = confirm page, POST = one-click) ตั้ง `marketing_opt_out = true`. ทุก send ต้องแนบ header `List-Unsubscribe: <url>` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058 — Gmail/Yahoo bulk requirement).
+- **Trial promo campaign** — template `src/lib/promo-email.ts` (localize TH/EN, image Thai-only ที่ R2 `promo/trial-14d.jpg`). ส่งด้วย one-off script `scripts/send-trial-promo.ts` (self-contained: raw `pg` + Resend, import เฉพาะ pure modules ผ่าน relative path — ไม่ใช้ `@/` alias). Mode: `DRY_RUN=1` (นับ + sample), `TEST_TO=<email>` (ส่งทดสอบ 1 ฉบับ), default = blast จริง. Idempotent ผ่านคอลัมน์ `trial_promo_sent_at`. รูปอัปโหลดก่อนด้วย `scripts/upload-promo-image.ts`. ยิง prod ให้ export prod `DATABASE_URL` ก่อนรัน.
 
 ## Auth
 

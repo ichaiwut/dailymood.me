@@ -20,6 +20,8 @@ export const users = pgTable("users", {
   trialActivatedAt: timestamp("trial_activated_at"),
   trialEndsAt: timestamp("trial_ends_at"),
   welcomeShownAt: timestamp("welcome_shown_at"),
+  marketingOptOut: boolean("marketing_opt_out").notNull().default(false),
+  trialPromoSentAt: timestamp("trial_promo_sent_at"),
   bio: text("bio"),
   accentColor: text("accent_color"),
   hidePreview: boolean("hide_preview").notNull().default(false),
