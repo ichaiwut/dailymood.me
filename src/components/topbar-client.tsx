@@ -38,6 +38,8 @@ export function TopBarClient({
   const locale = useLocale();
   const pathname = usePathname();
   const initials = getInitials(name);
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark" || (theme === "auto" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSmart, setShowSmart] = useState(false);
@@ -93,6 +95,7 @@ export function TopBarClient({
             >
               + {t("navLog") || "บันทึก"}
             </button>
+            <ThemeToggle isDark={isDark} onToggle={() => setTheme(isDark ? "light" : "dark")} />
             <LanguageToggle locale={locale} />
             <div ref={desktopMenuRef} style={{ position: "relative" }}>
               <button

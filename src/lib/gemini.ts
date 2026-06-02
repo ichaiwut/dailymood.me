@@ -808,7 +808,8 @@ Generate ONE short journaling prompt (placeholder text) in the user's locale (th
 Rules:
 - th: ≤25 คำ ภาษาพูดเบาๆ ลงท้ายด้วย "..."
 - en: ≤15 words, conversational, ends with "..."
-- ห้ามขึ้นต้นด้วย "เล่า" หรือ "บอก" | Never start with "Tell me" or "Share"
+- ห้ามใช้คำว่า "เล่า" หรือ "บอก" ในทุกตำแหน่งของประโยค (รวมท้ายประโยค เช่น "ลองเล่าให้ฟัง") | Never use "tell"/"share" anywhere, not just at the start
+- เลี่ยงคำลงท้าย "นะ" | Avoid the trailing particle "นะ"
 - เปิดกว้าง ไม่กดดัน | Open-ended, gentle, no pressure
 - ถ้า recentTags มีอะไรน่าสนใจ ให้ reference ได้ | Weave in a recent tag if natural
 - โทน: เพื่อนถามเบาๆ | Tone: like a friend asking softly

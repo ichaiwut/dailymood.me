@@ -409,6 +409,48 @@ export function SmartLogModal({
           ) : (
             /* ══ NORMAL FORM ══ */
             <>
+              {/* Selected mood — surfaced at the top so the user can see the mood
+                  they picked on the home page carried over (and change it before
+                  writing). Hidden once an AI suggestion is shown, which has its
+                  own mood picker. */}
+              {!suggestion && (
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)", marginBottom: 10 }}>
+                    {locale === "th" ? "อารมณ์ของคุณ" : "Your mood"}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="no-scrollbar">
+                    {allMoods.map((m) => {
+                      const active = m.id === moodId;
+                      const label = locale === "th" ? (m.labelTh ?? m.label) : m.label;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setMoodId(m.id)}
+                          aria-pressed={active}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "10px 8px",
+                            minWidth: 68,
+                            flexShrink: 0,
+                            borderRadius: 14,
+                            background: active ? "var(--surface)" : "var(--surface-2)",
+                            border: active ? "2px solid var(--ink)" : "1px solid var(--hairline)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <img src={iconSrc(m)} alt="" width={34} height={34} style={{ display: "block", pointerEvents: "none" }} />
+                          <span style={{ fontSize: 14, fontWeight: active ? 700 : 600, color: active ? "var(--ink)" : "var(--ink-2)", whiteSpace: "nowrap" }}>{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Textarea */}
               <textarea
                 value={text}
