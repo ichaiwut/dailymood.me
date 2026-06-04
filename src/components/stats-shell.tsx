@@ -10,6 +10,8 @@ import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import type { Tier } from "@/lib/tier";
 import type { ChartAnnotation, SpecialDay } from "@/db/schema";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { ShareCardModal } from "./share-card-modal";
+import type { ShareCardData } from "./share-card";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -445,6 +447,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
   const [yearBlocked, setYearBlocked] = useState(false);
   const [insight, setInsight] = useState<{ headline: string; summary: string; locked?: boolean } | null>(null);
   const [specialDays, setSpecialDays] = useState<SpecialDay[]>([]);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     trackStatsView(period);
@@ -500,6 +503,18 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
   const bestDay = stats?.bestDay;
   const activityImpact = stats?.activityImpact ?? [];
 
+  const canShare = !!stats && (stats.total ?? 0) >= MIN_ENTRIES;
+  const shareData: ShareCardData = {
+    streak: stats?.streak ?? 0,
+    total: stats?.total ?? 0,
+    distribution,
+    topMoodId:
+      Object.entries(distribution)
+        .filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1])[0]?.[0] ?? stats?.todayMood?.moodId ?? null,
+    avgScore: avgScore ?? null,
+  };
+
   const avgEmoji = avgScore != null ? scoreToEmoji(avgScore) : "";
   const bestDayName = bestDay
     ? new Date(bestDay.date).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long" })
@@ -524,6 +539,29 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
       <section className="mb-5 fade-in" style={{ paddingTop: 8 }}>
         <div className="flex items-center justify-between stats-header">
           <h1 style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.02em" }}>{t("title")}</h1>
+          <div className="flex items-center gap-2">
+          {canShare && (
+            <button
+              onClick={() => setShareOpen(true)}
+              aria-label={locale === "th" ? "แชร์การ์ดอารมณ์" : "Share mood card"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                fontSize: 14,
+                fontWeight: 700,
+                borderRadius: 12,
+                border: "none",
+                cursor: "pointer",
+                background: "var(--primary-bg, rgba(166,115,241,0.12))",
+                color: "#A673F1",
+              }}
+            >
+              <span aria-hidden>📤</span>
+              <span>{locale === "th" ? "แชร์" : "Share"}</span>
+            </button>
+          )}
           <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 12, padding: 3, gap: 2 }}>
             {PERIODS.map((p) => (
               <button
@@ -552,6 +590,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                 {t(p)}
               </button>
             ))}
+          </div>
           </div>
         </div>
         {yearBlocked && (
@@ -916,6 +955,13 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
 
         </>
       )}
+
+      <ShareCardModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        data={shareData}
+        locale={locale}
+      />
     </>
   );
 }

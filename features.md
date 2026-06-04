@@ -113,7 +113,7 @@
 - [ ] AI Chatbot
 
 #### Social & Sharing
-- [ ] Share Card
+- [x] Social Share Cards — ปุ่ม "แชร์ 📤" บนหน้า Stats (`/stats`) เปิด `ShareCardModal` ให้สร้างรูปการ์ดอารมณ์ขนาด 1200×630 (Open Graph ratio) ไปแชร์ลง X/IG. **2 templates:** `Streak` (🔥 จำนวนวันต่อเนื่อง) + `Mood Mix` (สัดส่วนอารมณ์ + อารมณ์หลัก %). เลือกธีม Light/Dark. Actions: แชร์ (Web Share API native sheet → X/IG app), บันทึกรูป (download PNG), คัดลอกรูป (clipboard). **Render ฝั่ง browser** ด้วย `html-to-image` (`toBlob`) — ไม่ใช้ `next/og`/Satori เพราะ Satori วางวรรณยุกต์ไทยผิด (ตก ◌่/◌้ บนสระบน เช่น หนึ่ง→หนึง); เบราว์เซอร์ shape ไทย+emoji ถูกต้อง 100%. การ์ดใช้สี HEX ตรงจาก `DEFAULT_MOODS` (ไม่พึ่ง CSS var/theme) จึงหน้าตาเหมือนกันทุกธีม. **ฟรีทุก tier** (เป็น growth tool — watermark "DailyMood · dailymood.me" ดึงคนใหม่). **No PII** — แสดงแค่ภาพรวมอารมณ์/streak ไม่มี note/tag/ชื่อ. ปุ่มแชร์โผล่เมื่อมี ≥7 entries. Components: `src/components/share-card.tsx`, `src/components/share-card-modal.tsx`. ยังไม่ทำ: share-link `/s/[shareId]` + OG-meta auto-unfurl (phase 2, ต้องใช้ headless browser ฝั่ง server เพราะ Satori ใช้ไม่ได้กับไทย), template "Highlight Entry" (มี note → ต้องมี blur logic)
 
 #### Account & Payment
 - [x] User Auth — Google + email/password (NextAuth.js + Credentials provider)
