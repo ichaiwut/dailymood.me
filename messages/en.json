@@ -701,6 +701,9 @@
   "articles": {
     "eyebrow": "Articles · Updated weekly",
     "pageTitle": "Read a little — take care of your mind",
+    "titlePre": "Read a little — ",
+    "titleMark": "take care",
+    "titlePost": " of your mind",
     "pageSubtitle": "Short mental health tips from psychologists and the DailyMood team · 5-min reads",
     "allCategories": "All",
     "search": "Search",

@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
       excerptEn: articles.excerptEn,
       coverImageKey: articles.coverImageKey,
       categoryId: articles.categoryId,
+      tone: articles.tone,
       readingTimeMinutes: articles.readingTimeMinutes,
       publishedAt: articles.publishedAt,
     })
