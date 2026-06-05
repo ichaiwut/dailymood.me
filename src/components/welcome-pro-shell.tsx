@@ -35,13 +35,14 @@ export function WelcomeProShell({ source }: { source: "trial" | "stripe" }) {
         : "All features unlocked. Enjoy the full experience.");
 
   return (
-    <div className="fade-in" style={{ textAlign: "center", padding: "60px 20px 80px", maxWidth: 480, margin: "0 auto" }}>
+    <div className="pa-wrap fade-in" style={{ textAlign: "center", padding: "60px 20px 80px", maxWidth: 480, margin: "0 auto" }}>
       {/* Icon */}
       <div style={{
         width: 80, height: 80, borderRadius: 24, margin: "0 auto 24px",
         background: "linear-gradient(135deg, #FCA45B 0%, #FBA0A0 50%, #A673F1 100%)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 36,
+        boxShadow: "0 18px 36px -14px rgba(166,115,241,.55)",
       }}>
         ✨
       </div>
@@ -55,11 +56,12 @@ export function WelcomeProShell({ source }: { source: "trial" | "stripe" }) {
       </p>
 
       {/* Feature checklist */}
-      <div style={{
-        background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 20,
-        padding: "20px 24px", textAlign: "left", marginBottom: 32,
+      <div className="pa-sheet" style={{
+        borderRadius: 18, padding: "20px 24px", textAlign: "left", marginBottom: 32,
+        position: "relative",
       }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 14 }}>
+        <span className="pa-washi mint" aria-hidden style={{ width: 78 }} />
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)", marginBottom: 14, marginTop: 6 }}>
           {isTh ? "ปลดล็อกแล้ว" : "Unlocked"}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -73,7 +75,7 @@ export function WelcomeProShell({ source }: { source: "trial" | "stripe" }) {
                   <path d="M5 13l4 4L19 7" stroke="#4CAF50" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: "var(--w-ink)" }}>
                 {f.emoji} {f.label}
               </span>
             </div>
@@ -82,17 +84,7 @@ export function WelcomeProShell({ source }: { source: "trial" | "stripe" }) {
       </div>
 
       {/* CTA */}
-      <button
-        type="button"
-        onClick={() => router.push("/" as "/")}
-        style={{
-          padding: "16px 36px", borderRadius: 20,
-          border: "none",
-          background: "#FCA45B",
-          color: "#fff", fontSize: 16, fontWeight: 800,
-          cursor: "pointer",
-        }}
-      >
+      <button type="button" onClick={() => router.push("/" as "/")} className="pa-btn" style={{ height: 52, padding: "0 36px" }}>
         {isTh ? "เริ่มสำรวจฟีเจอร์ →" : "Explore features →"}
       </button>
     </div>

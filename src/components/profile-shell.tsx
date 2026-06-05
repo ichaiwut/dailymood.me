@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { trackExportData, trackUpgradeClick, trackFeatureUse } from "@/lib/analytics";
 import { signOut } from "next-auth/react";
+import { PAClip } from "./paper";
 import { CustomMoodManager } from "./custom-mood-manager";
 import { PersonalEventsManager } from "./personal-events-manager";
 import { useTheme } from "./theme-provider";
@@ -165,9 +166,9 @@ export function ProfileShell() {
   if (loading) {
     return (
       <div className="fade-in" style={{ padding: "24px 0" }}>
-        <div style={{ height: 220, borderRadius: 28, background: "var(--surface-2)", marginBottom: 16 }} className="skeleton-pulse" />
-        <div style={{ height: 140, borderRadius: 22, background: "var(--surface)", marginBottom: 16 }} className="skeleton-pulse" />
-        <div style={{ height: 200, borderRadius: 22, background: "var(--surface)", marginBottom: 16 }} className="skeleton-pulse" />
+        <div style={{ height: 220, borderRadius: 18, background: "var(--w-tint)", marginBottom: 16 }} className="skeleton-pulse" />
+        <div style={{ height: 140, borderRadius: 18, background: "var(--w-tint)", marginBottom: 16 }} className="skeleton-pulse" />
+        <div style={{ height: 200, borderRadius: 18, background: "var(--w-tint)", marginBottom: 16 }} className="skeleton-pulse" />
       </div>
     );
   }
@@ -188,14 +189,15 @@ export function ProfileShell() {
         className="fade-in"
         style={{
           background: gradient,
-          borderRadius: 28,
+          borderRadius: 18,
           padding: "28px 24px 20px",
           color: "#fff",
           position: "relative",
-          boxShadow: "0 8px 32px rgba(166,115,241,0.25)",
+          boxShadow: "0 18px 40px -18px rgba(166,115,241,0.5)",
           marginBottom: 16,
         }}
       >
+        <PAClip style={{ top: -22, right: 26, transform: "rotate(8deg)" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
           <Link href={"/profile/edit" as "/"} style={{ position: "relative", flexShrink: 0 }}>
             {(data.user.imageUrl || data.user.image) ? (
@@ -288,21 +290,21 @@ export function ProfileShell() {
 
       {/* Mood Signature Card */}
       <div
-        className="fade-in"
+        className="pa-sheet fade-in"
         style={{
-          background: "var(--surface)", borderRadius: 22,
-          border: "1.5px solid var(--hairline)", padding: "20px 20px 18px",
+          borderRadius: 18, padding: "22px 20px 18px",
           marginBottom: 16, animationDelay: "60ms",
-          position: "relative", overflow: "hidden",
+          position: "relative",
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.4, marginBottom: 8, textTransform: "uppercase" }}>
+        <span className="pa-washi mint" aria-hidden style={{ width: 82 }} />
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: 0.4, marginBottom: 8, marginTop: 6, textTransform: "uppercase" }}>
           {t("moodSignature")}
         </div>
         {data.user.isPremium ? (
           data.moodSignature.hasSufficientData ? (
             <>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", lineHeight: 1.3, marginBottom: 14 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--w-ink)", lineHeight: 1.3, marginBottom: 14 }}>
                 {buildSignatureHeadline(data.moodSignature.distribution, locale, t)}
               </div>
               <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 14, marginBottom: 10 }}>
@@ -310,7 +312,7 @@ export function ProfileShell() {
                   <div key={m.moodId} style={{ width: `${m.percent}%`, background: m.color, minWidth: m.percent > 0 ? 4 : 0 }} />
                 ))}
               </div>
-              <div style={{ fontSize: 14, color: "var(--ink-2)" }}>
+              <div style={{ fontSize: 14, color: "var(--w-ink-2)" }}>
                 {data.moodSignature.distribution.slice(0, 3).map((m) => {
                   const label = locale === "th" && m.labelTh ? m.labelTh : m.label;
                   return `${label} ${m.percent}%`;
@@ -318,7 +320,7 @@ export function ProfileShell() {
               </div>
             </>
           ) : (
-            <div style={{ fontSize: 14, color: "var(--ink-3)", padding: "12px 0" }}>
+            <div style={{ fontSize: 14, color: "var(--w-ink-3)", padding: "12px 0" }}>
               {t("signatureNoData")}
             </div>
           )
@@ -334,7 +336,7 @@ export function ProfileShell() {
             <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{t("achievements")}</div>
             <Link
               href={"/profile/achievements" as "/"}
-              style={{ fontSize: 14, fontWeight: 600, color: "var(--primary)", textDecoration: "none" }}
+              style={{ fontSize: 14, fontWeight: 700, color: "var(--purple-strong)", textDecoration: "none" }}
             >
               {t("achievementsCount", { earned: String(achievements.earned), total: String(achievements.total) })} →
             </Link>
@@ -367,29 +369,29 @@ export function ProfileShell() {
       {/* Saved Articles */}
       <Link
         href={"/profile/saved-articles" as "/"}
-        className="fade-in"
-        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: "var(--surface)", borderRadius: 16, border: "1px solid var(--hairline)", marginBottom: 20, textDecoration: "none", color: "inherit", animationDelay: "130ms" }}
+        className="pa-sheet pa-card-lift fade-in"
+        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: 16, marginBottom: 16, textDecoration: "none", color: "inherit", animationDelay: "130ms" }}
       >
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--accent-soft)", display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>♥</div>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--w-tint)", display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>♥</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "บทความที่บันทึกไว้" : "Saved articles"}</div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{locale === "th" ? "อ่านซ้ำบทความที่ชอบ" : "Re-read your favorites"}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)" }}>{locale === "th" ? "บทความที่บันทึกไว้" : "Saved articles"}</div>
+          <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{locale === "th" ? "อ่านซ้ำบทความที่ชอบ" : "Re-read your favorites"}</div>
         </div>
-        <span style={{ fontSize: 14, color: "var(--ink-3)" }}>→</span>
+        <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>→</span>
       </Link>
 
       {/* Article reactions */}
       <Link
         href={"/profile/article-reactions" as "/"}
-        className="fade-in"
-        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: "var(--surface)", borderRadius: 16, border: "1px solid var(--hairline)", marginBottom: 20, textDecoration: "none", color: "inherit", animationDelay: "140ms" }}
+        className="pa-sheet pa-card-lift fade-in"
+        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: 16, marginBottom: 20, textDecoration: "none", color: "inherit", animationDelay: "140ms" }}
       >
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--accent-soft)", display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>☺</div>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--w-tint)", display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>☺</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "อารมณ์หลังอ่านบทความ" : "Article reactions"}</div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{locale === "th" ? "บทความไหนทำให้คุณรู้สึกยังไง" : "How articles made you feel"}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)" }}>{locale === "th" ? "อารมณ์หลังอ่านบทความ" : "Article reactions"}</div>
+          <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{locale === "th" ? "บทความไหนทำให้คุณรู้สึกยังไง" : "How articles made you feel"}</div>
         </div>
-        <span style={{ fontSize: 14, color: "var(--ink-3)" }}>→</span>
+        <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>→</span>
       </Link>
 
       </aside>
@@ -971,21 +973,21 @@ function PremiumTeaser({ text }: { text: string }) {
   return (
     <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
       <div style={{
-        background: "var(--hero-grad)",
-        borderRadius: 20, padding: "20px",
+        background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)",
+        borderRadius: 16, padding: "20px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 12,
-            background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 16, color: "#fff",
           }}>
             ✦
           </div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4 }}>PRO</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: 0.4 }}>PRO</div>
         </div>
-        <div style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.5, marginBottom: 12 }}>{text}</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
+        <div style={{ fontSize: 15, color: "var(--w-ink)", lineHeight: 1.5, marginBottom: 12 }}>{text}</div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>
           {loc === "th" ? "อัปเกรด →" : "Upgrade →"}
         </div>
       </div>
@@ -1009,10 +1011,13 @@ function Section({ label, delay, children }: { label: string; delay: string; chi
 }
 
 function SettingCard({ children }: { children: React.ReactNode }) {
+  // Themed surface (not always-white) so embedded managers + rows stay
+  // dark-mode-safe; the paper feel comes from the soft offset shadow + radius.
   return (
     <div style={{
-      background: "var(--surface)", borderRadius: 22,
-      border: "1.5px solid var(--hairline)", overflow: "hidden",
+      background: "var(--surface)", borderRadius: 18,
+      border: "1px solid var(--hairline)", overflow: "hidden",
+      boxShadow: "0 16px 38px -24px rgba(60,40,20,.45)",
     }}>
       {children}
     </div>

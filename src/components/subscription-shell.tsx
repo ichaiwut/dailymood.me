@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { PAClip } from "./paper";
 import { BottomSheet } from "./bottom-sheet";
 import { TrialConfirmSheet } from "./trial-confirm-sheet";
 
@@ -20,11 +21,12 @@ interface SubData {
   isTrialing: boolean;
 }
 
+// White paper sheet — text inside MUST use --w-ink* (always-dark, dark-mode safe).
 const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline-2)",
-  borderRadius: 22,
+  background: "#fff",
+  borderRadius: 18,
   padding: 20,
+  boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
 };
 
 const FEATURES = [
@@ -91,16 +93,16 @@ export function SubscriptionShell() {
 
   if (loading) {
     return (
-      <div className="fade-in" style={{ padding: "24px 0" }}>
-        <div style={{ height: 200, borderRadius: 28, background: "var(--surface-2)", marginBottom: 16 }} className="skeleton-pulse" />
-        <div style={{ height: 160, borderRadius: 22, background: "var(--surface)", marginBottom: 16 }} className="skeleton-pulse" />
+      <div className="pa-wrap fade-in" style={{ padding: "24px 0" }}>
+        <div style={{ height: 200, borderRadius: 18, background: "var(--w-tint)", marginBottom: 16 }} className="skeleton-pulse" />
+        <div style={{ height: 160, borderRadius: 18, background: "var(--w-tint)", marginBottom: 16 }} className="skeleton-pulse" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="fade-in" style={{ padding: "24px 0" }}>
+      <div className="pa-wrap fade-in" style={{ padding: "24px 0" }}>
         <TopBar t={t} router={router} />
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--ink-3)", fontSize: 14 }}>
           {locale === "th" ? "ไม่สามารถโหลดข้อมูลได้ ลองใหม่อีกครั้ง" : "Couldn't load subscription info. Try again later."}
@@ -114,7 +116,7 @@ export function SubscriptionShell() {
   const isCanceling = data.cancelAtPeriodEnd;
 
   return (
-    <div className="fade-in center-880" style={{ paddingBottom: 40 }}>
+    <div className="pa-wrap fade-in center-880" style={{ paddingBottom: 40 }}>
       <TopBar t={t} router={router} />
 
       {!data.isPremium ? (
@@ -139,71 +141,66 @@ export function SubscriptionShell() {
             </p>
           </div>
 
-          {/* Dark subscription card */}
-          <div
-            className="fade-in"
-            style={{
-              background: "linear-gradient(135deg, #2C2435 0%, #3D2E50 100%)",
-              borderRadius: 24, padding: "22px 24px", color: "#fff",
-              marginBottom: 24,
-            }}
-          >
-            <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-              <span style={{
-                background: "rgba(166,115,241,0.3)", borderRadius: 20, padding: "5px 14px",
-                fontSize: 14, fontWeight: 700,
-              }}>
-                ✨ Pro {isYearly ? "Yearly" : "Monthly"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between flex-wrap" style={{ gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
-                  {isCanceling
-                    ? `${locale === "th" ? "สิ้นสุด" : "Ends"} · ${renewDate}`
-                    : `${locale === "th" ? "ต่ออายุอัตโนมัติ" : "Auto-renews"} · ${renewDate}`}
+          {/* Dark subscription card (plum folder) */}
+          <div style={{ position: "relative", marginBottom: 24 }}>
+            <div className="pa-tab purple">✨ Pro {isYearly ? "Yearly" : "Monthly"}</div>
+            <div
+              className="fade-in"
+              style={{
+                background: "linear-gradient(135deg, #2C2435 0%, #3D2E50 100%)",
+                borderRadius: "4px 18px 18px 18px", padding: "22px 24px", color: "#fff",
+                position: "relative", boxShadow: "0 18px 40px -20px rgba(60,40,20,.5)",
+              }}
+            >
+              <PAClip style={{ top: -22, right: 26, transform: "rotate(8deg)" }} />
+              <div className="flex items-center justify-between flex-wrap" style={{ gap: 16, marginTop: 4 }}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
+                    {isCanceling
+                      ? `${locale === "th" ? "สิ้นสุด" : "Ends"} · ${renewDate}`
+                      : `${locale === "th" ? "ต่ออายุอัตโนมัติ" : "Auto-renews"} · ${renewDate}`}
+                  </div>
+                  <div style={{ fontSize: 14, opacity: 0.7 }}>
+                    {isYearly
+                      ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
+                      : `฿99 / ${locale === "th" ? "เดือน" : "month"}`}
+                  </div>
                 </div>
-                <div style={{ fontSize: 14, opacity: 0.7 }}>
-                  {isYearly
-                    ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
-                    : `฿99 / ${locale === "th" ? "เดือน" : "month"}`}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={openPortal}
-                  disabled={portalLoading}
-                  style={{
-                    background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)",
-                    borderRadius: 14, padding: "10px 18px", color: "#fff",
-                    fontSize: 14, fontWeight: 700, cursor: portalLoading ? "wait" : "pointer",
-                  }}
-                >
-                  {locale === "th" ? "จัดการการชำระเงิน" : "Manage billing"}
-                </button>
-                {!isCanceling && (
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setShowCancel(true)}
+                    onClick={openPortal}
+                    disabled={portalLoading}
                     style={{
-                      background: "transparent", border: "none",
-                      color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600,
-                      cursor: "pointer", padding: "10px 8px",
+                      background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)",
+                      borderRadius: 12, padding: "10px 18px", color: "#fff",
+                      fontSize: 14, fontWeight: 700, cursor: portalLoading ? "wait" : "pointer",
                     }}
                   >
-                    {locale === "th" ? "ยกเลิก" : "Cancel"}
+                    {locale === "th" ? "จัดการการชำระเงิน" : "Manage billing"}
                   </button>
-                )}
+                  {!isCanceling && (
+                    <button
+                      onClick={() => setShowCancel(true)}
+                      style={{
+                        background: "transparent", border: "none",
+                        color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600,
+                        cursor: "pointer", padding: "10px 8px",
+                      }}
+                    >
+                      {locale === "th" ? "ยกเลิก" : "Cancel"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Portal error */}
           {portalError && (
-            <div className="fade-in" style={{
+            <div className="pa-sheet fade-in" style={{
               padding: "14px 18px", borderRadius: 14, marginBottom: 16,
-              background: "#FDECEC", border: "1.5px solid #F5CECE",
-              fontSize: 14, fontWeight: 600, color: "#D94444", textAlign: "center",
+              background: "linear-gradient(135deg, #FDECEC, #FBE3E3)",
+              fontSize: 14, fontWeight: 600, color: "#C0392B", textAlign: "center",
             }}>
               {locale === "th" ? "ไม่สามารถเปิดหน้าจัดการได้ ลองใหม่อีกครั้ง" : "Couldn't open billing. Please try again."}
             </div>
@@ -211,23 +208,20 @@ export function SubscriptionShell() {
 
           {/* Canceling notice */}
           {isCanceling && (
-            <div className="fade-in" style={{
+            <div className="pa-sheet fade-in" style={{
               padding: "14px 18px", borderRadius: 16, marginBottom: 24,
-              background: "#FEF6E8", border: "1.5px solid #F5DEB3",
+              background: "linear-gradient(135deg, #FFF6EA, #FDEFE0)",
               display: "flex", alignItems: "center", gap: 10,
             }}>
               <span style={{ fontSize: 20 }}>⏳</span>
-              <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+              <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>
                 {t("subCancelingBand", { date: renewDate ?? "" })}
               </div>
               <button
                 onClick={openPortal}
                 disabled={portalLoading}
-                style={{
-                  padding: "8px 16px", borderRadius: 14, border: "none",
-                  background: "var(--primary)", fontSize: 14, fontWeight: 700,
-                  color: "#fff", cursor: portalLoading ? "wait" : "pointer", flexShrink: 0,
-                }}
+                className="pa-btn purple"
+                style={{ height: 38, padding: "0 16px", flexShrink: 0 }}
               >
                 {t("subResubscribe")}
               </button>
@@ -241,12 +235,12 @@ export function SubscriptionShell() {
             </h2>
             <div className="sub-features" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
               {FEATURES.map((f, i) => (
-                <div key={i} style={CARD}>
+                <div key={i} className="pa-card-lift" style={CARD}>
                   <div style={{ fontSize: 24, marginBottom: 10 }}>{f.icon}</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)", marginBottom: 4 }}>
                     {locale === "th" ? f.title : f.titleEn}
                   </div>
-                  <div style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4 }}>
                     {locale === "th" ? f.desc : f.descEn}
                   </div>
                 </div>
@@ -261,21 +255,21 @@ export function SubscriptionShell() {
             </h2>
             <div className="sub-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div style={CARD}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
                   {locale === "th" ? "สรุปด้วย AI" : "AI SUMMARIES"}
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)" }}>{usage?.nlp ?? "—"}</span>
-                  <span style={{ fontSize: 14, color: "var(--ink-3)" }}>/ ∞ unlimited</span>
+                  <span style={{ fontSize: 32, fontWeight: 800, color: "var(--w-ink)" }}>{usage?.nlp ?? "—"}</span>
+                  <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>/ ∞ unlimited</span>
                 </div>
               </div>
               <div style={CARD}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)", letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }}>
                   {locale === "th" ? "รูปวิเคราะห์" : "VISION ANALYSIS"}
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)" }}>{usage?.vision ?? "—"}</span>
-                  <span style={{ fontSize: 14, color: "var(--ink-3)" }}>/ ∞ unlimited</span>
+                  <span style={{ fontSize: 32, fontWeight: 800, color: "var(--w-ink)" }}>{usage?.vision ?? "—"}</span>
+                  <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>/ ∞ unlimited</span>
                 </div>
               </div>
             </div>
@@ -326,18 +320,9 @@ export function SubscriptionShell() {
 function TopBar({ t, router }: { t: (key: string) => string; router: ReturnType<typeof useRouter> }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "8px 0 16px" }}>
-      <button
-        type="button"
-        onClick={() => router.back()}
-        style={{
-          width: 40, height: 40, borderRadius: 14,
-          background: "var(--surface-2)", border: "none",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-        }}
-      >
+      <button type="button" onClick={() => router.back()} className="pa-icon-btn" aria-label="Back">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18l-6-6 6-6" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
     </div>
@@ -370,15 +355,17 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
         {isTh ? "แพ็กเกจของคุณ" : "Your plan"}
       </h1>
 
-      {/* Trial activation banner — only for users who haven't tried yet */}
+      {/* Trial activation banner — only for users who haven't tried yet (clipped gradient card) */}
       {!hasUsedTrial && (
         <div
           style={{
             background: "linear-gradient(135deg, #FCA45B 0%, #A673F1 100%)",
-            borderRadius: 20, padding: "22px 24px", marginBottom: 20,
-            color: "#fff", textAlign: "center",
+            borderRadius: 18, padding: "22px 24px", marginBottom: 20,
+            color: "#fff", textAlign: "center", position: "relative",
+            boxShadow: "0 18px 40px -20px rgba(166,115,241,.55)",
           }}
         >
+          <PAClip style={{ top: -22, right: 24, transform: "rotate(-7deg)" }} />
           <div style={{ fontSize: 32, marginBottom: 10 }}>✨</div>
           <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
             {isTh ? "ลองใช้ Pro ฟรี 14 วัน" : "Try Pro free for 14 days"}
@@ -392,9 +379,9 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
             type="button"
             onClick={() => setShowTrialConfirm(true)}
             style={{
-              padding: "14px 32px", borderRadius: 16,
-              background: "var(--surface)", border: "none",
-              color: "#A673F1", fontSize: 16, fontWeight: 800,
+              padding: "14px 32px", borderRadius: 14,
+              background: "#fff", border: "none",
+              color: "var(--purple-strong)", fontSize: 16, fontWeight: 800,
               cursor: "pointer",
             }}
           >
@@ -407,18 +394,19 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
       {/* Trial expired banner */}
       {hasUsedTrial && (
         <div
+          className="pa-sheet"
           style={{
-            background: "#FEF6E8", border: "1.5px solid #F5DEB3",
+            background: "linear-gradient(135deg, #FFF6EA, #FDEFE0)",
             borderRadius: 16, padding: "16px 20px", marginBottom: 20,
             display: "flex", alignItems: "center", gap: 12,
           }}
         >
           <span style={{ fontSize: 24 }}>⏰</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)", marginBottom: 2 }}>
               {isTh ? "ช่วงทดลองใช้สิ้นสุดแล้ว" : "Your free trial has ended"}
             </div>
-            <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+            <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
               {isTh ? "อัปเกรดเพื่อใช้ต่อ" : "Upgrade to keep using Pro features"}
             </div>
           </div>
@@ -428,21 +416,21 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
       <div className="sub-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
         {/* Free card */}
         <div style={{ ...CARD, display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600, marginBottom: 4 }}>
+          <div style={{ fontSize: 14, color: "var(--w-ink-3)", fontWeight: 600, marginBottom: 4 }}>
             {isTh ? "แผนปัจจุบัน" : "Current plan"}
           </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>Free</div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 20 }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>Free</div>
+          <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginBottom: 20 }}>
             {isTh ? "เพียงพอสำหรับการเริ่มต้น" : "Enough to get started"}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
             <div>
               <div className="flex items-center justify-between" style={{ fontSize: 14, marginBottom: 6 }}>
-                <span style={{ color: "var(--ink)" }}>Smart Log AI {isTh ? "วันนี้" : "today"}</span>
-                <span style={{ fontWeight: 700 }}>3 / {isTh ? "วัน" : "day"}</span>
+                <span style={{ color: "var(--w-ink)" }}>Smart Log AI {isTh ? "วันนี้" : "today"}</span>
+                <span style={{ fontWeight: 700, color: "var(--w-ink)" }}>3 / {isTh ? "วัน" : "day"}</span>
               </div>
-              <div style={{ height: 6, borderRadius: 3, background: "#F2F0F5", overflow: "hidden" }}>
+              <div style={{ height: 6, borderRadius: 3, background: "var(--w-tint)", overflow: "hidden" }}>
                 <div style={{ width: "40%", height: "100%", borderRadius: 3, background: "#FCA45B" }} />
               </div>
             </div>
@@ -460,8 +448,9 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
         <div
           style={{
             background: "linear-gradient(135deg, #F9A870 0%, #D4A0E8 50%, #C89BF5 100%)",
-            borderRadius: 22, padding: 20, color: "#fff",
+            borderRadius: 18, padding: 20, color: "#fff",
             display: "flex", flexDirection: "column", position: "relative",
+            boxShadow: "0 18px 40px -20px rgba(166,115,241,.5)",
           }}
         >
           <div style={{ position: "absolute", top: 16, right: 16, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800 }}>+</div>
@@ -501,8 +490,8 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
           <button
             onClick={handleCheckout}
             style={{
-              width: "100%", padding: "14px 0", borderRadius: 16,
-              background: "var(--surface)", border: "none", color: "#A673F1",
+              width: "100%", padding: "14px 0", borderRadius: 14,
+              background: "#fff", border: "none", color: "var(--purple-strong)",
               fontSize: 15, fontWeight: 800, cursor: "pointer",
             }}
           >
@@ -543,17 +532,19 @@ function TrialState({ data, locale }: { data: SubData; locale: string }) {
         </p>
       </div>
 
-      {/* Trial status card */}
+      {/* Trial status card (clipped gradient) */}
       <div
         className="fade-in"
         style={{
           background: isWarning
             ? "linear-gradient(135deg, #D94444 0%, #FCA45B 100%)"
             : "linear-gradient(135deg, #FCA45B 0%, #A673F1 100%)",
-          borderRadius: 24, padding: "22px 24px", color: "#fff",
-          marginBottom: 24,
+          borderRadius: 18, padding: "22px 24px", color: "#fff",
+          marginBottom: 24, position: "relative",
+          boxShadow: "0 18px 40px -20px rgba(166,115,241,.5)",
         }}
       >
+        <PAClip style={{ top: -22, right: 26, transform: "rotate(8deg)" }} />
         <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
           <span style={{
             background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 14px",
@@ -575,10 +566,10 @@ function TrialState({ data, locale }: { data: SubData; locale: string }) {
           <button
             onClick={handleCheckout}
             style={{
-              background: "var(--surface)", border: "none",
-              borderRadius: 14, padding: "10px 18px",
-              fontSize: 14, fontWeight: 700, cursor: "pointer",
-              color: "#A673F1",
+              background: "#fff", border: "none",
+              borderRadius: 12, padding: "10px 18px",
+              fontSize: 14, fontWeight: 800, cursor: "pointer",
+              color: "var(--purple-strong)",
             }}
           >
             {isTh ? "สมัคร Pro →" : "Subscribe to Pro →"}
@@ -593,12 +584,12 @@ function TrialState({ data, locale }: { data: SubData; locale: string }) {
         </h2>
         <div className="sub-features" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
           {FEATURES.map((f, i) => (
-            <div key={i} style={CARD}>
+            <div key={i} className="pa-card-lift" style={CARD}>
               <div style={{ fontSize: 24, marginBottom: 10 }}>{f.icon}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)", marginBottom: 4 }}>
                 {isTh ? f.title : f.titleEn}
               </div>
-              <div style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4 }}>
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4 }}>
                 {isTh ? f.desc : f.descEn}
               </div>
             </div>
@@ -612,8 +603,8 @@ function TrialState({ data, locale }: { data: SubData; locale: string }) {
 function FreeLimitRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between" style={{ fontSize: 14 }}>
-      <span style={{ color: "var(--ink)" }}>{label}</span>
-      <span style={{ fontWeight: 700, color: "var(--ink-3)" }}>{value}</span>
+      <span style={{ color: "var(--w-ink)" }}>{label}</span>
+      <span style={{ fontWeight: 700, color: "var(--w-ink-3)" }}>{value}</span>
     </div>
   );
 }
@@ -621,8 +612,8 @@ function FreeLimitRow({ label, value }: { label: string; value: string }) {
 function FreeLockRow({ label, isTh }: { label: string; isTh: boolean }) {
   return (
     <div className="flex items-center justify-between" style={{ fontSize: 14 }}>
-      <span style={{ color: "var(--ink)" }}>{label}</span>
-      <span style={{ fontWeight: 700, color: "#FCA45B" }}>🔒 {isTh ? "ล็อก" : "Locked"}</span>
+      <span style={{ color: "var(--w-ink)" }}>{label}</span>
+      <span style={{ fontWeight: 700, color: "#E08A2B" }}>🔒 {isTh ? "ล็อก" : "Locked"}</span>
     </div>
   );
 }
