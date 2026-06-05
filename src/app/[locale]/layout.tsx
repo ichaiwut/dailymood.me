@@ -21,6 +21,7 @@ export default async function LocaleLayout({
 
   let showChrome = isLoggedIn;
   let showPromo = false;
+  let tier: "free" | "premium" = "free";
   if (isLoggedIn && session?.user?.id) {
     const db = getDb();
     const [u] = await db
@@ -31,6 +32,8 @@ export default async function LocaleLayout({
     if (!u?.welcomeShownAt) showChrome = false;
     const trialActive = !!u?.trialEndsAt && u.trialEndsAt.getTime() > Date.now();
     showPromo = !u?.isPremium && !trialActive;
+    // Canonical tier (matches getSessionInfo): premium if stripe-active OR in active trial.
+    if (u?.isPremium === true || trialActive) tier = "premium";
   }
 
   return (
@@ -45,7 +48,7 @@ export default async function LocaleLayout({
               {children}
             </main>
             <SiteFooter />
-            <BottomNav />
+            <BottomNav tier={tier} />
           </>
         ) : (
           <>{children}</>

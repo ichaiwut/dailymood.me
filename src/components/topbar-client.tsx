@@ -28,10 +28,12 @@ export function TopBarClient({
   name,
   image,
   email,
+  tier = "free",
 }: {
   name: string | null;
   image: string | null;
   email: string | null;
+  tier?: "free" | "premium";
 }) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
@@ -148,7 +150,7 @@ export function TopBarClient({
 
       {showSmart && (
         <SmartLogModal
-          tier="free"
+          tier={tier}
           pack={DEFAULT_MOOD_PACK}
           onClose={() => setShowSmart(false)}
           onSaved={() => {

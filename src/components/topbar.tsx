@@ -14,6 +14,7 @@ export async function TopBar() {
   let trialBannerMode: "activate" | "countdown" | "none" = "none";
   let trialDaysLeft = 0;
   let trialWarning = false;
+  let tier: "free" | "premium" = "free";
 
   if (session?.user?.id) {
     try {
@@ -28,6 +29,10 @@ export async function TopBar() {
       } else if (row?.image) {
         avatarUrl = row.image;
       }
+
+      // Canonical tier (matches getSessionInfo): premium if stripe-active OR in active trial.
+      const inAppTrialActive = !!row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now();
+      if (row?.isPremium === true || inAppTrialActive) tier = "premium";
 
       const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
       if (!stripeActive) {
@@ -59,6 +64,7 @@ export async function TopBar() {
             name={session.user.name ?? null}
             image={avatarUrl}
             email={session.user.email ?? null}
+            tier={tier}
           />
         </>
       ) : (
