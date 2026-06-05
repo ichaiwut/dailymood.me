@@ -15,6 +15,7 @@ import { Link } from "@/i18n/navigation";
 import type { Tier } from "@/lib/tier";
 import type { CalendarAiResult, SpecialDay } from "@/db/schema";
 import { trackCalendarView } from "@/lib/analytics";
+import { PASticker } from "./paper/pa-sticker";
 
 type CalView = "calendar" | "timeline";
 
@@ -35,8 +36,7 @@ const WEEKDAYS_EN = ["S", "M", "T", "W", "T", "F", "S"];
 const WEEKDAYS_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 const MONTH_NAMES_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MONTH_NAMES_TH = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-const MONTH_SHORT_EN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const EMPTY_COLOR = "var(--surface-2)";
+const EMPTY_COLOR = "var(--w-tint)";
 
 function getMoodColor(moodId: string | null): string {
   if (!moodId) return EMPTY_COLOR;
@@ -209,26 +209,26 @@ export function CalendarShell({
   const todayDate = now.getDate();
 
   return (
-    <div className="fade-in pb-28">
+    <div className="pa-wrap fade-in pb-28">
       {/* ── Header + View toggle ── */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6" style={{ paddingTop: 8 }}>
         <div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600 }}>
+          <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 700 }}>
             {calView === "timeline" && timelineEntries
               ? `${timelineEntries.length.toLocaleString()} ${locale === "th" ? "รายการ" : "entries"}`
               : t("yourYear")}
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
             {monthNames[viewMonth]} {viewYear}
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={prevMonth} className="icon-btn" style={{ width: 40, height: 40, borderRadius: 12 }}>
+          <button onClick={prevMonth} aria-label={locale === "th" ? "เดือนก่อน" : "Previous month"} className="pa-icon-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <button onClick={nextMonth} className="icon-btn" style={{ width: 40, height: 40, borderRadius: 12 }}>
+          <button onClick={nextMonth} aria-label={locale === "th" ? "เดือนถัดไป" : "Next month"} className="pa-icon-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -236,48 +236,18 @@ export function CalendarShell({
         </div>
       </div>
 
-      {/* ── View Toggle ── */}
-      <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 12, padding: 3, gap: 2, marginBottom: 16 }}>
+      {/* ── View Toggle (paper pills) ── */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         {(["calendar", "timeline"] as CalView[]).map((v) => (
           <button
             key={v}
             onClick={() => { if (v !== calView) { setCalView(v); trackCalendarView(v); } }}
-            style={{
-              flex: 1,
-              padding: "8px 0",
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: 10,
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.18s ease",
-              background: calView === v ? "var(--surface)" : "transparent",
-              color: calView === v ? "var(--ink)" : "var(--ink-3)",
-              boxShadow: calView === v ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-            }}
+            className={`pa-filter${calView === v ? " active" : ""}`}
           >
             {v === "calendar" ? t("tabCalendar") : t("tabTimeline")}
           </button>
         ))}
-        <Link
-          href={"/year-in-pixels" as "/"}
-          style={{
-            flex: 1,
-            padding: "8px 0",
-            fontSize: 14,
-            fontWeight: 600,
-            borderRadius: 10,
-            border: "none",
-            textDecoration: "none",
-            textAlign: "center",
-            background: "transparent",
-            color: "var(--ink-3)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 4,
-          }}
-        >
+        <Link href={"/year-in-pixels" as "/"} className="pa-filter" style={{ display: "inline-flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
           {t("tabYear")}
           {tier !== "premium" && <span style={{ fontSize: 14 }}>🔒</span>}
         </Link>
@@ -311,27 +281,26 @@ export function CalendarShell({
           <PatternsFeed patterns={aiData?.tooFewEntries ? [] : (aiData?.patterns ?? [])} tier={tier} onDateSelect={(date) => setSheetDate(date)} />
         </>
       ) : (
-        <a
-          href="/profile/subscription"
-          style={{
-            display: "block", textDecoration: "none", marginBottom: 16,
-            background: "var(--hero-grad)",
-            borderRadius: 18, padding: "16px 20px",
-          }}
+        <Link
+          href={"/profile/subscription" as "/"}
+          className="pa-sheet"
+          style={{ display: "block", textDecoration: "none", marginBottom: 16, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", borderRadius: 16, padding: "16px 20px" }}
         >
           <div className="flex items-center gap-3">
-            <span style={{ fontSize: 24 }}>✨</span>
+            <span style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
-                AI สรุป + แพทเทิร์น + ถาม AI
+              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)" }}>
+                {locale === "th" ? "AI สรุป + แพทเทิร์น + ถาม AI" : "AI summary + patterns + ask AI"}
               </div>
-              <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
-                ปลดล็อกด้วย Pro
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
+                {locale === "th" ? "ปลดล็อกด้วย Pro" : "Unlock with Pro"}
               </div>
             </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>อัปเกรด →</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>{locale === "th" ? "อัปเกรด →" : "Upgrade →"}</span>
           </div>
-        </a>
+        </Link>
       )}
 
       {/* ── AI Pattern Toggle ── */}
@@ -345,8 +314,8 @@ export function CalendarShell({
               gap: 4,
               padding: "5px 10px",
               borderRadius: 100,
-              background: aiPatternsVisible ? "var(--ink)" : "var(--surface-2)",
-              color: aiPatternsVisible ? "var(--bg)" : "var(--ink-2)",
+              background: aiPatternsVisible ? "var(--w-ink)" : "var(--w-tint)",
+              color: aiPatternsVisible ? "#fff" : "var(--w-ink-2)",
               border: "none",
               fontSize: 14,
               fontWeight: 700,
@@ -362,7 +331,7 @@ export function CalendarShell({
           {aiPatternsVisible && (
             <>
               {aiData.patterns.some((p) => p.type === "best") && (
-                <span className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                <span className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)", whiteSpace: "nowrap" }}>
                   <span style={{
                     width: 14, height: 14, borderRadius: 100, background: "var(--accent-soft)",
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -372,7 +341,7 @@ export function CalendarShell({
                 </span>
               )}
               {ringLegend.map((l, i) => (
-                <span key={i} className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+                <span key={i} className="flex items-center gap-1" style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)", whiteSpace: "nowrap" }}>
                   <span style={{
                     width: 8, height: 8, borderRadius: 100,
                     background: l.type === "recurring" ? "#A673F1" : "#D4BEE4",
@@ -386,7 +355,10 @@ export function CalendarShell({
         </div>
       )}
 
-      {/* ── Monthly Grid ── */}
+      {/* ── Monthly Grid (paper folder) ── */}
+      <div style={{ position: "relative" }}>
+        <span className="pa-tab">{monthNames[viewMonth]}</span>
+        <div className="pa-sheet" style={{ borderRadius: "4px 18px 18px 18px", padding: "20px 22px 22px" }}>
       {entries === null ? (
         <CalendarSkeleton />
       ) : (
@@ -398,8 +370,8 @@ export function CalendarShell({
               style={{
                 textAlign: "center",
                 fontSize: 14,
-                fontWeight: 700,
-                color: "var(--ink-3)",
+                fontWeight: 800,
+                color: "var(--w-ink-3)",
                 paddingBottom: 4,
               }}
             >
@@ -443,11 +415,11 @@ export function CalendarShell({
                   justifyContent: "center",
                   fontSize: 14,
                   fontWeight: 700,
-                  color: moodId ? "rgba(0,0,0,0.55)" : "var(--ink-3)",
+                  color: moodId ? "rgba(0,0,0,0.55)" : "var(--w-ink-3)",
                   border: isSelected
-                    ? "2.5px solid var(--ink)"
+                    ? "2.5px solid var(--w-ink)"
                     : isToday
-                      ? "2.5px solid #FCA45B"
+                      ? "2.5px solid var(--purple)"
                       : "none",
                   cursor: isFuture ? "default" : "pointer",
                   opacity: isFuture ? 0.4 : 1,
@@ -501,6 +473,8 @@ export function CalendarShell({
           })}
         </div>
       )}
+        </div>
+      </div>
 
       </div>{/* end left column */}
 
@@ -511,20 +485,20 @@ export function CalendarShell({
           { label: "Streak", value: String(stats?.streak ?? 0), sub: `${locale === "th" ? "วันติดต่อกัน 🔥" : "consecutive days 🔥"}`, color: "var(--purple)" },
           { label: locale === "th" ? "บันทึก" : "Logged", value: String(stats?.loggedDays ?? 0), sub: `${locale === "th" ? "ครั้งในเดือนนี้" : "this month"}`, color: "var(--mint)" },
         ].map(s => (
-          <div key={s.label} className="card" style={{ padding: 18, borderLeft: `4px solid ${s.color}` }}>
-            <div className="w-eyebrow">{s.label}</div>
+          <div key={s.label} className="pa-sheet" style={{ padding: 18, borderRadius: 16, borderLeft: `4px solid ${s.color}` }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase" }}>{s.label}</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-              <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.value}</span>
-              <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{s.sub}</span>
+              <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--w-ink)" }}>{s.value}</span>
+              <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{s.sub}</span>
             </div>
           </div>
         ))}
-        <div className="card" style={{ padding: 18 }}>
-          <div className="w-eyebrow" style={{ marginBottom: 10 }}>{locale === "th" ? "คำอธิบายสี" : "Legend"}</div>
+        <div className="pa-sheet" style={{ padding: 18, borderRadius: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 10 }}>{locale === "th" ? "คำอธิบายสี" : "Legend"}</div>
           {DEFAULT_MOODS.slice(0, 6).map(m => (
             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
               <span style={{ width: 14, height: 14, borderRadius: 4, background: m.color }} />
-              <span style={{ fontSize: 14, fontWeight: 600 }}>{locale === "th" ? m.labelTh : m.label}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>{locale === "th" ? m.labelTh : m.label}</span>
             </div>
           ))}
         </div>
@@ -546,8 +520,8 @@ export function CalendarShell({
 
       {/* ── Day Sheet Modal ── */}
       {sheetDate && (
-        <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)" }} onClick={(e) => { if (e.target === e.currentTarget) setSheetDate(null); }}>
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 560, width: "calc(100% - 32px)", maxHeight: "85vh", overflowY: "auto", borderRadius: 22, boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)" }}>
+        <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.46)", backdropFilter: "blur(6px)" }} onClick={(e) => { if (e.target === e.currentTarget) setSheetDate(null); }}>
+          <div className="pa-wrap" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 560, width: "calc(100% - 32px)", maxHeight: "85vh", overflowY: "auto", borderRadius: "8px 26px 26px 26px", boxShadow: "0 44px 100px -24px rgba(40,20,10,.6)", background: "#fff" }}>
             <DaySheet
               selectedDate={sheetDate}
               viewYear={viewYear}
@@ -605,41 +579,6 @@ export function CalendarShell({
   );
 }
 
-function StatCard({ label, value, sub, subColor, emoji, bg }: {
-  label: string;
-  value: string;
-  sub?: string;
-  subColor?: string;
-  emoji?: string;
-  bg: string;
-}) {
-  return (
-    <div
-      className="flex-1"
-      style={{
-        background: bg,
-        borderRadius: 16,
-        padding: "12px 14px",
-      }}
-    >
-      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: "0.3px", marginBottom: 4 }}>
-        {label}
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1 }}>
-          {value}
-        </span>
-        {emoji && <span style={{ fontSize: 16 }}>{emoji}</span>}
-        {sub && (
-          <span style={{ fontSize: 14, fontWeight: 700, color: subColor }}>
-            {sub}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function CalendarSkeleton() {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
@@ -649,8 +588,8 @@ function CalendarSkeleton() {
           style={{
             aspectRatio: "1",
             borderRadius: 12,
-            background: "var(--surface-2)",
-            opacity: 0.5,
+            background: "var(--w-tint)",
+            opacity: 0.6,
           }}
         />
       ))}
