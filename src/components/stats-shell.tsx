@@ -34,16 +34,16 @@ interface StatsData {
 /* ── Constants ─────────────────────────────────────────── */
 
 const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline-2)",
-  borderRadius: 24,
+  background: "#fff",
+  borderRadius: 18,
   padding: 20,
+  boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
 };
 
 const LABEL: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 600,
-  color: "var(--ink-3, #999)",
+  color: "var(--w-ink-3)",
   letterSpacing: 0.5,
   textTransform: "uppercase" as const,
   marginBottom: 4,
@@ -185,7 +185,7 @@ function MoodLineChart({
 
         {[1, 2, 3, 4, 5].map((s) => (
           <g key={s}>
-            <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="var(--surface-3)" strokeWidth={1} strokeDasharray="4 3" />
+            <line x1={PX} x2={W - PX} y1={toY(s)} y2={toY(s)} stroke="var(--w-tint)" strokeWidth={1} strokeDasharray="4 3" />
             <image
               href={moodIconUrl(SCORE_MOODS[s], moodPack, iconFormat)}
               x={PX - 28}
@@ -272,7 +272,7 @@ function MoodLineChart({
 
         {labels.map((label, i) =>
           label ? (
-            <text key={i} x={toX(i)} y={H + 16} textAnchor="middle" fontSize={period === "year" ? 9 : 11} fill="var(--ink-3, #999)">
+            <text key={i} x={toX(i)} y={H + 16} textAnchor="middle" fontSize={period === "year" ? 9 : 11} fill="var(--w-ink-3)">
               {label}
             </text>
           ) : null,
@@ -369,7 +369,7 @@ function MoodDonut({ distribution, period, locale }: { distribution: Record<stri
   if (total === 0) {
     return (
       <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: "block" }}>
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--surface-3)" strokeWidth={stroke} />
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--w-tint)" strokeWidth={stroke} />
         <text x={cx} y={cy - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill="var(--ink-3)">{periodLabels[period]}</text>
         <text x={cx} y={cy + 10} textAnchor="middle" fontSize={9} fill="var(--ink-3)">MOODS</text>
       </svg>
@@ -534,35 +534,24 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
   };
 
   return (
-    <>
+    <div className="pa-wrap">
       {/* ── HEADER ─── */}
       <section className="mb-5 fade-in" style={{ paddingTop: 8 }}>
         <div className="flex items-center justify-between stats-header">
           <h1 style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 800, color: "var(--ink)", margin: 0, letterSpacing: "-0.02em" }}>{t("title")}</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
           {canShare && (
             <button
               onClick={() => setShareOpen(true)}
               aria-label={locale === "th" ? "แชร์การ์ดอารมณ์" : "Share mood card"}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 14px",
-                fontSize: 14,
-                fontWeight: 700,
-                borderRadius: 12,
-                border: "none",
-                cursor: "pointer",
-                background: "var(--primary-bg, rgba(166,115,241,0.12))",
-                color: "#A673F1",
-              }}
+              className="pa-filter"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--purple-strong)" }}
             >
               <span aria-hidden>📤</span>
               <span>{locale === "th" ? "แชร์" : "Share"}</span>
             </button>
           )}
-          <div style={{ display: "flex", background: "var(--surface-2)", borderRadius: 12, padding: 3, gap: 2 }}>
+          <div style={{ display: "flex", gap: 8 }}>
             {PERIODS.map((p) => (
               <button
                 key={p}
@@ -573,19 +562,8 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   }
                   setPeriod(p);
                 }}
-                style={{
-                  padding: "6px 14px",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  borderRadius: 10,
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  background: period === p ? "var(--surface)" : "transparent",
-                  color: period === p ? "var(--ink, #1a1a1a)" : "var(--ink-3, #999)",
-                  boxShadow: period === p ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-                  opacity: p === "year" && tier !== "premium" ? 0.5 : 1,
-                }}
+                className={`pa-filter${period === p ? " active" : ""}`}
+                style={{ opacity: p === "year" && tier !== "premium" ? 0.5 : 1 }}
               >
                 {t(p)}
               </button>
@@ -594,23 +572,13 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
           </div>
         </div>
         {yearBlocked && (
-          <a
-            href="/pricing"
-            className="fade-in"
-            style={{
-              display: "block", marginTop: 8,
-              padding: "8px 14px",
-              background: "var(--surface-2)",
-              color: "#A673F1",
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: 10,
-              textAlign: "center",
-              textDecoration: "none",
-            }}
+          <Link
+            href={"/pricing" as "/"}
+            className="pa-sheet fade-in"
+            style={{ display: "block", marginTop: 10, padding: "10px 14px", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", color: "var(--purple-strong)", fontSize: 14, fontWeight: 800, borderRadius: 12, textAlign: "center", textDecoration: "none" }}
           >
             {t("unlockYear")}
-          </a>
+          </Link>
         )}
       </section>
 
@@ -622,67 +590,35 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
         <>
           {/* ── AI INSIGHTS SUMMARY ─── */}
           <section className="mb-5 fade-in">
-            <div
-              style={{
-                borderRadius: 22,
-                padding: "22px 20px 20px",
-                background: "var(--hero-grad)",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    background: "#A673F1",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", position: "relative" }}>
+              <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
+              <div className="flex items-center gap-2" style={{ marginTop: 6, marginBottom: 14 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
+                    <path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.5px" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: "0.5px" }}>
                   {t("viewInsights").toUpperCase()} · {t("week").toUpperCase()}
                 </span>
                 {tier !== "premium" && (
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px", marginLeft: "auto" }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "rgba(255,255,255,.72)", borderRadius: 100, padding: "2px 8px", marginLeft: "auto" }}>
                     PRO
                   </span>
                 )}
               </div>
 
               {insight && tier === "premium" ? (
-                <p
-                  style={{
-                    fontSize: 15,
-                    lineHeight: 1.65,
-                    color: "var(--ink)",
-                    marginBottom: 16,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: "vertical" as const,
-                    overflow: "hidden",
-                  }}
-                >
+                <p style={{ fontSize: 15, lineHeight: 1.65, color: "var(--w-ink)", marginBottom: 16, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
                   {insight.summary}
                 </p>
               ) : (
-                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", marginBottom: 16 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--w-ink-2)", marginBottom: 16 }}>
                   {t("viewInsightsBody")}
                 </p>
               )}
 
-              <Link
-                href={"/insights" as "/"}
-                className="flex items-center gap-1.5"
-                style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", textDecoration: "none" }}
-              >
+              <Link href={"/insights" as "/"} className="flex items-center gap-1.5" style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", textDecoration: "none" }}>
                 {locale === "th" ? "ดูเพิ่มเติม" : "Tell me more"}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -710,13 +646,13 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
 
               return [
                 { l: t("avgMood"), v: avgScore != null ? avgScore.toFixed(1) : "—", d: avgDelta ? `${avgDelta > 0 ? "+" : ""}${avgDelta.toFixed(1)} ↑` : "", dc: "var(--mint)" },
-                { l: t("entries") || "Entries", v: String(stats?.total ?? 0), d: periodScopeLabel[period], dc: "var(--ink-3)" },
-                { l: "Streak", v: `${stats?.streak ?? 0} 🔥`, d: periodScopeLabel[period], dc: "var(--ink-3)" },
-                { l: locale === "th" ? "อารมณ์เด่น" : "Top mood", v: avgEmoji || "—", d: topMoodLabel, dc: "var(--ink-3)" },
+                { l: t("entries") || "Entries", v: String(stats?.total ?? 0), d: periodScopeLabel[period], dc: "var(--w-ink-3)" },
+                { l: "Streak", v: `${stats?.streak ?? 0} 🔥`, d: periodScopeLabel[period], dc: "var(--w-ink-3)" },
+                { l: locale === "th" ? "อารมณ์เด่น" : "Top mood", v: avgEmoji || "—", d: topMoodLabel, dc: "var(--w-ink-3)" },
               ].map(s => (
-                <div key={s.l} className="card" style={{ padding: 18 }}>
-                  <div className="w-eyebrow">{s.l}</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginTop: 6 }}>{s.v}</div>
+                <div key={s.l} className="pa-sheet" style={{ borderRadius: 16, padding: 18 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase" }}>{s.l}</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginTop: 6, color: "var(--w-ink)" }}>{s.v}</div>
                   {s.d && <div style={{ fontSize: 14, color: s.dc, fontWeight: 600, marginTop: 2 }}>{s.d}</div>}
                 </div>
               ));
@@ -729,10 +665,10 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
               {/* Mood Line Chart */}
               <div style={CARD}>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--w-ink)" }}>
                     {locale === "th" ? "แนวโน้มอารมณ์" : "Mood Trend"}
                   </h2>
-                  <span style={{ fontSize: 14, color: "var(--ink-3)" }}>{periodScopeLabel[period]}</span>
+                  <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{periodScopeLabel[period]}</span>
                 </div>
                 <MoodLineChart trend={trend} period={period} locale={locale} moodPack={moodPack} iconFormat={iconFormat} annotations={stats?.annotations} tier={tier} specialDays={specialDays} />
               </div>
@@ -740,7 +676,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
               {/* Special Days in period */}
               {specialDays.length > 0 && (
                 <div style={CARD}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.3, textTransform: "uppercase" as const, marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: 0.3, textTransform: "uppercase" as const, marginBottom: 10 }}>
                     {locale === "th" ? "วันสำคัญในช่วงนี้" : "Special days"}
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -781,8 +717,8 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                     <>
                       {/* Header */}
                       <div className="flex items-center justify-between mb-3">
-                        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>{t("moodMix")}</h2>
-                        <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--w-ink)" }}>{t("moodMix")}</h2>
+                        <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
                           {distTotal} {t("entries")}
                         </span>
                       </div>
@@ -838,15 +774,15 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                             />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600 }}>
+                            <div style={{ fontSize: 14, color: "var(--w-ink-3)", fontWeight: 600 }}>
                               {locale === "th" ? "อารมณ์หลัก" : "Top mood"}
                             </div>
-                            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)" }}>
                               {locale === "th" ? topMood.labelTh : topMood.label} · {topCount} {dayLabel}
                             </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)", lineHeight: 1 }}>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--w-ink)", lineHeight: 1 }}>
                               {topPct}%
                             </div>
                           </div>
@@ -869,17 +805,17 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                                   height={20}
                                   style={{ width: 20, height: 20, flexShrink: 0 }}
                                 />
-                                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+                                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>
                                   {locale === "th" ? m.labelTh : m.label}
                                 </span>
-                                <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                                <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
                                   {count} {dayLabel}
                                 </span>
-                                <span style={{ fontSize: 14, fontWeight: 700, width: 32, textAlign: "right" }}>
+                                <span style={{ fontSize: 14, fontWeight: 700, width: 32, textAlign: "right", color: "var(--w-ink)" }}>
                                   {pct}%
                                 </span>
                               </div>
-                              <div style={{ marginLeft: 28, height: 6, borderRadius: 3, background: "var(--surface-3)", overflow: "hidden" }}>
+                              <div style={{ marginLeft: 28, height: 6, borderRadius: 3, background: "var(--w-tint)", overflow: "hidden" }}>
                                 <div style={{ width: `${pct}%`, height: "100%", borderRadius: 3, background: m.color }} />
                               </div>
                             </div>
@@ -898,13 +834,13 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
             {tier === "premium" ? (
             <div style={CARD}>
               <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
-                <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--w-ink)", margin: 0 }}>{t("activityImpact")}</h2>
+                <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
                   {locale === "th" ? `วิเคราะห์จาก ${stats?.total ?? 0} entries` : `Analyzed from ${stats?.total ?? 0} entries`}
                 </span>
               </div>
               {activityImpact.length === 0 ? (
-                <div style={{ fontSize: 14, color: "var(--ink-3)", textAlign: "center", padding: "16px 0" }}>
+                <div style={{ fontSize: 14, color: "var(--w-ink-3)", textAlign: "center", padding: "16px 0" }}>
                   {t("noActivity")}
                 </div>
               ) : (
@@ -914,11 +850,11 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                     const barPct = Math.min(Math.abs(act.impact) / 2, 50);
                     return (
                       <div key={act.tag} className="flex items-center gap-3">
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", width: 100, flexShrink: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)", width: 100, flexShrink: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           #{act.tag.replace(/^#/, "")}
                         </span>
                         <div style={{ flex: 1, position: "relative", height: 10 }}>
-                          <div style={{ position: "absolute", inset: 0, borderRadius: 5, background: "var(--surface-3)" }} />
+                          <div style={{ position: "absolute", inset: 0, borderRadius: 5, background: "var(--w-tint)" }} />
                           <div style={{ position: "absolute", top: 0, height: "100%", left: isPositive ? "50%" : undefined, right: isPositive ? undefined : "50%", width: `${barPct}%`, borderRadius: 5, background: isPositive ? "var(--mint, #85ECCB)" : "#F4A8A8" }} />
                           <div style={{ position: "absolute", top: -2, bottom: -2, left: "50%", width: 1, background: "var(--hairline-2)" }} />
                         </div>
@@ -935,17 +871,17 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
             <div style={CARD}>
               <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
                 <div className="flex items-center gap-2">
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0 }}>{t("activityImpact")}</h2>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--w-ink)", margin: 0 }}>{t("activityImpact")}</h2>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "rgba(166,115,241,.12)", borderRadius: 100, padding: "2px 8px" }}>
                     PRO
                   </span>
                 </div>
               </div>
               <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", marginBottom: 12 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--w-ink-2)", marginBottom: 12 }}>
                   {locale === "th" ? "ดูว่ากิจกรรมไหนทำให้อารมณ์ดีขึ้นหรือแย่ลง วิเคราะห์จากบันทึกของคุณ" : "See which activities lift or lower your mood, analyzed from your entries"}
                 </p>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>
                   {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
                 </span>
               </a>
@@ -962,7 +898,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
         data={shareData}
         locale={locale}
       />
-    </>
+    </div>
   );
 }
 
@@ -976,16 +912,14 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
   const dots = Array.from({ length: MIN_ENTRIES }, (_, i) => i < total);
 
   return (
-    <div className="fade-in" style={{ paddingTop: 8 }}>
-      <div style={{
-        background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 22,
-        padding: "40px 24px", textAlign: "center", maxWidth: 480, margin: "0 auto",
-      }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
+    <div className="pa-wrap fade-in" style={{ paddingTop: 8 }}>
+      <div className="pa-sheet" style={{ borderRadius: 18, padding: "40px 24px", textAlign: "center", maxWidth: 480, margin: "0 auto", position: "relative" }}>
+        <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
+        <div style={{ fontSize: 48, marginBottom: 16, marginTop: 6 }}>📊</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--w-ink)", marginBottom: 8 }}>
           {isTh ? `ต้องการอีก ${remaining} วัน` : `${remaining} more day${remaining !== 1 ? "s" : ""} needed`}
         </div>
-        <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 20, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginBottom: 20, lineHeight: 1.5 }}>
           {isTh
             ? `คุณบันทึก ${total} ครั้งแล้ว · ต้องครบ ${MIN_ENTRIES} ครั้งจึงจะเห็นกราฟและเทรนด์`
             : `You've logged ${total} time${total !== 1 ? "s" : ""} · Need ${MIN_ENTRIES} to see charts and trends`}
@@ -999,8 +933,8 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
                 width: 36, height: 36, borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 14, fontWeight: 700,
-                background: done ? undefined : "#F2F0F5",
-                color: done ? "#fff" : "var(--ink-3)",
+                background: done ? undefined : "var(--w-tint)",
+                color: done ? "#fff" : "var(--w-ink-3)",
               }}
             >
               {done ? (
@@ -1020,14 +954,7 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
           ))}
         </div>
 
-        <a
-          href="/"
-          style={{
-            display: "inline-block", padding: "12px 28px", borderRadius: 16,
-            background: "#FCA45B", color: "#fff",
-            fontSize: 15, fontWeight: 700, textDecoration: "none",
-          }}
-        >
+        <a href="/" className="pa-btn" style={{ height: 46, padding: "0 28px", textDecoration: "none" }}>
           {isTh ? "+ บันทึกวันนี้" : "+ Log today"}
         </a>
       </div>
@@ -1037,14 +964,14 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 fade-in">
-      <div style={{ height: 120, borderRadius: 22, background: "var(--hero-grad)", opacity: 0.5 }} />
-      <div style={{ height: 220, borderRadius: 24, background: "var(--surface-2, #F8F6FB)", opacity: 0.5 }} />
+    <div className="pa-wrap space-y-4 fade-in">
+      <div className="pa-sheet" style={{ height: 120, borderRadius: 18, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", opacity: 0.6 }} />
+      <div className="pa-sheet" style={{ height: 220, borderRadius: 18, opacity: 0.6 }} />
       <div className="grid grid-cols-2 gap-4" style={{ maxWidth: 480 }}>
-        <div style={{ height: 180, borderRadius: 24, background: "var(--surface-2)", opacity: 0.4 }} />
-        <div style={{ height: 180, borderRadius: 24, background: "var(--surface-2)", opacity: 0.4 }} />
+        <div className="pa-sheet" style={{ height: 180, borderRadius: 18, opacity: 0.5 }} />
+        <div className="pa-sheet" style={{ height: 180, borderRadius: 18, opacity: 0.5 }} />
       </div>
-      <div style={{ height: 200, borderRadius: 24, background: "var(--surface-2)", opacity: 0.3 }} />
+      <div className="pa-sheet" style={{ height: 200, borderRadius: 18, opacity: 0.4 }} />
     </div>
   );
 }
