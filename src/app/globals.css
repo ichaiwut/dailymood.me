@@ -671,8 +671,14 @@ gmp-place-autocomplete::part(predictions) {
 .article-prose hr { border: none; border-top: 1px solid var(--hairline); margin: 2rem 0; }
 
 /* ─── article detail grid ─── */
+.article-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 34px;
+  align-items: flex-start;
+}
 @media (max-width: 767px) {
-  .article-grid { grid-template-columns: 1fr !important; }
+  .article-grid { grid-template-columns: 1fr; }
   .article-grid > aside { position: static !important; }
 }
 

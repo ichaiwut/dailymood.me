@@ -378,6 +378,20 @@ export function ProfileShell() {
         <span style={{ fontSize: 14, color: "var(--ink-3)" }}>→</span>
       </Link>
 
+      {/* Article reactions */}
+      <Link
+        href={"/profile/article-reactions" as "/"}
+        className="fade-in"
+        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: "var(--surface)", borderRadius: 16, border: "1px solid var(--hairline)", marginBottom: 20, textDecoration: "none", color: "inherit", animationDelay: "140ms" }}
+      >
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--accent-soft)", display: "grid", placeItems: "center", fontSize: 20, flexShrink: 0 }}>☺</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "อารมณ์หลังอ่านบทความ" : "Article reactions"}</div>
+          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{locale === "th" ? "บทความไหนทำให้คุณรู้สึกยังไง" : "How articles made you feel"}</div>
+        </div>
+        <span style={{ fontSize: 14, color: "var(--ink-3)" }}>→</span>
+      </Link>
+
       </aside>
       {/* ── MAIN CONTENT ── */}
       <div>

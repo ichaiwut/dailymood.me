@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAction } from "@/lib/admin-auth";
 import { getDb } from "@/lib/cf";
-import { articles } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { articles, articleReactions } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { deleteObject } from "@/lib/r2";
 import { calcReadingTime } from "@/lib/articles";
 
@@ -13,9 +13,16 @@ export async function GET(
   await requireAdminAction();
   const { id } = await params;
   const db = getDb();
-  const [row] = await db.select().from(articles).where(eq(articles.id, id)).limit(1);
+  const [[row], reactionCounts] = await Promise.all([
+    db.select().from(articles).where(eq(articles.id, id)).limit(1),
+    db
+      .select({ moodTypeId: articleReactions.moodTypeId, count: sql<number>`count(*)::int` })
+      .from(articleReactions)
+      .where(eq(articleReactions.articleId, id))
+      .groupBy(articleReactions.moodTypeId),
+  ]);
   if (!row) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  return NextResponse.json({ article: row });
+  return NextResponse.json({ article: row, reactionCounts });
 }
 
 export async function PATCH(

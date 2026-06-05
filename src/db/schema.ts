@@ -340,6 +340,19 @@ export const articleBookmarks = pgTable("article_bookmarks", {
   pk: primaryKey({ columns: [t.userId, t.articleId] }),
 }));
 
+// Post-read mood reaction — one row per user per article (their latest pick).
+// Powers the "AI learns which content helps you" signal on article detail.
+export const articleReactions = pgTable("article_reactions", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  moodTypeId: text("mood_type_id").notNull(),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.articleId] }),
+  articleIdx: index("article_reactions_article_idx").on(t.articleId),
+}));
+
 export const journalPromptCache = pgTable("journal_prompt_cache", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moodId: text("mood_id").notNull(),

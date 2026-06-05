@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArticleBody } from "@/components/article-body";
+import { MoodIcon } from "@/components/mood-icon";
+import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { optimizeImage } from "@/lib/client-image";
 
 interface Category {
@@ -10,6 +12,11 @@ interface Category {
   slug: string;
   labelTh: string;
   labelEn: string;
+}
+
+interface ReactionCount {
+  moodTypeId: string;
+  count: number;
 }
 
 const CARD: React.CSSProperties = {
@@ -41,6 +48,7 @@ export function AdminArticleEditorShell({ articleId }: { articleId: string }) {
   const [tagsStr, setTagsStr] = useState("");
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(isNew ? null : articleId);
+  const [reactionCounts, setReactionCounts] = useState<ReactionCount[]>([]);
 
   const fetchCategories = useCallback(async () => {
     const res = await fetch("/api/admin/article-categories");
@@ -52,7 +60,7 @@ export function AdminArticleEditorShell({ articleId }: { articleId: string }) {
     fetchCategories();
     if (!isNew) {
       fetch(`/api/admin/articles/${articleId}`)
-        .then((r) => r.json() as Promise<{ article?: { slug: string; titleTh: string; titleEn: string; excerptTh: string; excerptEn: string; bodyTh: string; bodyEn: string; categoryId: string | null; published: boolean; tone: string; tags: string[] } }>)
+        .then((r) => r.json() as Promise<{ article?: { slug: string; titleTh: string; titleEn: string; excerptTh: string; excerptEn: string; bodyTh: string; bodyEn: string; categoryId: string | null; published: boolean; tone: string; tags: string[] }; reactionCounts?: ReactionCount[] }>)
         .then((data) => {
           const a = data.article;
           if (!a) return;
@@ -67,6 +75,7 @@ export function AdminArticleEditorShell({ articleId }: { articleId: string }) {
           setPublished(a.published);
           setTone(a.tone ?? "peach");
           setTagsStr((a.tags ?? []).join(", "));
+          setReactionCounts(data.reactionCounts ?? []);
           setLoading(false);
         });
     }
@@ -128,6 +137,9 @@ export function AdminArticleEditorShell({ articleId }: { articleId: string }) {
     setCoverPreview(URL.createObjectURL(optimized));
   }
 
+  const reactionTotal = reactionCounts.reduce((s, r) => s + r.count, 0);
+  const reactionMap = new Map(reactionCounts.map((r) => [r.moodTypeId, r.count]));
+
   if (loading) return <p>Loading...</p>;
 
   return (
@@ -154,6 +166,7 @@ export function AdminArticleEditorShell({ articleId }: { articleId: string }) {
           </div>
         </div>
       ) : (
+        <>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
           {/* Left column — metadata */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -272,6 +285,41 @@ export function AdminArticleEditorShell({ articleId }: { articleId: string }) {
             </div>
           </div>
         </div>
+
+        {!isNew && (
+          <div style={{ ...CARD, marginTop: 24 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>ความรู้สึกของผู้อ่านหลังอ่าน</h3>
+            <p style={{ fontSize: 13, color: "var(--ink-3)", margin: "0 0 16px" }}>
+              ผู้อ่านบันทึกอารมณ์หลังอ่านบทความนี้ {reactionTotal} ครั้ง
+            </p>
+            {reactionTotal === 0 ? (
+              <p style={{ fontSize: 14, color: "var(--ink-3)", margin: 0 }}>ยังไม่มีใครให้ความรู้สึกกับบทความนี้</p>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                {DEFAULT_MOODS.filter((m) => reactionMap.get(m.id)).map((m) => {
+                  const c = reactionMap.get(m.id)!;
+                  const pct = Math.round((c / reactionTotal) * 100);
+                  return (
+                    <div key={m.id} style={{ flex: "1 1 130px", minWidth: 130, maxWidth: 190, border: "1px solid var(--hairline)", borderRadius: 12, padding: "12px 14px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                        <MoodIcon moodId={m.id} size={24} />
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>{m.labelTh}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                        <span style={{ fontSize: 22, fontWeight: 800 }}>{c}</span>
+                        <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{pct}%</span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 100, background: "var(--surface-2)", marginTop: 8 }}>
+                        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 100, background: m.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+        </>
       )}
     </div>
   );
