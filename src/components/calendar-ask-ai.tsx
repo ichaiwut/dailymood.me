@@ -136,48 +136,40 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
     return (
       <div className="mt-6 mb-4 fade-in">
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: "0.3px" }}>
           {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
         </span>
       </div>
       <a
         href="/pricing"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "14px 18px",
-          borderRadius: 16,
-          background: "var(--hero-grad)",
-          textDecoration: "none",
-          transition: "transform 120ms",
-        }}
+        className="pa-sheet"
+        style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 16, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", textDecoration: "none" }}
       >
         <div style={{
           width: 32, height: 32, borderRadius: 10,
-          background: "linear-gradient(135deg, #A673F1, #C49BF7)",
+          background: "linear-gradient(135deg, var(--purple), #C9A6F5)",
           display: "flex", alignItems: "center", justifyContent: "center",
           color: "#fff", flexShrink: 0,
         }}>
           {sparkle}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink)" }}>
             {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
           </div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 1 }}>
+          <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 1 }}>
             {t("askLocked")}
           </div>
         </div>
         <span style={{
-          background: "var(--ink)", color: "var(--bg)",
-          fontSize: 14, fontWeight: 800,
-          padding: "2px 6px", borderRadius: 4, letterSpacing: "0.3px",
+          background: "var(--w-ink)", color: "#fff",
+          fontSize: 11, fontWeight: 800,
+          padding: "2px 6px", borderRadius: 100, letterSpacing: "0.3px",
           flexShrink: 0,
         }}>PRO</span>
       </a>
@@ -189,12 +181,12 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
     <div className="mt-6 mb-4 fade-in">
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: "0.3px" }}>
           {locale === "th" ? "ถาม AI เกี่ยวกับเดือนนี้" : "Ask AI about this month"}
         </span>
       </div>
@@ -210,9 +202,9 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
         style={{
           borderRadius: 16,
           padding: "10px 12px 10px 18px",
-          background: "var(--surface)",
-          border: "1.5px solid var(--hairline)",
-          boxShadow: expanded ? "0 4px 20px -4px rgba(166,115,241,.15)" : "0 2px 8px -2px rgba(0,0,0,.04)",
+          background: "#fff",
+          border: "1.5px solid var(--w-rule)",
+          boxShadow: expanded ? "0 4px 20px -4px rgba(166,115,241,.15)" : "0 5px 14px -8px rgba(60,40,20,.3)",
           display: "flex",
           alignItems: "center",
           gap: 10,
@@ -226,7 +218,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
             onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
             className="flex items-center gap-2 flex-1"
           >
-            <span style={{ color: "#A673F1", flexShrink: 0, display: "flex" }}>{sparkle}</span>
+            <span style={{ color: "var(--purple-strong)", flexShrink: 0, display: "flex" }}>{sparkle}</span>
             <input
               ref={inputRef}
               value={query}
@@ -239,7 +231,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
                 outline: "none",
                 fontSize: 14,
                 fontWeight: 600,
-                color: "var(--ink)",
+                color: "var(--w-ink)",
                 fontFamily: "inherit",
               }}
             />
@@ -248,10 +240,10 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
               disabled={loading || cooldown || rateLimited || !query.trim()}
               style={{
                 width: 34, height: 34, borderRadius: 10,
-                background: loading || !query.trim() ? "var(--surface-2)" : "linear-gradient(135deg, #A673F1, #C49BF7)",
+                background: loading || !query.trim() ? "var(--w-tint)" : "linear-gradient(135deg, var(--purple), #C9A6F5)",
                 border: "none",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: loading || !query.trim() ? "var(--ink-3)" : "#fff",
+                color: loading || !query.trim() ? "var(--w-ink-3)" : "#fff",
                 flexShrink: 0, cursor: "pointer",
                 transition: "background 200ms",
               }}
@@ -269,15 +261,15 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
           </form>
         ) : (
           <>
-            <span style={{ color: "#A673F1", flexShrink: 0, display: "flex" }}>{sparkle}</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ color: "var(--purple-strong)", flexShrink: 0, display: "flex" }}>{sparkle}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-3)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {placeholders[placeholderIdx]}
             </span>
             <div style={{
               width: 34, height: 34, borderRadius: 10,
-              background: "var(--surface-2)",
+              background: "var(--w-tint)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "var(--ink-3)", flexShrink: 0,
+              color: "var(--w-ink-3)", flexShrink: 0,
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -293,10 +285,10 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
 
       {/* Usage counter + cooldown */}
       {expanded && (askCount > 0 || cooldown) && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 14, color: "var(--ink-3)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, fontSize: 14, color: "var(--w-ink-3)" }}>
           <span>{locale === "th" ? `ใช้ไป ${askCount} / ${ASK_LIMIT} ครั้ง` : `Used ${askCount} / ${ASK_LIMIT}`}</span>
           {cooldown && cooldownSec > 0 && (
-            <span style={{ color: "var(--purple)", fontWeight: 600 }}>
+            <span style={{ color: "var(--purple-strong)", fontWeight: 700 }}>
               · {locale === "th" ? `ถามได้อีกใน ${cooldownSec} วิ` : `Ask again in ${cooldownSec}s`}
             </span>
           )}
@@ -331,10 +323,10 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
       {/* Result */}
       {result && result.answer && (
         <div
-          className="mt-3 fade-in card"
-          style={{ padding: "14px 16px" }}
+          className="mt-3 fade-in pa-sheet"
+          style={{ borderRadius: 14, padding: "14px 16px" }}
         >
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink)", marginBottom: result.matchingDates.length > 0 ? 8 : 0 }}>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--w-ink)", marginBottom: result.matchingDates.length > 0 ? 8 : 0 }}>
             {result.answer}
           </p>
           {result.matchingDates.length > 0 && (
@@ -344,14 +336,15 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
                   key={date}
                   onClick={() => onDateSelect?.(date)}
                   style={{
-                    background: "var(--surface-2)",
-                    border: "1px solid var(--hairline)",
+                    background: "var(--w-tint)",
+                    border: "none",
                     borderRadius: 100,
-                    padding: "4px 10px",
+                    padding: "5px 12px",
                     fontSize: 14,
-                    fontWeight: 700,
-                    color: "#A673F1",
+                    fontWeight: 800,
+                    color: "var(--purple-strong)",
                     cursor: "pointer",
+                    fontFamily: "inherit",
                   }}
                 >
                   {formatDate(date)}
