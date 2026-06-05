@@ -1,37 +1,21 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useId } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations, useLocale } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { optimizeImage } from "@/lib/client-image";
-import { VoiceButton } from "./voice-button";
 import { trackMoodLog, trackAiAnalyze, trackVoiceInput } from "@/lib/analytics";
-import { AiDisclaimer } from "./ai-disclaimer";
-import { LocationSearch } from "./location-picker";
-import { SpecialDayBanner } from "./special-day-banner";
-import { ActivityPicker } from "./activity-picker";
 import type { SpecialDay } from "@/db/schema";
 import { getStaticPrompt, FALLBACK_PROMPT } from "@/lib/journal-prompts";
-
-type Tier = "guest" | "free" | "premium";
-
-interface AiSuggestion {
-  suggestedMoodId: string;
-  sentiment: number | null;
-  tags: string[];
-  imageKey: string | null;
-  aiSource: "manual" | "nlp" | "vision" | "nlp+vision";
-  aiSummary: string | null;
-  suggestedActivityId?: string | null;
-}
-
-interface RateLimitInfo {
-  used: number;
-  limit: number;
-  retryAfterSec: number;
-}
+import { SLShell } from "./paper/smartlog/sl-shell";
+import { SLHeader } from "./paper/smartlog/sl-header";
+import { SLInput } from "./paper/smartlog/sl-input";
+import { SLAnalyzing } from "./paper/smartlog/sl-analyzing";
+import { SLResult } from "./paper/smartlog/sl-result";
+import { SLRateLimit } from "./paper/smartlog/sl-rate-limit";
+import type { AiSuggestion, MoodItem, RateLimitInfo, Tier } from "./paper/smartlog/types";
 
 interface Props {
   tier: Tier;
@@ -41,17 +25,10 @@ interface Props {
   iconFormat?: string;
   preSelectedMoodId?: string;
   presetDate?: string;
-  customMoods?: { id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[];
+  customMoods?: MoodItem[];
 }
 
-function formatCountdown(sec: number, locale: string) {
-  const h = Math.floor(sec / 3600);
-  const m = Math.ceil((sec % 3600) / 60);
-  if (locale === "th") {
-    return h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
-  }
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
+const KNOWN_ERR_KEYS = new Set(["rate_limited", "premium_required", "image_too_large", "empty_input", "auth_required"]);
 
 export function SmartLogModal({
   tier,
@@ -65,7 +42,8 @@ export function SmartLogModal({
 }: Props) {
   const t = useTranslations("smart");
   const locale = useLocale();
-  const [fetchedCustomMoods, setFetchedCustomMoods] = useState<{ id: string; emoji: string; label: string; labelTh: string | null; color: string; iconKey: string | null }[]>([]);
+  const titleId = useId();
+  const [fetchedCustomMoods, setFetchedCustomMoods] = useState<MoodItem[]>([]);
   const customMoods = customMoodsProp ?? fetchedCustomMoods;
 
   const [modalSpecialDays, setModalSpecialDays] = useState<SpecialDay[]>([]);
@@ -78,7 +56,7 @@ export function SmartLogModal({
   useEffect(() => {
     if (customMoodsProp) return;
     fetch("/api/moods").then((r) => r.ok ? r.json() : { moods: [] }).then((d) => {
-      const moods = (d as { moods: { id: string; emoji: string; label: string; labelTh: string | null; color: string; isDefault: boolean; iconKey: string | null }[] }).moods;
+      const moods = (d as { moods: (MoodItem & { isDefault: boolean })[] }).moods;
       setFetchedCustomMoods(moods.filter((m) => !m.isDefault));
     });
   }, [customMoodsProp]);
@@ -118,11 +96,15 @@ export function SmartLogModal({
   const [promptLoading, setPromptLoading] = useState(false);
   const promptCacheRef = useRef<Record<string, string>>({});
 
+  const allMoods: MoodItem[] = useMemo(
+    () => [...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods],
+    [customMoods],
+  );
+
   const moodLabel = useMemo(() => {
-    const allMoods = [...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods];
     const moodObj = allMoods.find((m) => m.id === moodId);
     return moodObj ? (locale === "th" ? (moodObj.labelTh ?? moodObj.label) : moodObj.label) : "";
-  }, [moodId, locale, customMoods]);
+  }, [moodId, locale, allMoods]);
 
   useEffect(() => {
     if (tier === "guest") return;
@@ -195,17 +177,7 @@ export function SmartLogModal({
     return () => clearInterval(iv);
   }, [rateLimitInfo]);
 
-  const allMoods = [
-    ...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })),
-    ...customMoods,
-  ];
-  const selectedMood = allMoods.find((m) => m.id === moodId);
   const hasInput = text.trim().length > 0 || !!imageFile;
-
-  function iconSrc(m: { id: string; iconKey: string | null }) {
-    if (m.iconKey) return `${R2_PUBLIC_URL}/${m.iconKey}`;
-    return moodIconUrl(m.id, pack, iconFormat);
-  }
 
   function addTag() {
     const val = tagInput.trim();
@@ -310,351 +282,107 @@ export function SmartLogModal({
     }
   }
 
+  // Resolve an error code to display text: known i18n keys go through `t`,
+  // a bare "error" gets a generic message, anything else is shown verbatim
+  // (e.g. the localised "try again in N min" string set in handleSave).
+  const errorText = error
+    ? KNOWN_ERR_KEYS.has(error)
+      ? t(`err.${error}` as never)
+      : error === "error"
+        ? (locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong. Try again.")
+        : error
+    : null;
+
+  const placeholder = promptLoading
+    ? (locale === "th" ? "✦ กำลังเตรียมคำถามให้..." : "✦ Preparing your prompt...")
+    : (journalPrompt ?? (locale === "th" ? FALLBACK_PROMPT.th : FALLBACK_PROMPT.en));
+
+  function resetToInput() {
+    setSuggestion(null);
+    setTags([]);
+    setMoodId(preSelectedMoodId ?? "neutral");
+    setActivityId(null);
+  }
+
   return createPortal(
-    <div className="fixed inset-0 fade-in" style={{ background: "rgba(26,19,32,.55)", backdropFilter: "blur(8px)", zIndex: 9999 }}>
-      <div
-        className="flex flex-col mx-auto w-full"
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          maxWidth: 720,
-          width: "calc(100% - 32px)",
-          maxHeight: "90vh",
-          background: "var(--surface)",
-          borderRadius: 22,
-          boxShadow: "0 40px 80px -20px rgba(0,0,0,.4)",
-          overflow: "hidden",
-        }}
-      >
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between" style={{ padding: "22px 28px", borderBottom: "1px solid var(--hairline)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)" }}>
-              {locale === "th" ? "บันทึกด้วย AI" : "Smart Log AI"}
-            </span>
-          </div>
-          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="var(--ink-2)" strokeWidth="1.8" strokeLinecap="round" /></svg>
-          </button>
-        </div>
-
-        {/* ── Date label + special days ── */}
-        <div style={{ padding: "12px 28px 0", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="var(--ink-3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)" }}>
-              {logDate.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            </span>
-          </div>
-          {modalSpecialDays.length > 0 && <SpecialDayBanner days={modalSpecialDays} locale={locale} />}
-        </div>
-
-        {/* ── Content ── */}
-        <div style={{ padding: 28, overflowY: "auto" }}>
-
-          {/* ══ RATE LIMIT UI ══ */}
-          {rateLimitInfo ? (
-            <div className="fade-in" style={{ textAlign: "center", padding: "24px 8px" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
-                {locale === "th" ? "ขอเบรกแป๊บนะ" : "Take a short break"}
-              </div>
-              <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 380, margin: "0 auto 20px" }}>
-                {tier === "premium" ? (
-                  locale === "th"
-                    ? <>คุณใช้ Smart Log AI ครบ <b>3 ครั้ง / 5 นาที</b> แล้ว — รอสักครู่แล้วลองใหม่</>
-                    : <>You&apos;ve used Smart Log AI <b>3 times / 5 min</b> — wait a moment and try again</>
-                ) : (
-                  locale === "th"
-                    ? <>คุณใช้ Smart Log AI ครบ <b>{rateLimitInfo.limit} ครั้ง / วัน</b> (Free) แล้ว — รีเซ็ตเที่ยงคืน หรืออัปเกรดเป็น Pro ใช้ไม่จำกัด</>
-                    : <>You&apos;ve used all <b>{rateLimitInfo.limit} daily</b> Smart Log AI (Free) — resets at midnight, or upgrade to Pro for unlimited</>
-                )}
-              </div>
-
-              {/* Progress bar */}
-              <div style={{ background: "var(--surface-2)", borderRadius: 14, padding: "14px 18px", maxWidth: 380, margin: "0 auto 24px", textAlign: "left" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, color: "var(--ink-2)", marginBottom: 8 }}>
-                  <span>{locale === "th" ? "วันนี้ใช้ไปแล้ว" : "Used today"}</span>
-                  <span style={{ color: "var(--ink)" }}>{rateLimitInfo.used} / {rateLimitInfo.limit}</span>
-                </div>
-                <div style={{ height: 8, borderRadius: 100, background: "var(--surface-3)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 100, background: "linear-gradient(90deg, #A673F1, #FCA45B)", width: `${Math.min(100, (rateLimitInfo.used / rateLimitInfo.limit) * 100)}%`, transition: "width 0.4s ease" }} />
-                </div>
-                {countdown > 0 && (
-                  <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 6 }}>
-                    {locale === "th" ? `รีเซ็ตในอีก ${formatCountdown(countdown, locale)}` : `Resets in ${formatCountdown(countdown, locale)}`}
-                  </div>
-                )}
-              </div>
-
-              {/* Action buttons */}
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-                {tier !== "premium" && (
-                  <a href="/pricing" className="w-btn w-btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
-                    {locale === "th" ? "อัปเกรดเป็น Pro" : "Upgrade to Pro"}
-                  </a>
-                )}
-                <button onClick={handleSave} disabled={busy} className="w-btn w-btn-ghost">
-                  {busy ? (locale === "th" ? "กำลังบันทึก..." : "Saving...") : (locale === "th" ? "บันทึกแบบปกติ" : "Save without AI")}
-                </button>
-              </div>
-            </div>
-
+    <SLShell
+      onClose={onClose}
+      width={rateLimitInfo ? 560 : analyzing ? 580 : 728}
+      labelledBy={rateLimitInfo || analyzing ? undefined : titleId}
+    >
+      {rateLimitInfo ? (
+        <SLRateLimit
+          locale={locale}
+          tier={tier}
+          rateLimitInfo={rateLimitInfo}
+          countdown={countdown}
+          busy={busy}
+          onSaveWithoutAI={handleSave}
+          onClose={onClose}
+        />
+      ) : (
+        <>
+          <SLHeader locale={locale} logDate={logDate} specialDays={modalSpecialDays} onClose={onClose} titleId={titleId} />
+          {analyzing ? (
+            <SLAnalyzing locale={locale} aiStep={aiStep} />
+          ) : suggestion ? (
+            <SLResult
+              locale={locale}
+              allMoods={allMoods}
+              moodId={moodId}
+              onMoodChange={setMoodId}
+              text={text}
+              tags={tags}
+              tagInput={tagInput}
+              onTagInputChange={setTagInput}
+              onTagAdd={addTag}
+              onTagRemove={(i) => setTags((p) => p.filter((_, j) => j !== i))}
+              activityId={activityId}
+              onActivityChange={setActivityId}
+              suggestion={suggestion}
+              pack={pack}
+              iconFormat={iconFormat}
+              busy={busy}
+              onSave={handleSave}
+              onWriteMyself={resetToInput}
+              onCancel={onClose}
+            />
           ) : (
-            /* ══ NORMAL FORM ══ */
-            <>
-              {/* Selected mood — surfaced at the top so the user can see the mood
-                  they picked on the home page carried over (and change it before
-                  writing). Hidden once an AI suggestion is shown, which has its
-                  own mood picker. */}
-              {!suggestion && (
-                <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)", marginBottom: 10 }}>
-                    {locale === "th" ? "อารมณ์ของคุณ" : "Your mood"}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="no-scrollbar">
-                    {allMoods.map((m) => {
-                      const active = m.id === moodId;
-                      const label = locale === "th" ? (m.labelTh ?? m.label) : m.label;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => setMoodId(m.id)}
-                          aria-pressed={active}
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "10px 8px",
-                            minWidth: 68,
-                            flexShrink: 0,
-                            borderRadius: 14,
-                            background: active ? "var(--surface)" : "var(--surface-2)",
-                            border: active ? "2px solid var(--ink)" : "1px solid var(--hairline)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <img src={iconSrc(m)} alt="" width={34} height={34} style={{ display: "block", pointerEvents: "none" }} />
-                          <span style={{ fontSize: 14, fontWeight: active ? 700 : 600, color: active ? "var(--ink)" : "var(--ink-2)", whiteSpace: "nowrap" }}>{label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Textarea */}
-              <textarea
-                value={text}
-                onChange={(e) => { setText(e.target.value); if (suggestion) setSuggestion(null); }}
-                className="w-textarea"
-                placeholder={promptLoading ? (locale === "th" ? "✦ กำลังเตรียมคำถามให้..." : "✦ Preparing your prompt...") : (journalPrompt ?? (locale === "th" ? FALLBACK_PROMPT.th : FALLBACK_PROMPT.en))}
-                style={{ minHeight: 130, fontSize: 16, lineHeight: 1.6, background: "var(--surface-2)" }}
-              />
-
-              {/* Image preview */}
-              {imagePreview && (
-                <div className="relative mt-3">
-                  <img src={imagePreview} alt="" className="w-full max-h-40 object-cover" style={{ borderRadius: 12 }} />
-                  <button onClick={() => { setImageFile(null); setImagePreview(null); }} style={{ position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,.5)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  </button>
-                </div>
-              )}
-
-              {/* Location tag below textarea */}
-              {location && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "var(--surface-2)", maxWidth: "100%" }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" />
-                  </svg>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{location}</span>
-                  <button type="button" onClick={() => setLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="var(--ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  </button>
-                </div>
-              )}
-
-              {/* Mic + Image + Location buttons + AI count */}
-              <div style={{ display: "flex", gap: 10, marginTop: 14, alignItems: "center" }}>
-                <VoiceButton onTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }} />
-                <label style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 100, border: "1px solid var(--hairline)", background: "var(--surface)", cursor: tier === "premium" ? "pointer" : "default", fontWeight: 600, fontSize: 14, opacity: tier === "premium" ? 1 : 0.45, position: "relative" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  <span>{locale === "th" ? "รูป" : "Photo"}</span>
-                  {tier !== "premium" && <span style={{ position: "absolute", top: -6, right: -4, background: "var(--ink)", color: "var(--bg)", fontSize: 14, fontWeight: 800, padding: "1px 5px", borderRadius: 4 }}>PRO</span>}
-                  {tier === "premium" && <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); } }} />}
-                </label>
-                <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 100, border: "1px solid var(--hairline)", background: showLocationSearch ? "var(--ink)" : "var(--surface-2)", cursor: "pointer" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={showLocationSearch ? "var(--bg)" : "currentColor"} />
-                  </svg>
-                </button>
-                {aiLimit !== null && aiRemaining !== null && (
-                  <span style={{ fontSize: 14, color: "var(--ink-3)", marginLeft: "auto" }}>
-                    {locale === "th" ? `เหลือ AI วันนี้ ${aiRemaining} / ${aiLimit}` : `AI remaining ${aiRemaining} / ${aiLimit}`}
-                  </span>
-                )}
-              </div>
-
-              {/* Location search field */}
-              {showLocationSearch && (
-                <LocationSearch
-                  locale={locale}
-                  onSelect={(v, lat, lng) => { setLocation(v); setLocationLat(lat); setLocationLng(lng); setShowLocationSearch(false); }}
-                  onClose={() => setShowLocationSearch(false)}
-                />
-              )}
-
-              {/* Error (non-rate-limit) */}
-              {error && (
-                <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "var(--surface-2)", border: "1px solid var(--hairline-2)" }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: "#D14343", margin: 0 }}>
-                    {t(`err.${error}` as never) || (locale === "th" ? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง" : "Something went wrong.")}
-                  </p>
-                </div>
-              )}
-
-              {/* Activity picker */}
-              {!analyzing && !rateLimitInfo && (
-                <div style={{ marginTop: 14 }}>
-                  <ActivityPicker value={activityId} onChange={setActivityId} />
-                </div>
-              )}
-
-              {/* AI analyzing state */}
-              {analyzing && (
-                <div className="fade-in" style={{ marginTop: 24, textAlign: "center", padding: "32px 20px" }}>
-                  {/* Spinning ring + brain */}
-                  <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 20px" }}>
-                    <svg width="100" height="100" viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0 }}>
-                      <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface-3)" strokeWidth="4" />
-                    </svg>
-                    <svg width="100" height="100" viewBox="0 0 100 100" className="ai-spin" style={{ position: "absolute", top: 0, left: 0 }}>
-                      <defs>
-                        <linearGradient id="ai-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#A673F1" />
-                          <stop offset="100%" stopColor="#FCA45B" />
-                        </linearGradient>
-                      </defs>
-                      <circle cx="50" cy="50" r="44" fill="none" stroke="url(#ai-grad)" strokeWidth="4" strokeLinecap="round" strokeDasharray="184 276" />
-                    </svg>
-                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: 36, lineHeight: 1 }}>🧠</div>
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
-                    {locale === "th" ? "AI กำลังวิเคราะห์..." : "AI analyzing..."}
-                  </div>
-                  <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 16 }}>
-                    {locale === "th" ? "กำลังอ่านข้อความและจับ trigger — ใช้เวลาประมาณ 2-3 วินาที" : "Reading your text and detecting triggers — about 2-3 seconds"}
-                  </div>
-                  {/* Step indicators */}
-                  <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 14, fontWeight: 600 }}>
-                    <span style={{ color: aiStep >= 1 ? "#34A853" : "var(--purple)" }}>
-                      {aiStep >= 1 ? "✓" : "●"} {locale === "th" ? "ตรวจอารมณ์" : "Mood check"}
-                    </span>
-                    <span style={{ color: aiStep >= 2 ? "#34A853" : aiStep >= 1 ? "var(--purple)" : "var(--ink-3)" }}>
-                      {aiStep >= 2 ? "✓" : aiStep >= 1 ? "●" : "○"} {locale === "th" ? "จับ trigger" : "Triggers"}
-                    </span>
-                    <span style={{ color: aiStep >= 2 ? "var(--purple)" : "var(--ink-3)" }}>
-                      {aiStep >= 2 ? "●" : "○"} {locale === "th" ? "สรุปสั้น" : "Summary"}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* AI suggestion result */}
-              {suggestion && !analyzing && (
-                <div style={{ marginTop: 24, padding: 18, borderRadius: 14, background: "var(--hero-grad)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: ".03em" }}>{locale === "th" ? "AI วิเคราะห์ให้" : "AI ANALYSIS"}</span>
-                    <span style={{ fontSize: 14, color: "var(--ink-3)" }}>· {locale === "th" ? "แก้ไขได้" : "editable"}</span>
-                  </div>
-                  {/* Mood picker */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{locale === "th" ? "อารมณ์:" : "Mood:"}</span>
-                    <div style={{ display: "flex", gap: 6, overflow: "auto" }} className="no-scrollbar">
-                      {allMoods.map((m) => (
-                        <button key={m.id} onClick={() => setMoodId(m.id)} style={{ width: 36, height: 36, minWidth: 36, borderRadius: "50%", background: m.id === moodId ? (selectedMood?.color ?? "var(--purple)") : "transparent", border: m.id === moodId ? "2px solid var(--ink)" : "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", padding: 0, flexShrink: 0 }}>
-                          <img src={iconSrc(m)} alt="" width={24} height={24} style={{ display: "block", pointerEvents: "none" }} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Tags */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)", minWidth: 50 }}>{locale === "th" ? "แท็ก:" : "Tags:"}</span>
-                    {tags.map((tag, i) => (
-                      <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 100, background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--hairline)", fontSize: 14, fontWeight: 600 }}>
-                        #{tag}
-                        <button onClick={() => setTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex" }}>×</button>
-                      </span>
-                    ))}
-                    <form onSubmit={(e) => { e.preventDefault(); addTag(); }} style={{ display: "inline-flex" }}>
-                      <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder={locale === "th" ? "+ เพิ่ม" : "+ Add"} style={{ width: tagInput ? 100 : 60, padding: "4px 10px", borderRadius: 100, background: "transparent", border: "1px dashed var(--hairline-2)", color: "var(--ink-3)", fontFamily: "inherit", fontSize: 14, outline: "none" }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} />
-                    </form>
-                  </div>
-                  {/* Activity in AI suggestion */}
-                  <ActivityPicker value={activityId} onChange={setActivityId} />
-                  {/* Summary */}
-                  {suggestion.aiSummary && (
-                    <div style={{ padding: 12, background: "var(--surface-2)", borderRadius: 10 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", letterSpacing: ".03em", marginBottom: 6 }}>{locale === "th" ? "สรุป" : "Summary"}</div>
-                      <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
-                    </div>
-                  )}
-                  <div style={{ marginTop: 12 }}>
-                    <AiDisclaimer variant="parse" />
-                  </div>
-                </div>
-              )}
-
-              {/* Pro teaser (no suggestion yet, free user) */}
-              {!suggestion && !analyzing && tier !== "premium" && (
-                <a href="/pricing" style={{ display: "block", textDecoration: "none", marginTop: 18, background: "var(--hero-grad)", borderRadius: 14, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
-                    </div>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>PRO</span>
-                  </div>
-                  <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, margin: 0 }}>
-                    {locale === "th" ? "AI อ่านสิ่งที่คุณเขียน แล้วสรุปอารมณ์ แท็ก และ insight ให้อัตโนมัติ" : "AI reads your text and extracts mood, tags, and insights automatically"}
-                    {" "}<span style={{ fontWeight: 700, color: "#A673F1" }}>{locale === "th" ? "อัปเกรด →" : "Upgrade →"}</span>
-                  </p>
-                </a>
-              )}
-
-              {/* Action buttons */}
-              <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
-                <button onClick={onClose} className="w-btn w-btn-ghost">{locale === "th" ? "ยกเลิก" : "Cancel"}</button>
-                {!suggestion && !analyzing && (
-                  <button onClick={handleAnalyze} disabled={!hasInput || (aiRemaining !== null && aiRemaining <= 0)} className="w-btn" style={{ background: "var(--surface)", border: "1px solid var(--hairline)", opacity: (!hasInput || (aiRemaining !== null && aiRemaining <= 0)) ? 0.4 : 1 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="var(--purple)" /></svg>
-                    {aiRemaining !== null && aiRemaining <= 0 ? (locale === "th" ? "หมดโควต้า" : "Quota reached") : (locale === "th" ? "วิเคราะห์" : "Analyze")}
-                  </button>
-                )}
-                {suggestion && !analyzing && (
-                  <button onClick={() => { setSuggestion(null); setTags([]); setMoodId(preSelectedMoodId ?? "neutral"); setActivityId(null); }} className="w-btn w-btn-ghost">
-                    {locale === "th" ? "เขียนเอง" : "Write myself"}
-                  </button>
-                )}
-                <button onClick={handleSave} disabled={busy || analyzing} className="w-btn w-btn-primary" style={{ opacity: busy || analyzing ? 0.4 : 1 }}>
-                  {busy ? (locale === "th" ? "กำลังบันทึก..." : "Saving...") : (locale === "th" ? "บันทึก" : "Save")}
-                </button>
-              </div>
-            </>
+            <SLInput
+              locale={locale}
+              tier={tier}
+              allMoods={allMoods}
+              moodId={moodId}
+              onMoodChange={setMoodId}
+              text={text}
+              onTextChange={setText}
+              placeholder={placeholder}
+              imagePreview={imagePreview}
+              onImageSelect={(f) => { setImageFile(f); setImagePreview(URL.createObjectURL(f)); }}
+              onImageClear={() => { setImageFile(null); setImagePreview(null); }}
+              location={location}
+              showLocationSearch={showLocationSearch}
+              onLocationToggle={() => setShowLocationSearch((s) => !s)}
+              onLocationSelect={(v, lat, lng) => { setLocation(v); setLocationLat(lat); setLocationLng(lng); setShowLocationSearch(false); }}
+              onLocationClear={() => setLocation("")}
+              activityId={activityId}
+              onActivityChange={setActivityId}
+              aiRemaining={aiRemaining}
+              aiLimit={aiLimit}
+              hasInput={hasInput}
+              errorText={errorText}
+              pack={pack}
+              iconFormat={iconFormat}
+              busy={busy}
+              onVoiceTranscript={(s) => { trackVoiceInput(); setText((p) => (p ? p + " " : "") + s); }}
+              onAnalyze={handleAnalyze}
+              onSave={handleSave}
+              onCancel={onClose}
+            />
           )}
-        </div>
-      </div>
-    </div>,
+        </>
+      )}
+    </SLShell>,
     document.body,
   );
 }

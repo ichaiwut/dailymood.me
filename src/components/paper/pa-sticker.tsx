@@ -1,16 +1,22 @@
 import type { CSSProperties } from "react";
-import { moodIconUrl } from "@/lib/moods";
+import { moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
 
 /**
- * Mood sticker — a coloured disc with a white ring holding the article's
- * derived mood face. Uses the app's real mood icon (moodIconUrl) so the face
- * matches the rest of the product; the disc colour is the article's tone hue.
+ * Mood sticker — a coloured disc with a white ring holding the mood face.
+ * Uses the app's real mood icon so the face matches the rest of the product.
+ *
+ * By default it resolves the icon from the default pack (used by /articles).
+ * Pass `pack`/`iconFormat` to honour a user's selected pack, or `iconKey` to
+ * render a custom (user-created) mood's uploaded icon.
  */
 export function PASticker({
   moodId,
   color,
   size = 54,
   borderWidth = 4,
+  pack,
+  iconFormat,
+  iconKey,
   className,
   style,
 }: {
@@ -18,10 +24,14 @@ export function PASticker({
   color: string;
   size?: number;
   borderWidth?: number;
+  pack?: string;
+  iconFormat?: string;
+  iconKey?: string | null;
   className?: string;
   style?: CSSProperties;
 }) {
   const face = Math.round(size * 0.78);
+  const src = iconKey ? `${R2_PUBLIC_URL}/${iconKey}` : moodIconUrl(moodId, pack, iconFormat);
   return (
     <div
       aria-hidden
@@ -39,7 +49,7 @@ export function PASticker({
         ...style,
       }}
     >
-      <img src={moodIconUrl(moodId)} alt="" width={face} height={face} style={{ display: "block" }} />
+      <img src={src} alt="" width={face} height={face} style={{ display: "block" }} />
     </div>
   );
 }

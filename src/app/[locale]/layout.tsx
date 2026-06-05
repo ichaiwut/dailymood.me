@@ -1,11 +1,12 @@
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { TopBar } from "@/components/topbar";
 import { BottomNav } from "@/components/bottom-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GuestEntryClaim } from "@/components/guest-entry-claim";
+import { TrialPromoBar } from "@/components/trial-promo-bar";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -15,14 +16,21 @@ export default async function LocaleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [messages, session] = await Promise.all([getMessages(), auth()]);
+  const [messages, session, locale] = await Promise.all([getMessages(), auth(), getLocale()]);
   const isLoggedIn = !!session?.user;
 
   let showChrome = isLoggedIn;
+  let showPromo = false;
   if (isLoggedIn && session?.user?.id) {
     const db = getDb();
-    const [u] = await db.select({ welcomeShownAt: users.welcomeShownAt }).from(users).where(eq(users.id, session.user.id)).limit(1);
+    const [u] = await db
+      .select({ welcomeShownAt: users.welcomeShownAt, isPremium: users.isPremium, trialEndsAt: users.trialEndsAt })
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
     if (!u?.welcomeShownAt) showChrome = false;
+    const trialActive = !!u?.trialEndsAt && u.trialEndsAt.getTime() > Date.now();
+    showPromo = !u?.isPremium && !trialActive;
   }
 
   return (
@@ -31,6 +39,7 @@ export default async function LocaleLayout({
         <GuestEntryClaim loggedIn={isLoggedIn} />
         {showChrome ? (
           <>
+            {showPromo && <TrialPromoBar locale={locale} />}
             <TopBar />
             <main className="w-container main-content" style={{ flex: 1, position: "relative", zIndex: 0 }}>
               {children}

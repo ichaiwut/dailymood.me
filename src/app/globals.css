@@ -84,7 +84,8 @@
 }
 
 html, body {
-  background: var(--bg-grad);
+  background: radial-gradient(#785a3212 1px, #0000 1.4px), var(--bg-grad);
+  background-size: 7px 7px, auto;
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans), var(--font-thai), ui-sans-serif, system-ui, sans-serif;
@@ -832,4 +833,104 @@ gmp-place-autocomplete::part(predictions) {
 @media (prefers-reduced-motion: reduce) {
   .pa-card-lift { transition: none; }
   .pa-card-lift:hover { transform: none !important; }
+}
+
+/* ═══ Paper Desk · Today dashboard + Smart Log modal ═══
+   Added for the Today/SmartLog reskin. `.pa-wrap` (tokens, used by /articles)
+   stays untouched; the warm cream desk surface + dot grain live on the opt-in
+   `.pa-desk` modifier so the articles page is not affected. */
+
+/* warm soft tint token — referenced by paper surfaces (was never defined) */
+.pa-wrap { --w-tint: #F4EEE6; }
+
+/* cream "desk" surface with a subtle paper grain — Today page only */
+.pa-desk {
+  padding: 28px 28px 40px;
+}
+
+/* Today two-column desk grid */
+.pa-today-grid { display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: flex-start; }
+.pa-entries-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+/* paper icon button (mic / photo / location) */
+.pa-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--w-rule);
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--w-ink-2);
+  position: relative;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.pa-icon-btn:disabled { cursor: default; }
+.pa-icon-btn.active { background: var(--w-ink); color: #fff; border-color: var(--w-ink); }
+
+/* Smart Log modal — backdrop + paper sheet */
+.sl-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(26, 19, 32, .46);
+  backdrop-filter: blur(6px);
+}
+.sl-sheet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  background: #fff;
+  border-radius: 8px 26px 26px 26px;
+  box-shadow: 0 44px 100px -24px rgba(40, 20, 10, .6);
+}
+/* inner scroller — keeps the sheet itself overflow-visible so the washi tape
+   can overhang the top edge without being clipped */
+.sl-scroll {
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: inherit;
+}
+.sl-drag-handle { display: none; }
+
+/* analyzing spinner */
+@keyframes sl-spin { to { transform: rotate(360deg); } }
+.sl-spinner { animation: sl-spin 1.2s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .sl-spinner { animation: none; }
+}
+
+/* responsive: single column + modal becomes a bottom sheet */
+@media (max-width: 767px) {
+  .pa-today-grid { grid-template-columns: 1fr; gap: 20px; }
+  .pa-entries-grid { grid-template-columns: 1fr; }
+  .pa-desk { padding: 0; }
+}
+@media (max-width: 640px) {
+  .sl-sheet {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100% !important;
+    border-radius: 22px 22px 0 0;
+    padding-top: 6px;
+  }
+  .sl-scroll { max-height: 92vh; }
+  .sl-drag-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 100px;
+    background: var(--w-ink-3);
+    opacity: .35;
+    margin: 6px auto 2px;
+  }
 }
