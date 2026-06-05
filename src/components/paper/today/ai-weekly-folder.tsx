@@ -38,7 +38,7 @@ export function AiWeeklyFolder({
         </div>
         <Link
           href={(tier === "premium" ? "/insights" : "/pricing") as "/"}
-          style={{ position: "relative", marginTop: 18, display: "inline-block", background: "#fff", color: "var(--w-ink)", border: "none", padding: "10px 18px", borderRadius: 11, fontWeight: 800, fontSize: 14, textDecoration: "none", boxShadow: "0 5px 0 -1px rgba(255,255,255,.35)" }}
+          style={{ position: "relative", marginTop: 18, display: "inline-block", background: "var(--w-surface)", color: "var(--w-ink)", border: "none", padding: "10px 18px", borderRadius: 11, fontWeight: 800, fontSize: 14, textDecoration: "none", boxShadow: "0 5px 0 -1px rgba(255,255,255,.35)" }}
         >
           {tier === "premium"
             ? (locale === "th" ? "เปิด AI Insights →" : "Open AI Insights →")

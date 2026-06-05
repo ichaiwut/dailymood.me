@@ -242,7 +242,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
                 onClick={handleCheckout}
                 style={{
                   width: "100%", padding: "14px 0", borderRadius: 16,
-                  background: "#fff", border: "none", color: "var(--purple-strong)",
+                  background: "var(--w-surface)", border: "none", color: "var(--purple-strong)",
                   fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
                 }}
               >
@@ -366,7 +366,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         <div className="ask-ai-input-bar" style={{ borderTop: "1.5px solid var(--hairline-2)", padding: "16px 32px 20px" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            background: "#fff", border: "1.5px solid var(--w-rule-strong)", borderRadius: 16, padding: "10px 16px",
+            background: "var(--w-surface)", border: "1.5px solid var(--w-rule-strong)", borderRadius: 16, padding: "10px 16px",
             boxShadow: "0 10px 28px -16px rgba(60,40,20,.4)",
           }}>
             <input
@@ -437,7 +437,7 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
                 className="pa-card-lift"
                 style={{
                   textAlign: "left", padding: "14px 16px", borderRadius: 14,
-                  border: "none", background: "#fff", cursor: "pointer",
+                  border: "none", background: "var(--w-surface)", cursor: "pointer",
                   fontSize: 15, fontWeight: 600, color: "var(--w-ink)", lineHeight: 1.4,
                   boxShadow: "0 10px 26px -16px rgba(60,40,20,.45)",
                 }}
@@ -463,7 +463,7 @@ function UserBubble({ msg, locale }: { msg: Message; locale: string }) {
           {locale === "th" ? "คุณเอง" : "You"} · {time}
         </div>
         <div style={{
-          background: "#F1E7FA", borderRadius: "16px 16px 4px 16px", padding: "14px 18px",
+          background: "var(--primary-bg)", borderRadius: "16px 16px 4px 16px", padding: "14px 18px",
           fontSize: 15, color: "var(--w-ink)", lineHeight: 1.5,
           boxShadow: "0 10px 24px -16px rgba(60,40,20,.4)",
         }}>
@@ -536,7 +536,7 @@ function FbBtn({ label, active, disabled, onClick }: { label: string; active: bo
       onClick={onClick}
       disabled={disabled || active}
       style={{
-        background: active ? "var(--primary-bg)" : "#fff",
+        background: active ? "var(--primary-bg)" : "var(--w-surface)",
         color: active ? "var(--purple-strong)" : "var(--w-ink-2)",
         border: `1.5px solid ${active ? "var(--purple)" : "var(--w-rule-strong)"}`,
         borderRadius: 20, padding: "6px 14px", fontSize: 14, fontWeight: 600,

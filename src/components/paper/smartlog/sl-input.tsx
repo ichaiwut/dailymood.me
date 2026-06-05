@@ -96,7 +96,7 @@ export function SLInput({
               aria-label={label}
               style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 7, padding: "11px 4px 9px", borderRadius: 14,
-                background: "#fff", border: on ? "2px solid var(--w-ink)" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit",
+                background: "var(--w-surface)", border: on ? "2px solid var(--w-ink)" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit",
                 boxShadow: on ? "0 9px 20px -9px rgba(0,0,0,.3)" : "0 4px 12px -7px rgba(60,40,20,.28)", transform: on ? "translateY(-1px)" : "none",
               }}
             >
@@ -114,7 +114,7 @@ export function SLInput({
         value={text}
         onChange={(e) => onTextChange(e.target.value)}
         placeholder={placeholder}
-        style={{ width: "100%", minHeight: 120, borderRadius: 14, border: "1.5px solid var(--w-rule)", background: "#FBF7F0", padding: "15px 17px", color: "var(--w-ink)", fontSize: 15, lineHeight: 1.6, outline: "none", resize: "vertical", fontFamily: "inherit" }}
+        style={{ width: "100%", minHeight: 120, borderRadius: 14, border: "1.5px solid var(--w-rule)", background: "var(--w-surface-2)", padding: "15px 17px", color: "var(--w-ink)", fontSize: 15, lineHeight: 1.6, outline: "none", resize: "vertical", fontFamily: "inherit" }}
       />
 
       {imagePreview && (
@@ -175,7 +175,7 @@ export function SLInput({
       )}
 
       {errorText && (
-        <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "#FBF7F0", border: "1px solid var(--w-rule)" }}>
+        <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "var(--w-surface-2)", border: "1px solid var(--w-rule)" }}>
           <p style={{ fontSize: 14, fontWeight: 600, color: "#D14343", margin: 0 }}>{errorText}</p>
         </div>
       )}
@@ -187,7 +187,7 @@ export function SLInput({
 
       {/* PRO teaser (free users) */}
       {tier !== "premium" && (
-        <Link href={"/pricing" as "/"} style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", marginTop: 18, padding: "14px 16px", borderRadius: 14, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)" }}>
+        <Link href={"/pricing" as "/"} style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", marginTop: 18, padding: "14px 16px", borderRadius: 14, background: "var(--w-ai-grad)" }}>
           <span style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.4" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </span>
@@ -200,7 +200,7 @@ export function SLInput({
 
       {/* footer */}
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-        <button onClick={onCancel} style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)" }}>
+        <button onClick={onCancel} style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)" }}>
           {locale === "th" ? "ยกเลิก" : "Cancel"}
         </button>
         <button

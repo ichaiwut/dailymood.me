@@ -88,7 +88,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
       {cancelled && (
         <div className="pa-sheet fade-in" style={{
           padding: "14px 18px", borderRadius: 16, marginBottom: 20,
-          background: "linear-gradient(135deg, #FFF6EA, #FDEFE0)",
+          background: "var(--w-card-warm)",
           display: "flex", alignItems: "center", gap: 10,
         }}>
           <span style={{ fontSize: 20 }}>😕</span>
@@ -135,7 +135,7 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
         <div
           className="pa-sheet"
           style={{
-            background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)",
+            background: "var(--w-ai-grad)",
             borderRadius: 18, padding: "26px 24px", marginBottom: 28,
             textAlign: "center", position: "relative",
           }}
@@ -291,7 +291,7 @@ function PlanCard({ active, onClick, label, price, per, badge, sub }: {
       style={{
         padding: "20px 18px", borderRadius: 18, cursor: "pointer",
         border: active ? "2.5px solid var(--purple)" : "2.5px solid transparent",
-        background: active ? "var(--primary-bg)" : "#fff",
+        background: active ? "var(--primary-bg)" : "var(--w-surface)",
         textAlign: "left", position: "relative",
       }}
     >

@@ -72,7 +72,7 @@ function parseHeadings(body: string): TocItem[] {
 /** Paper-pill button (top bar). */
 const paperPill: CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 15px",
-  borderRadius: 11, background: "#fff", border: "none",
+  borderRadius: 11, background: "var(--w-surface)", border: "none",
   boxShadow: "0 5px 14px -8px rgba(60,40,20,.4)", fontFamily: "inherit",
   fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", cursor: "pointer", textDecoration: "none",
 };
@@ -445,7 +445,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
             {article.tags && article.tags.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
                 {article.tags.map((tag) => (
-                  <span key={tag} style={{ padding: "6px 12px", borderRadius: 100, background: "#fff", boxShadow: "0 5px 14px -9px rgba(60,40,20,.5)", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)" }}>
+                  <span key={tag} style={{ padding: "6px 12px", borderRadius: 100, background: "var(--w-surface)", boxShadow: "0 5px 14px -9px rgba(60,40,20,.5)", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)" }}>
                     #{tag}
                   </span>
                 ))}
@@ -530,7 +530,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
           }}
         >
           <div style={{
-            background: "var(--w-ink)", color: "#fff",
+            background: "var(--w-ink)", color: "var(--bg)",
             borderRadius: 18, padding: "16px 22px",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
             boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1)",
@@ -552,7 +552,7 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
               style={{
                 flexShrink: 0, height: 38, padding: "0 20px",
                 borderRadius: 12, fontSize: 14, fontWeight: 700,
-                background: "#fff", color: "var(--w-ink)",
+                background: "var(--w-surface)", color: "var(--w-ink)",
                 display: "inline-flex", alignItems: "center",
                 textDecoration: "none",
               }}

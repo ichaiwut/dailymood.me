@@ -120,7 +120,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
                 value={query}
                 onChange={(e) => onSearchChange(e.target.value)}
                 autoFocus
-                style={{ width: 200, height: 38, borderRadius: 11, border: "none", padding: "0 14px", fontSize: 13, fontWeight: 600, background: "#fff", color: "var(--w-ink)", boxShadow: "0 5px 14px -8px rgba(60,40,20,.4)", outline: "none" }}
+                style={{ width: 200, height: 38, borderRadius: 11, border: "none", padding: "0 14px", fontSize: 13, fontWeight: 600, background: "var(--w-surface)", color: "var(--w-ink)", boxShadow: "0 5px 14px -8px rgba(60,40,20,.4)", outline: "none" }}
               />
               <button
                 type="button"
@@ -166,7 +166,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
                 <PAClip style={{ top: -15, right: 34, transform: "rotate(8deg)", zIndex: 8 }} />
                 <div style={{ position: "relative", margin: 14, marginBottom: 0, borderRadius: 14, overflow: "hidden", aspectRatio: "16 / 10" }}>
                   <Cover article={featured} />
-                  <span style={{ position: "absolute", top: 14, right: 14, padding: "6px 12px", borderRadius: 100, background: "rgba(255,255,255,.92)", backdropFilter: "blur(8px)", fontSize: 11, fontWeight: 800, color: "var(--w-ink-2)" }}>
+                  <span style={{ position: "absolute", top: 14, right: 14, padding: "6px 12px", borderRadius: 100, background: "rgba(255,255,255,.92)", backdropFilter: "blur(8px)", fontSize: 11, fontWeight: 800, color: "#4A3F55" }}>
                     ⏱ {featured.readingTimeMinutes} {t("minUnit")}
                   </span>
                 </div>

@@ -108,7 +108,7 @@ export function DaySheet({
                   </div>
                   <button
                     onClick={() => router.push(`/entry/${e.id}/edit` as "/")}
-                    style={{ padding: "8px 18px", borderRadius: 10, border: "1.5px solid var(--w-rule)", background: "#fff", fontSize: 14, fontWeight: 800, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}
+                    style={{ padding: "8px 18px", borderRadius: 10, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", fontSize: 14, fontWeight: 800, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}
                   >
                     {locale === "th" ? "แก้ไข" : "Edit"}
                   </button>
@@ -158,7 +158,7 @@ export function DaySheet({
                 {/* View full entry */}
                 <button
                   onClick={() => router.push(`/entry/${e.id}` as "/")}
-                  style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "#fff", fontSize: 14, fontWeight: 800, color: "var(--w-ink-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: idx < entries.length - 1 ? 24 : 0, fontFamily: "inherit" }}
+                  style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", fontSize: 14, fontWeight: 800, color: "var(--w-ink-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: idx < entries.length - 1 ? 24 : 0, fontFamily: "inherit" }}
                 >
                   {locale === "th" ? "ดูบันทึกเต็ม" : "View full entry"} →
                 </button>

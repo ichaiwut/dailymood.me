@@ -148,7 +148,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
       <a
         href="/pricing"
         className="pa-sheet"
-        style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 16, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", textDecoration: "none" }}
+        style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 16, background: "var(--w-ai-grad)", textDecoration: "none" }}
       >
         <div style={{
           width: 32, height: 32, borderRadius: 10,
@@ -167,7 +167,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
           </div>
         </div>
         <span style={{
-          background: "var(--w-ink)", color: "#fff",
+          background: "var(--w-ink)", color: "var(--bg)",
           fontSize: 11, fontWeight: 800,
           padding: "2px 6px", borderRadius: 100, letterSpacing: "0.3px",
           flexShrink: 0,
@@ -202,7 +202,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
         style={{
           borderRadius: 16,
           padding: "10px 12px 10px 18px",
-          background: "#fff",
+          background: "var(--w-surface)",
           border: "1.5px solid var(--w-rule)",
           boxShadow: expanded ? "0 4px 20px -4px rgba(166,115,241,.15)" : "0 5px 14px -8px rgba(60,40,20,.3)",
           display: "flex",
@@ -309,11 +309,11 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
           style={{
             padding: "10px 14px",
             borderRadius: 12,
-            background: "#FEF2F2",
+            background: "var(--w-tint-danger)",
             border: "1px solid #FECACA",
             fontSize: 14,
             fontWeight: 600,
-            color: "#D14343",
+            color: "var(--w-tint-danger-fg)",
           }}
         >
           {t("askRateLimited")}
@@ -366,7 +366,7 @@ export function AskAiBar({ tier, year, month, onDateSelect, initialQuery }: Prop
             transform: "translateX(-50%)",
             zIndex: 60,
             background: "var(--ink)",
-            color: "#fff",
+            color: "var(--bg)",
             padding: "10px 20px",
             borderRadius: 100,
             fontSize: 14,

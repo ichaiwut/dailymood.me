@@ -54,7 +54,7 @@ function getMoodLabel(moodId: string, locale: string): string | null {
 
 const paperOutlineBtn: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px",
-  borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "#fff", cursor: "pointer",
+  borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", cursor: "pointer",
   fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)",
 };
 
@@ -245,7 +245,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
           style={{
             borderRadius: 18,
             padding: "24px 24px 20px",
-            background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)",
+            background: "var(--w-ai-grad)",
             marginBottom: 24,
             position: "relative",
           }}
@@ -260,7 +260,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
                 AI {isTh ? "สรุปทั้งปี" : "Year Summary"} · {viewYear}
               </span>
             </div>
-            <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "rgba(255,255,255,.72)", padding: "4px 12px", borderRadius: 100 }}>
+            <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "var(--w-chip)", padding: "4px 12px", borderRadius: 100 }}>
               ✨ Pro
             </span>
           </div>
@@ -285,19 +285,19 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
 
           {/* Mini stat chips */}
           <div className="yip-stat-chips" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
-            <div style={{ background: "rgba(255,255,255,.72)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--w-chip)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginBottom: 2 }}>😊 {isTh ? "อารมณ์เด่น" : "Dominant"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)" }}>{data.dominantMood ? `${getMoodLabel(data.dominantMood, locale) ?? "—"} · ${data.dominantPct}%` : "—"}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,.72)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--w-chip)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginBottom: 2 }}>🔥 Streak {isTh ? "สูงสุด" : "best"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)" }}>{data.streak.days} {isTh ? "วัน" : "days"}{data.streak.month > 0 ? ` · ${monthLabels[data.streak.month - 1]}` : ""}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,.72)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--w-chip)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginBottom: 2 }}>📝 {isTh ? "บันทึกทั้งหมด" : "Total entries"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)" }}>{data.totalDays} {isTh ? "ครั้ง" : "entries"}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,.72)", borderRadius: 14, padding: "12px 14px" }}>
+            <div style={{ background: "var(--w-chip)", borderRadius: 14, padding: "12px 14px" }}>
               <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginBottom: 2 }}>💡 Trigger {isTh ? "เด่น" : "top"}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)" }}>{data.topTrigger ? `"${data.topTrigger.tag}" · ${data.topTrigger.count} ${isTh ? "ครั้ง" : "×"}` : "—"}</div>
             </div>
@@ -305,7 +305,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
 
           {/* Compare with previous year */}
           {compareData && compareData.totalDays === 0 ? (
-            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.72)", borderRadius: 16, padding: "28px 20px", textAlign: "center" }}>
+            <div className="fade-in" style={{ marginBottom: 16, background: "var(--w-chip)", borderRadius: 16, padding: "28px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "var(--w-ink)" }}>
                 {isTh ? `ยังไม่มีข้อมูลปี ${viewYear - 1}` : `No data for ${viewYear - 1}`}
@@ -315,7 +315,7 @@ export function YearInPixelsShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat =
               </div>
             </div>
           ) : compareData ? (
-            <div className="fade-in" style={{ marginBottom: 16, background: "rgba(255,255,255,.72)", borderRadius: 16, padding: "20px 22px" }}>
+            <div className="fade-in" style={{ marginBottom: 16, background: "var(--w-chip)", borderRadius: 16, padding: "20px 22px" }}>
               {/* Header + year legend */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--purple-strong)" }}>

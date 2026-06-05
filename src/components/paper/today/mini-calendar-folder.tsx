@@ -39,7 +39,7 @@ export function MiniCalendarFolder({ locale }: { locale: string }) {
                 key={i}
                 style={{
                   aspectRatio: "1", borderRadius: 8,
-                  background: isToday ? "#fff" : c,
+                  background: isToday ? "var(--w-surface)" : c,
                   border: isToday ? "2.5px solid var(--purple)" : "none",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 12, fontWeight: 800,

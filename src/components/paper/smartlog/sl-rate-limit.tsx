@@ -41,7 +41,7 @@ export function SLRateLimit({
       </button>
 
       <div className="fade-in" style={{ padding: "40px 38px 36px", textAlign: "center" }}>
-        <div style={{ width: 76, height: 76, borderRadius: "50%", background: "#FEF0F0", margin: "0 auto 18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, boxShadow: "0 10px 22px -10px rgba(200,90,90,.5)" }} aria-hidden>⏳</div>
+        <div style={{ width: 76, height: 76, borderRadius: "50%", background: "var(--w-tint-danger)", margin: "0 auto 18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, boxShadow: "0 10px 22px -10px rgba(200,90,90,.5)" }} aria-hidden>⏳</div>
         <h2 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px", letterSpacing: "-0.02em", color: "var(--w-ink)" }}>
           {locale === "th" ? "ขอเบรกแป๊บนะ" : "Take a short break"}
         </h2>
@@ -57,7 +57,7 @@ export function SLRateLimit({
           )}
         </p>
 
-        <div className="pa-sheet" style={{ borderRadius: 16, padding: "16px 18px", background: "#FBF7F0", textAlign: "left", marginBottom: 22, position: "relative" }}>
+        <div className="pa-sheet" style={{ borderRadius: 16, padding: "16px 18px", background: "var(--w-surface-2)", textAlign: "left", marginBottom: 22, position: "relative" }}>
           <span className="pa-washi yellow" aria-hidden style={{ width: 88 }} />
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 700, marginTop: 4, color: "var(--w-ink-2)" }}>
             <span>{locale === "th" ? "วันนี้ใช้ไปแล้ว" : "Used today"}</span>
@@ -82,7 +82,7 @@ export function SLRateLimit({
           <button
             onClick={onSaveWithoutAI}
             disabled={busy}
-            style={{ height: 42, padding: "0 18px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", opacity: busy ? 0.5 : 1 }}
+            style={{ height: 42, padding: "0 18px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", opacity: busy ? 0.5 : 1 }}
           >
             {busy ? (locale === "th" ? "กำลังบันทึก..." : "Saving...") : (locale === "th" ? "บันทึกแบบปกติ" : "Save without AI")}
           </button>

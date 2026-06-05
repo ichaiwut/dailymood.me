@@ -37,7 +37,7 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
 
   if (tooFewEntries && !data) {
     return (
-      <div className="pa-sheet mb-6 fade-in" style={{ borderRadius: 16, padding: "24px 20px", background: "#FBF7F0", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", textAlign: "center" }}>
+      <div className="pa-sheet mb-6 fade-in" style={{ borderRadius: 16, padding: "24px 20px", background: "var(--w-surface-2)", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", textAlign: "center" }}>
         <div style={{ fontSize: 32, marginBottom: 10 }}>✨</div>
         <p style={{ fontSize: 14, color: "var(--w-ink-2)", fontWeight: 600 }}>{t("tooFewShort")}</p>
       </div>
@@ -50,7 +50,7 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
   const summary = isPremium ? data.summary : data.summaryFirstSentence;
 
   return (
-    <div className="pa-sheet mb-6 fade-in" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", position: "relative" }}>
+    <div className="pa-sheet mb-6 fade-in" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "var(--w-ai-grad)", position: "relative" }}>
       <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
       {/* Header */}
       <div className="flex items-center gap-2" style={{ marginTop: 6, marginBottom: 14 }}>
@@ -96,7 +96,7 @@ export function AiSummaryCard({ data, loading, tier, monthLabel, tooFewEntries, 
 
 function Chip({ iconUrl, emoji, label, sub }: { iconUrl?: string | null; emoji: string; label: string; sub?: string }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.72)", borderRadius: 100, padding: "7px 14px", fontSize: 14, fontWeight: 700, color: "var(--w-ink)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--w-chip)", borderRadius: 100, padding: "7px 14px", fontSize: 14, fontWeight: 700, color: "var(--w-ink)" }}>
       {iconUrl ? <img src={iconUrl} alt="" width={20} height={20} style={{ flexShrink: 0 }} /> : <span style={{ fontSize: 16 }}>{emoji}</span>}
       {label}
       {sub && <span style={{ fontWeight: 600, color: "var(--w-ink-2)" }}>{sub}</span>}
@@ -121,7 +121,7 @@ function formatChipDate(date: string): string {
 function FreeTeaser({ monthLabel }: { monthLabel: string }) {
   const t = useTranslations("calendarAi");
   return (
-    <div className="pa-sheet mb-6 fade-in" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", position: "relative" }}>
+    <div className="pa-sheet mb-6 fade-in" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "var(--w-ai-grad)", position: "relative" }}>
       <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
       <div className="flex items-center gap-2" style={{ marginTop: 6, marginBottom: 10 }}>
         <SparkleSquare />

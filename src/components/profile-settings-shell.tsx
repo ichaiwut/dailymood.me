@@ -219,7 +219,7 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
           >
             <div style={{
               width: 42, height: 42, borderRadius: 14,
-              background: "#F5DADA", display: "flex", alignItems: "center", justifyContent: "center",
+              background: "var(--w-tint-danger)", display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 18, flexShrink: 0,
             }}>
               🗑️

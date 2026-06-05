@@ -34,7 +34,7 @@ interface StatsData {
 /* ── Constants ─────────────────────────────────────────── */
 
 const CARD: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--w-surface)",
   borderRadius: 18,
   padding: 20,
   boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
@@ -575,7 +575,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
           <Link
             href={"/pricing" as "/"}
             className="pa-sheet fade-in"
-            style={{ display: "block", marginTop: 10, padding: "10px 14px", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", color: "var(--purple-strong)", fontSize: 14, fontWeight: 800, borderRadius: 12, textAlign: "center", textDecoration: "none" }}
+            style={{ display: "block", marginTop: 10, padding: "10px 14px", background: "var(--w-ai-grad)", color: "var(--purple-strong)", fontSize: 14, fontWeight: 800, borderRadius: 12, textAlign: "center", textDecoration: "none" }}
           >
             {t("unlockYear")}
           </Link>
@@ -590,7 +590,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
         <>
           {/* ── AI INSIGHTS SUMMARY ─── */}
           <section className="mb-5 fade-in">
-            <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", position: "relative" }}>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 22px 20px", background: "var(--w-ai-grad)", position: "relative" }}>
               <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
               <div className="flex items-center gap-2" style={{ marginTop: 6, marginBottom: 14 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -602,7 +602,7 @@ export function StatsShell({ tier = "free", moodPack = DEFAULT_MOOD_PACK, iconFo
                   {t("viewInsights").toUpperCase()} · {t("week").toUpperCase()}
                 </span>
                 {tier !== "premium" && (
-                  <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "rgba(255,255,255,.72)", borderRadius: 100, padding: "2px 8px", marginLeft: "auto" }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "var(--w-chip)", borderRadius: 100, padding: "2px 8px", marginLeft: "auto" }}>
                     PRO
                   </span>
                 )}
@@ -965,7 +965,7 @@ function TooFewEntries({ total, locale }: { total: number; locale: string }) {
 function LoadingSkeleton() {
   return (
     <div className="pa-wrap space-y-4 fade-in">
-      <div className="pa-sheet" style={{ height: 120, borderRadius: 18, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", opacity: 0.6 }} />
+      <div className="pa-sheet" style={{ height: 120, borderRadius: 18, background: "var(--w-ai-grad)", opacity: 0.6 }} />
       <div className="pa-sheet" style={{ height: 220, borderRadius: 18, opacity: 0.6 }} />
       <div className="grid grid-cols-2 gap-4" style={{ maxWidth: 480 }}>
         <div className="pa-sheet" style={{ height: 180, borderRadius: 18, opacity: 0.5 }} />

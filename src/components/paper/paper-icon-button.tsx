@@ -36,7 +36,7 @@ export function PaperIconButton({
         top: -7,
         right: -7,
         background: "var(--w-ink)",
-        color: "#fff",
+        color: "var(--bg)",
         fontSize: 11,
         fontWeight: 800,
         padding: "1px 5px",

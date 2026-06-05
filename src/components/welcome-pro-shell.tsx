@@ -69,7 +69,7 @@ export function WelcomeProShell({ source }: { source: "trial" | "stripe" }) {
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{
                 width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "#E8F5E9", display: "flex", alignItems: "center", justifyContent: "center",
+                background: "var(--w-tint-success)", display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                   <path d="M5 13l4 4L19 7" stroke="#4CAF50" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />

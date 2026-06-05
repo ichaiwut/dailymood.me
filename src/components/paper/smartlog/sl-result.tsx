@@ -54,13 +54,13 @@ export function SLResult({
     <div style={{ padding: "18px 28px 26px" }}>
       {/* the note (read-only context) */}
       {text && (
-        <div style={{ borderRadius: 14, border: "1.5px solid var(--w-rule)", background: "#FBF7F0", padding: "15px 17px", fontSize: 15, lineHeight: 1.6, color: "var(--w-ink)" }}>
+        <div style={{ borderRadius: 14, border: "1.5px solid var(--w-rule)", background: "var(--w-surface-2)", padding: "15px 17px", fontSize: 15, lineHeight: 1.6, color: "var(--w-ink)" }}>
           {text}
         </div>
       )}
 
       {/* AI result — washi-taped tinted paper */}
-      <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 24px", marginTop: text ? 22 : 0, position: "relative", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)" }}>
+      <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 24px", marginTop: text ? 22 : 0, position: "relative", background: "var(--w-ai-grad)" }}>
         <span className="pa-washi yellow" aria-hidden style={{ width: 100 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 16 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -85,7 +85,7 @@ export function SLResult({
                   aria-label={label}
                   style={{
                     width: size, height: size, borderRadius: "50%", padding: 0, cursor: "pointer",
-                    background: on ? m.color : "#fff", border: `${on ? 3 : 2}px solid #fff`,
+                    background: on ? m.color : "var(--w-surface)", border: `${on ? 3 : 2}px solid #fff`,
                     boxShadow: on ? `0 9px 18px -6px ${m.color}` : "0 4px 10px -6px rgba(60,40,20,.3)",
                     transform: on ? "rotate(-6deg)" : "none", display: "grid", placeItems: "center", flexShrink: 0,
                   }}
@@ -122,7 +122,7 @@ export function SLResult({
 
         {/* summary */}
         {suggestion.aiSummary && (
-          <div style={{ padding: "14px 16px", background: "rgba(255,255,255,.72)", borderRadius: 12, marginTop: 14 }}>
+          <div style={{ padding: "14px 16px", background: "var(--w-chip)", borderRadius: 12, marginTop: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>{locale === "th" ? "สรุป" : "Summary"}</div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: "var(--w-ink)" }} dangerouslySetInnerHTML={{ __html: suggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
           </div>
@@ -135,10 +135,10 @@ export function SLResult({
 
       {/* footer */}
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-        <button onClick={onCancel} style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)" }}>
+        <button onClick={onCancel} style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)" }}>
           {locale === "th" ? "ยกเลิก" : "Cancel"}
         </button>
-        <button onClick={onWriteMyself} style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)" }}>
+        <button onClick={onWriteMyself} style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "1.5px solid var(--w-rule)", background: "var(--w-surface)", cursor: "pointer", fontFamily: "inherit", fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)" }}>
           {locale === "th" ? "เขียนเอง" : "Write myself"}
         </button>
         <button onClick={onSave} disabled={busy} className="pa-btn" style={{ height: 44, padding: "0 26px", opacity: busy ? 0.5 : 1 }}>

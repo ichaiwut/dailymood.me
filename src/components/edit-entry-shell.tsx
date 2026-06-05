@@ -46,7 +46,7 @@ interface AiSuggestion {
 // shared eyebrow label inside the paper sheet
 const eyebrow: React.CSSProperties = { fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 10 };
 // paper input field shell
-const fieldShell: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, background: "#FBF7F0", border: "1.5px solid var(--w-rule)", borderRadius: 12, padding: "10px 14px", minWidth: 0 };
+const fieldShell: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, background: "var(--w-surface-2)", border: "1.5px solid var(--w-rule)", borderRadius: 12, padding: "10px 14px", minWidth: 0 };
 
 export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { id: string; pack?: string; iconFormat?: string }) {
   const locale = useLocale();
@@ -322,7 +322,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                       aria-pressed={active}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 7, minWidth: 70, padding: "11px 6px 9px", borderRadius: 14,
-                        background: "#fff", border: active ? "2px solid var(--w-ink)" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit",
+                        background: "var(--w-surface)", border: active ? "2px solid var(--w-ink)" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit",
                         boxShadow: active ? "0 9px 20px -9px rgba(0,0,0,.3)" : "0 4px 12px -7px rgba(60,40,20,.28)", transform: active ? "translateY(-1px)" : "none",
                       }}
                     >
@@ -370,28 +370,28 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                 maxLength={500}
                 rows={5}
                 className="w-full resize-none"
-                style={{ background: "#FBF7F0", color: "var(--w-ink)", borderRadius: 12, border: "1.5px solid var(--w-rule)", padding: "14px 16px", fontSize: 15, lineHeight: 1.6, outline: "none", fontFamily: "inherit" }}
+                style={{ background: "var(--w-surface-2)", color: "var(--w-ink)", borderRadius: 12, border: "1.5px solid var(--w-rule)", padding: "14px 16px", fontSize: 15, lineHeight: 1.6, outline: "none", fontFamily: "inherit" }}
               />
               {/* Toolbar */}
               <div className="edit-toolbar" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
                 <ToolbarBtn icon={<BoldIcon />} label={t("boldToggle")} onClick={handleBoldToggle} />
                 <VoiceButton onTranscript={(s) => setNote((p) => (p ? p + " " : "") + s)} />
                 {isPremium ? (
-                  <label style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 10, background: "#fff", border: "1px solid var(--w-rule)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 10, background: "var(--w-surface)", border: "1px solid var(--w-rule)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)" }}>
                     <ImageIcon />{t("image")}
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleReplaceImage(f); }} />
                   </label>
                 ) : (
                   <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 10, background: "var(--w-tint)", textDecoration: "none", fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)" }}>
                     <ImageIcon />{t("image")}
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", background: "var(--w-ink)", padding: "1px 5px", borderRadius: 100, marginLeft: 2 }}>PRO</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--bg)", background: "var(--w-ink)", padding: "1px 5px", borderRadius: 100, marginLeft: 2 }}>PRO</span>
                   </a>
                 )}
                 <div className="edit-toolbar-spacer" style={{ flex: 1 }} />
                 <button
                   onClick={handleReanalyze}
                   disabled={!note.trim() || analyzing || aiCooldown}
-                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", border: "none", fontWeight: 800, fontSize: 14, color: "var(--purple-strong)", cursor: "pointer", opacity: !note.trim() || analyzing || aiCooldown ? 0.4 : 1, whiteSpace: "nowrap", fontFamily: "inherit" }}
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, background: "var(--w-ai-grad)", border: "none", fontWeight: 800, fontSize: 14, color: "var(--purple-strong)", cursor: "pointer", opacity: !note.trim() || analyzing || aiCooldown ? 0.4 : 1, whiteSpace: "nowrap", fontFamily: "inherit" }}
                 >
                   <SparkleIcon />{analyzing ? t("reanalyzing") : t("reanalyzeShort")}
                 </button>
@@ -402,7 +402,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ ...eyebrow, marginBottom: 0 }}>{th ? "สถานที่" : "Location"}</div>
-                <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 11px", borderRadius: 9, background: showLocationSearch ? "var(--w-ink)" : "#fff", border: "1px solid var(--w-rule)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: showLocationSearch ? "#fff" : "var(--w-ink-2)", fontFamily: "inherit" }}>
+                <button type="button" onClick={() => setShowLocationSearch(!showLocationSearch)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 11px", borderRadius: 9, background: showLocationSearch ? "var(--w-ink)" : "var(--w-surface)", border: "1px solid var(--w-rule)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: showLocationSearch ? "var(--bg)" : "var(--w-ink-2)", fontFamily: "inherit" }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor" /></svg>
                   {th ? "เพิ่ม" : "Add"}
                 </button>
@@ -423,7 +423,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
 
             {/* ── AI Suggestion Result ── */}
             {suggestion && (
-              <div className="fade-in" style={{ padding: "16px 18px", borderRadius: 14, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)" }}>
+              <div className="fade-in" style={{ padding: "16px 18px", borderRadius: 14, background: "var(--w-ai-grad)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="var(--purple-strong)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>{th ? "AI วิเคราะห์แล้ว" : "AI analysis complete"}</span>
@@ -440,7 +440,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                 {suggestion.tags.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {suggestion.tags.map((st, i) => (
-                      <span key={i} style={{ padding: "4px 10px", borderRadius: 100, background: "rgba(255,255,255,.72)", fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>#{st}</span>
+                      <span key={i} style={{ padding: "4px 10px", borderRadius: 100, background: "var(--w-chip)", fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>#{st}</span>
                     ))}
                   </div>
                 )}
@@ -450,7 +450,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
 
             {/* ── Error ── */}
             {error && (
-              <div style={{ padding: "10px 14px", borderRadius: 12, background: "#FBF7F0", border: "1px solid var(--w-rule)" }}>
+              <div style={{ padding: "10px 14px", borderRadius: 12, background: "var(--w-surface-2)", border: "1px solid var(--w-rule)" }}>
                 <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple-strong)", margin: 0 }}>{error}</p>
               </div>
             )}
@@ -483,7 +483,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
                   <span style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)", marginRight: 10 }}>{t("suggested")}</span>
                   <div style={{ display: "inline-flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
                     {suggestedTags.map((st, i) => (
-                      <button key={i} onClick={() => { if (tags.length < 12) setTags([...tags, st]); }} style={{ background: "#fff", border: "1.5px dashed var(--yellow)", padding: "6px 14px", borderRadius: 100, fontSize: 14, fontWeight: 700, color: "var(--w-ink)", cursor: "pointer", fontFamily: "inherit" }}>+ {st}</button>
+                      <button key={i} onClick={() => { if (tags.length < 12) setTags([...tags, st]); }} style={{ background: "var(--w-surface)", border: "1.5px dashed var(--yellow)", padding: "6px 14px", borderRadius: 100, fontSize: 14, fontWeight: 700, color: "var(--w-ink)", cursor: "pointer", fontFamily: "inherit" }}>+ {st}</button>
                     ))}
                   </div>
                 </div>
@@ -548,7 +548,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
 
           {/* ── AI Insight ── */}
           {aiSummary && (
-            <div className="pa-sheet" style={{ borderRadius: 16, padding: "18px 20px", position: "relative", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)" }}>
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "18px 20px", position: "relative", background: "var(--w-ai-grad)" }}>
               <span className="pa-washi yellow" aria-hidden style={{ width: 88 }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, marginBottom: 10 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="var(--purple-strong)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -579,7 +579,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
               </>
             )}
           </button>
-          <button onClick={() => router.back()} style={{ width: "100%", height: 44, background: "#fff", border: "1.5px solid var(--w-rule)", borderRadius: 12, fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}>
+          <button onClick={() => router.back()} style={{ width: "100%", height: 44, background: "var(--w-surface)", border: "1.5px solid var(--w-rule)", borderRadius: 12, fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}>
             {t("cancel")}
           </button>
 
@@ -624,7 +624,7 @@ export function EditEntryShell({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg
             <div style={{ fontSize: 18, fontWeight: 800, color: "var(--w-ink)", marginTop: 6, marginBottom: 8 }}>{t("deleteConfirmTitle")}</div>
             <p style={{ fontSize: 14, color: "var(--w-ink-2)", marginBottom: 20, lineHeight: 1.6 }}>{t("deleteConfirmBody")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1" style={{ height: 44, background: "#fff", border: "1.5px solid var(--w-rule)", borderRadius: 12, fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1" style={{ height: 44, background: "var(--w-surface)", border: "1.5px solid var(--w-rule)", borderRadius: 12, fontWeight: 800, fontSize: 14, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}>
                 {t("deleteCancel")}
               </button>
               <button onClick={handleDelete} disabled={deleting} className="flex-1" style={{ height: 44, background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 800, fontSize: 14, opacity: deleting ? 0.6 : 1, cursor: "pointer", fontFamily: "inherit" }}>
@@ -669,7 +669,7 @@ function ShortcutRow({ label, keys }: { label: string; keys: string[] }) {
 
 function ToolbarBtn({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 10, background: "#fff", border: "1px solid var(--w-rule)", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}>
+    <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 10, background: "var(--w-surface)", border: "1px solid var(--w-rule)", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)", cursor: "pointer", fontFamily: "inherit" }}>
       {icon}{label}
     </button>
   );

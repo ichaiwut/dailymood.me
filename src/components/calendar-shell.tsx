@@ -284,7 +284,7 @@ export function CalendarShell({
         <Link
           href={"/profile/subscription" as "/"}
           className="pa-sheet"
-          style={{ display: "block", textDecoration: "none", marginBottom: 16, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", borderRadius: 16, padding: "16px 20px" }}
+          style={{ display: "block", textDecoration: "none", marginBottom: 16, background: "var(--w-ai-grad)", borderRadius: 16, padding: "16px 20px" }}
         >
           <div className="flex items-center gap-3">
             <span style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -315,7 +315,7 @@ export function CalendarShell({
               padding: "5px 10px",
               borderRadius: 100,
               background: aiPatternsVisible ? "var(--w-ink)" : "var(--w-tint)",
-              color: aiPatternsVisible ? "#fff" : "var(--w-ink-2)",
+              color: aiPatternsVisible ? "var(--bg)" : "var(--w-ink-2)",
               border: "none",
               fontSize: 14,
               fontWeight: 700,
@@ -521,7 +521,7 @@ export function CalendarShell({
       {/* ── Day Sheet Modal ── */}
       {sheetDate && (
         <div className="fixed inset-0 z-50 fade-in" style={{ background: "rgba(26,19,32,.46)", backdropFilter: "blur(6px)" }} onClick={(e) => { if (e.target === e.currentTarget) setSheetDate(null); }}>
-          <div className="pa-wrap" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 560, width: "calc(100% - 32px)", maxHeight: "85vh", overflowY: "auto", borderRadius: "8px 26px 26px 26px", boxShadow: "0 44px 100px -24px rgba(40,20,10,.6)", background: "#fff" }}>
+          <div className="pa-wrap" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 560, width: "calc(100% - 32px)", maxHeight: "85vh", overflowY: "auto", borderRadius: "8px 26px 26px 26px", boxShadow: "0 44px 100px -24px rgba(40,20,10,.6)", background: "var(--w-surface)" }}>
             <DaySheet
               selectedDate={sheetDate}
               viewYear={viewYear}

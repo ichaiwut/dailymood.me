@@ -34,7 +34,7 @@ export function TrialPromoBar({ locale }: { locale: string }) {
       <span>{locale === "th" ? "✨ ลองใช้ Pro ฟรี 14 วัน — ไม่ต้องใช้บัตร" : "✨ Try Pro free for 14 days — no card required"}</span>
       <Link
         href={"/pricing" as "/"}
-        style={{ background: "rgba(255,255,255,.92)", color: "var(--w-ink)", borderRadius: 100, padding: "6px 15px", fontWeight: 800, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}
+        style={{ background: "rgba(255,255,255,.92)", color: "#1A1320", borderRadius: 100, padding: "6px 15px", fontWeight: 800, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}
       >
         {locale === "th" ? "เริ่มเลย →" : "Start now →"}
       </Link>

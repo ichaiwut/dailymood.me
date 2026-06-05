@@ -159,7 +159,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               onClick={() => handleExit("/")}
               style={{
                 height: 52, padding: "0 28px", borderRadius: 14,
-                border: "none", background: "#fff", color: "var(--w-ink)",
+                border: "none", background: "var(--w-surface)", color: "var(--w-ink)",
                 fontSize: 16, fontWeight: 700, cursor: "pointer",
                 boxShadow: "0 10px 26px -16px rgba(60,40,20,.45)",
               }}
@@ -172,7 +172,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
           {!hasUsedTrial && (
             <div className="pa-sheet" style={{
               padding: "16px 18px", borderRadius: 16, maxWidth: 540, position: "relative", overflow: "hidden",
-              background: "linear-gradient(135deg, #F1E7FA, #FFF0E4)",
+              background: "var(--w-ai-grad)",
             }}>
               {/* Decorative 🎁 */}
               <div style={{ position: "absolute", top: -10, right: -10, fontSize: 86, opacity: 0.06, transform: "rotate(-12deg)", pointerEvents: "none" }}>🎁</div>
@@ -212,7 +212,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
                     aria-label={isTh ? "รับสิทธิ์ทดลอง Pro ฟรี 14 วัน" : "Claim 14-day free Pro trial"}
                     style={{
                       height: 40, padding: "0 18px", borderRadius: 12, flexShrink: 0,
-                      border: "none", background: "var(--ink, #1A1320)", color: "#fff",
+                      border: "none", background: "var(--ink, #1A1320)", color: "var(--bg)",
                       fontSize: 14, fontWeight: 700, cursor: trialLoading ? "wait" : "pointer",
                       opacity: trialLoading ? 0.7 : 1,
                     }}
@@ -235,7 +235,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
 
               {/* Error toast */}
               {trialError && (
-                <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "#FEE2E2", fontSize: 14, fontWeight: 600, color: "#D94444" }}>
+                <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "var(--w-tint-danger)", fontSize: 14, fontWeight: 600, color: "var(--w-tint-danger-fg)" }}>
                   {isTh ? "ขอลองอีกครั้ง — มีปัญหาเปิด trial" : "Please try again — something went wrong"}
                 </div>
               )}
@@ -275,7 +275,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               {/* Icon tile */}
               <div style={{
                 width: 40, height: 40, borderRadius: 11, marginBottom: 12,
-                background: "#fff", border: "1px solid var(--w-rule)",
+                background: "var(--w-surface)", border: "1px solid var(--w-rule)",
                 boxShadow: "0 2px 8px rgba(26,19,32,0.06)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 20, position: "relative",

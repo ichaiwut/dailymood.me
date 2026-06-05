@@ -26,7 +26,7 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
             {t("patternsTitle")}
           </span>
         </div>
-        <div className="pa-sheet" style={{ borderRadius: 16, padding: "28px 20px", background: "#FBF7F0", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", textAlign: "center" }}>
+        <div className="pa-sheet" style={{ borderRadius: 16, padding: "28px 20px", background: "var(--w-surface-2)", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", textAlign: "center" }}>
           <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
           <div style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>
             {t("patternsLocked")}

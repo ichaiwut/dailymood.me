@@ -607,7 +607,7 @@ export function ProfileShell() {
                         <div style={{
                           position: "absolute", top: 8, left: 10,
                           fontSize: 14, fontWeight: 800, color: "#A673F1",
-                          background: "#F0EDFA", borderRadius: 6,
+                          background: "var(--primary-bg)", borderRadius: 6,
                           padding: "2px 6px", letterSpacing: 0.3,
                         }}>
                           PRO
@@ -702,7 +702,7 @@ export function ProfileShell() {
           >
             <div style={{
               width: 42, height: 42, borderRadius: 14,
-              background: "#F5DADA", display: "flex", alignItems: "center", justifyContent: "center",
+              background: "var(--w-tint-danger)", display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 18, flexShrink: 0,
             }}>
               🗑️
@@ -903,7 +903,7 @@ export function ProfileShell() {
                   style={{
                     padding: "12px 32px", borderRadius: 16,
                     border: "none", background: "var(--ink)",
-                    fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer",
+                    fontSize: 14, fontWeight: 700, color: "var(--bg)", cursor: "pointer",
                   }}
                 >
                   {t("feedbackClose")}
@@ -950,7 +950,7 @@ export function ProfileShell() {
                     border: "none",
                     background: feedbackText.trim() && !feedbackCooldown ? "var(--ink)" : "var(--hairline)",
                     fontSize: 14, fontWeight: 700,
-                    color: feedbackText.trim() && !feedbackCooldown ? "#fff" : "var(--ink-3)",
+                    color: feedbackText.trim() && !feedbackCooldown ? "var(--bg)" : "var(--ink-3)",
                     cursor: feedbackText.trim() && !feedbackCooldown ? "pointer" : "default",
                   }}
                 >
@@ -973,7 +973,7 @@ function PremiumTeaser({ text }: { text: string }) {
   return (
     <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
       <div style={{
-        background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)",
+        background: "var(--w-ai-grad)",
         borderRadius: 16, padding: "20px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>

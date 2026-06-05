@@ -92,7 +92,7 @@ interface DnaData {
 
 // White paper sheet — text inside MUST use --w-ink* (always-dark, dark-mode safe).
 const CARD: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--w-surface)",
   borderRadius: 18,
   padding: 20,
   boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
@@ -251,7 +251,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           <div className="flex items-center gap-2">
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: "#fff",
+              background: "var(--w-surface)",
               color: status.ready ? "var(--purple-strong)" : "var(--w-ink-3)",
               padding: "5px 13px", borderRadius: 100, fontWeight: 800,
               boxShadow: "0 6px 16px -8px rgba(60,40,20,.3)",
@@ -284,7 +284,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         style={{
           display: "flex", alignItems: "flex-start", gap: 10,
           padding: "14px 16px", borderRadius: 16,
-          background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)",
+          background: "var(--w-ai-grad)",
           position: "relative", marginBottom: 14,
         }}
       >
@@ -545,7 +545,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           {/* ── F9a: SUGGESTION — washi-taped warm sheet ─── */}
           {data.suggestion && (
             <section className="mb-5 fade-in" style={{ animationDelay: "160ms" }}>
-              <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 20px", background: "linear-gradient(135deg, #FFF6EA, #FDEFE0)", position: "relative" }}>
+              <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 20px", background: "var(--w-card-warm)", position: "relative" }}>
                 <span className="pa-washi yellow" aria-hidden style={{ width: 88 }} />
                 <div className="flex items-center gap-1.5 mb-2" style={{ marginTop: 6 }}>
                   <span style={{ fontSize: 14 }}>💡</span>
@@ -673,7 +673,7 @@ function TogglePill({ enabled, disabled, onChange }: { enabled: boolean; disable
       }}
     >
       <div style={{
-        width: 20, height: 20, borderRadius: 10, background: "#fff",
+        width: 20, height: 20, borderRadius: 10, background: "var(--w-surface)",
         transform: enabled && !disabled ? "translateX(20px)" : "translateX(0)",
         transition: "transform 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
       }} />
@@ -830,7 +830,7 @@ function FeedbackPill({ label, active, onClick }: { label: string; active: boole
       onClick={onClick}
       disabled={active}
       style={{
-        background: active ? "var(--primary-bg)" : "#fff",
+        background: active ? "var(--primary-bg)" : "var(--w-surface)",
         color: active ? "var(--purple-strong)" : "var(--w-ink-2)",
         border: `1.5px solid ${active ? "var(--purple)" : "var(--w-rule-strong)"}`,
         borderRadius: 20, padding: "7px 14px", fontSize: 14, fontWeight: 700,
@@ -849,7 +849,7 @@ function LockedCard({ icon, title, description, delay }: { icon: string; title: 
   return (
     <section className="mb-4 fade-in" style={{ animationDelay: delay }}>
       <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-        <div className="pa-sheet" style={{ borderRadius: 18, padding: 20, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", position: "relative" }}>
+        <div className="pa-sheet" style={{ borderRadius: 18, padding: 20, background: "var(--w-ai-grad)", position: "relative" }}>
           <span className="pa-washi lav" aria-hidden style={{ width: 80 }} />
           <div className="flex items-center gap-2" style={{ marginBottom: 8, marginTop: 6 }}>
             <span style={{ fontSize: 20 }}>{icon}</span>
@@ -872,7 +872,7 @@ function LoadingSkeleton() {
   return (
     <div className="pa-wrap space-y-4 fade-in" style={{ paddingTop: 60 }}>
       <div style={{ height: 20, width: 200, borderRadius: 10, background: "var(--w-tint)", opacity: 0.8 }} />
-      <div style={{ height: 240, borderRadius: 18, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", opacity: 0.7 }} />
+      <div style={{ height: 240, borderRadius: 18, background: "var(--w-ai-grad)", opacity: 0.7 }} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[...Array(4)].map((_, i) => <div key={i} style={{ ...CARD, height: 120, opacity: 0.6 }} />)}
       </div>
@@ -1009,7 +1009,7 @@ function FreeGate({ locale }: { locale: string }) {
               onClick={handleCheckout}
               style={{
                 width: "100%", padding: "14px 0", borderRadius: 16,
-                background: "#fff", border: "none", color: "var(--purple-strong)",
+                background: "var(--w-surface)", border: "none", color: "var(--purple-strong)",
                 fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
               }}
             >

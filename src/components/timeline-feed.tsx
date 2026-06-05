@@ -142,8 +142,8 @@ export function TimelineFeed({
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "inherit",
-                background: active ? "var(--w-ink)" : "#fff",
-                color: active ? "#fff" : "var(--w-ink)",
+                background: active ? "var(--w-ink)" : "var(--w-surface)",
+                color: active ? "var(--bg)" : "var(--w-ink)",
                 boxShadow: active ? "0 6px 0 -2px #000" : "0 5px 14px -8px rgba(60,40,20,.4)",
               }}
             >

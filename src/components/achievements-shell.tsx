@@ -197,7 +197,7 @@ function BadgeCard({ badge, t, locale }: { badge: Badge; t: (k: string, v?: Reco
           <div style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 6 }}>
             {badge.current}/{badge.target}
           </div>
-          <div style={{ height: 5, borderRadius: 3, background: "#F2F0F5", overflow: "hidden" }}>
+          <div style={{ height: 5, borderRadius: 3, background: "var(--w-surface-2)", overflow: "hidden" }}>
             <div style={{
               height: "100%", borderRadius: 3, background: "#A673F1",
               width: `${badge.progress}%`, transition: "width 0.5s ease",

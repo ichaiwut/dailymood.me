@@ -323,13 +323,13 @@ export function HomeShell({
                   }}
                   placeholder={t("smartLogHint")}
                   rows={3}
-                  style={{ width: "100%", resize: "none", minHeight: 96, background: "#FBF7F0", color: "var(--w-ink)", borderRadius: 12, border: "1.5px solid var(--w-rule)", padding: "14px 16px", fontSize: 15, lineHeight: 1.6, outline: "none", fontFamily: "inherit" }}
+                  style={{ width: "100%", resize: "none", minHeight: 96, background: "var(--w-surface-2)", color: "var(--w-ink)", borderRadius: 12, border: "1.5px solid var(--w-rule)", padding: "14px 16px", fontSize: 15, lineHeight: 1.6, outline: "none", fontFamily: "inherit" }}
                 />
 
                 {composerImagePreview && (
                   <div style={{ display: "inline-flex", position: "relative", marginTop: 10 }}>
                     <img src={composerImagePreview} alt="" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 12 }} />
-                    <button onClick={() => { setComposerImage(null); setComposerImagePreview(null); }} aria-label={locale === "th" ? "ลบรูป" : "Remove image"} style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--w-ink)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14 }}>×</button>
+                    <button onClick={() => { setComposerImage(null); setComposerImagePreview(null); }} aria-label={locale === "th" ? "ลบรูป" : "Remove image"} style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--w-ink)", color: "var(--bg)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14 }}>×</button>
                   </div>
                 )}
 
@@ -344,13 +344,13 @@ export function HomeShell({
                 )}
 
                 {composerError && (
-                  <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 12, background: "#FBF7F0", border: "1px solid var(--w-rule)" }}>
+                  <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 12, background: "var(--w-surface-2)", border: "1px solid var(--w-rule)" }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple-strong)", margin: 0 }}>{composerError}</p>
                   </div>
                 )}
 
                 {composerAnalyzing && (
-                  <div className="fade-in" style={{ marginTop: 12, padding: 14, borderRadius: 12, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)" }}>
+                  <div className="fade-in" style={{ marginTop: 12, padding: 14, borderRadius: 12, background: "var(--w-ai-grad)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div className="pulse" style={{ width: 24, height: 24, borderRadius: 7, background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -374,7 +374,7 @@ export function HomeShell({
                           onClick={() => setComposerMoodId(m.id)}
                           aria-pressed={active}
                           className="transition active:scale-95"
-                          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: active ? m.color : "#fff", color: active ? "#fff" : "var(--w-ink-2)", padding: "6px 12px", borderRadius: 100, fontSize: 14, fontWeight: 700, border: active ? "none" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: active ? m.color : "var(--w-surface)", color: active ? "#fff" : "var(--w-ink-2)", padding: "6px 12px", borderRadius: 100, fontSize: 14, fontWeight: 700, border: active ? "none" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit" }}
                         >
                           <img src={customIcon(m)} alt="" width={16} height={16} />
                           {label}
@@ -400,7 +400,7 @@ export function HomeShell({
 
                 {/* AI summary */}
                 {composerSuggestion && !composerAnalyzing && composerSuggestion.aiSummary && (
-                  <div className="fade-in" style={{ marginTop: 10, padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,.72)" }}>
+                  <div className="fade-in" style={{ marginTop: 10, padding: "12px 14px", borderRadius: 14, background: "var(--w-chip)" }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>
                       {locale === "th" ? "สรุป" : "Summary"}
                     </div>
@@ -479,8 +479,8 @@ export function HomeShell({
 
                 {/* Upgrade nudge (free) */}
                 {tier !== "premium" && (
-                  <Link href={"/pricing" as "/"} style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)", textDecoration: "none" }}>
-                    <span style={{ background: "var(--w-ink)", color: "#fff", fontSize: 11, fontWeight: 800, padding: "2px 7px", borderRadius: 100, letterSpacing: ".04em", flexShrink: 0 }}>PRO</span>
+                  <Link href={"/pricing" as "/"} style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "var(--w-ai-grad)", textDecoration: "none" }}>
+                    <span style={{ background: "var(--w-ink)", color: "var(--bg)", fontSize: 11, fontWeight: 800, padding: "2px 7px", borderRadius: 100, letterSpacing: ".04em", flexShrink: 0 }}>PRO</span>
                     <span style={{ fontSize: 14, lineHeight: 1.4, color: "var(--w-ink-2)", fontWeight: 600 }}>
                       {locale === "th" ? <>ใช้ AI ได้ <b>3 ครั้ง/วัน</b> — <span style={{ color: "var(--purple-strong)", fontWeight: 800 }}>อัปเกรด Pro</span> เพื่อใช้ได้ไม่จำกัด</> : <>3 free AI analyses per day — <span style={{ color: "var(--purple-strong)", fontWeight: 800 }}>upgrade to Pro</span> for unlimited</>}
                     </span>

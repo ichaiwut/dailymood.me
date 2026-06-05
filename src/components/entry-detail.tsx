@@ -197,7 +197,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
 
           {/* AI Insight */}
           {entry.aiSummary && (
-            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", position: "relative", background: "linear-gradient(135deg, #F1E7FA, #F8EDEB)" }}>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", position: "relative", background: "var(--w-ai-grad)" }}>
               <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 10 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -210,7 +210,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
 
           {/* AI Flashback */}
           {flashback && (
-            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", position: "relative", background: "linear-gradient(135deg, #EAF4FB, #F1E7FA)" }}>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", position: "relative", background: "var(--w-ai-grad)" }}>
               <span className="pa-washi lav" aria-hidden style={{ width: 96 }} />
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 10 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#5B8FA8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -229,7 +229,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
 
           {/* Free flashback teaser */}
           {!entry.isPremium && score <= 4 && !flashback && (
-            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", textAlign: "center", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", background: "#FBF7F0" }}>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", textAlign: "center", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", background: "var(--w-surface-2)" }}>
               <div style={{ fontSize: 26, marginBottom: 8 }}>🕰️</div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink-2)", marginBottom: 4 }}>{th ? "ย้อนดูตัวเอง" : "Flashback"}</div>
               <div style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.5, marginBottom: 12 }}>
@@ -270,7 +270,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
                 <div className="pa-sheet" style={{ marginTop: entry.imageUrl ? 12 : 0, borderRadius: 16, overflow: "hidden" }}>
                   <a href={`https://www.google.com/maps/search/?api=1&query=${entry.locationLat},${entry.locationLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "block", position: "relative" }}>
                     <img src={`https://maps.googleapis.com/maps/api/staticmap?center=${entry.locationLat},${entry.locationLng}&zoom=15&size=600x200&scale=2&markers=color:red|${entry.locationLat},${entry.locationLng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`} alt={entry.location} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
-                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
+                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "var(--w-surface)", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink)" }}>G</span>
                       <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)" }}>Maps</span>
                     </div>
