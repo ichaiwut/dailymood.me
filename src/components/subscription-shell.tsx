@@ -23,7 +23,7 @@ interface SubData {
 
 // White paper sheet — text inside MUST use --w-ink* (always-dark, dark-mode safe).
 const CARD: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--w-surface)",
   borderRadius: 18,
   padding: 20,
   boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
@@ -114,6 +114,8 @@ export function SubscriptionShell() {
   const renewDate = data.currentPeriodEnd ? formatDate(data.currentPeriodEnd, locale) : null;
   const isYearly = data.planInterval === "year";
   const isCanceling = data.cancelAtPeriodEnd;
+  // Comped/admin-granted Pro has no Stripe customer → hide billing-management controls.
+  const hasBilling = data.hasStripeCustomer;
 
   return (
     <div className="pa-wrap fade-in center-880" style={{ paddingBottom: 40 }}>
@@ -156,41 +158,47 @@ export function SubscriptionShell() {
               <div className="flex items-center justify-between flex-wrap" style={{ gap: 16, marginTop: 4 }}>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
-                    {isCanceling
+                    {!hasBilling
+                      ? (locale === "th" ? "เปิดใช้งาน Pro แล้ว" : "Pro is active")
+                      : isCanceling
                       ? `${locale === "th" ? "สิ้นสุด" : "Ends"} · ${renewDate}`
                       : `${locale === "th" ? "ต่ออายุอัตโนมัติ" : "Auto-renews"} · ${renewDate}`}
                   </div>
                   <div style={{ fontSize: 14, opacity: 0.7 }}>
-                    {isYearly
+                    {!hasBilling
+                      ? (locale === "th" ? "ปลดล็อกทุกฟีเจอร์" : "All features unlocked")
+                      : isYearly
                       ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
                       : `฿99 / ${locale === "th" ? "เดือน" : "month"}`}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={openPortal}
-                    disabled={portalLoading}
-                    style={{
-                      background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)",
-                      borderRadius: 12, padding: "10px 18px", color: "#fff",
-                      fontSize: 14, fontWeight: 700, cursor: portalLoading ? "wait" : "pointer",
-                    }}
-                  >
-                    {locale === "th" ? "จัดการการชำระเงิน" : "Manage billing"}
-                  </button>
-                  {!isCanceling && (
+                {hasBilling && (
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setShowCancel(true)}
+                      onClick={openPortal}
+                      disabled={portalLoading}
                       style={{
-                        background: "transparent", border: "none",
-                        color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600,
-                        cursor: "pointer", padding: "10px 8px",
+                        background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)",
+                        borderRadius: 12, padding: "10px 18px", color: "#fff",
+                        fontSize: 14, fontWeight: 700, cursor: portalLoading ? "wait" : "pointer",
                       }}
                     >
-                      {locale === "th" ? "ยกเลิก" : "Cancel"}
+                      {locale === "th" ? "จัดการการชำระเงิน" : "Manage billing"}
                     </button>
-                  )}
-                </div>
+                    {!isCanceling && (
+                      <button
+                        onClick={() => setShowCancel(true)}
+                        style={{
+                          background: "transparent", border: "none",
+                          color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600,
+                          cursor: "pointer", padding: "10px 8px",
+                        }}
+                      >
+                        {locale === "th" ? "ยกเลิก" : "Cancel"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -199,8 +207,8 @@ export function SubscriptionShell() {
           {portalError && (
             <div className="pa-sheet fade-in" style={{
               padding: "14px 18px", borderRadius: 14, marginBottom: 16,
-              background: "linear-gradient(135deg, #FDECEC, #FBE3E3)",
-              fontSize: 14, fontWeight: 600, color: "#C0392B", textAlign: "center",
+              background: "var(--w-tint-danger)",
+              fontSize: 14, fontWeight: 600, color: "var(--w-tint-danger-fg)", textAlign: "center",
             }}>
               {locale === "th" ? "ไม่สามารถเปิดหน้าจัดการได้ ลองใหม่อีกครั้ง" : "Couldn't open billing. Please try again."}
             </div>
@@ -210,7 +218,7 @@ export function SubscriptionShell() {
           {isCanceling && (
             <div className="pa-sheet fade-in" style={{
               padding: "14px 18px", borderRadius: 16, marginBottom: 24,
-              background: "linear-gradient(135deg, #FFF6EA, #FDEFE0)",
+              background: "var(--w-card-warm)",
               display: "flex", alignItems: "center", gap: 10,
             }}>
               <span style={{ fontSize: 20 }}>⏳</span>
@@ -396,7 +404,7 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
         <div
           className="pa-sheet"
           style={{
-            background: "linear-gradient(135deg, #FFF6EA, #FDEFE0)",
+            background: "var(--w-card-warm)",
             borderRadius: 16, padding: "16px 20px", marginBottom: 20,
             display: "flex", alignItems: "center", gap: 12,
           }}
