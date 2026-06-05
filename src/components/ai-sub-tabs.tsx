@@ -19,14 +19,8 @@ export function AiSubTabs({ active, locale }: Props) {
         <Link
           key={tab.key}
           href={tab.href}
-          style={{
-            padding: "8px 18px", borderRadius: 20,
-            background: active === tab.key ? "var(--ink)" : "transparent",
-            color: active === tab.key ? "var(--bg)" : "var(--ink-2)",
-            border: active === tab.key ? "none" : "1.5px solid var(--hairline-2)",
-            fontSize: 14, fontWeight: 700, textDecoration: "none",
-            transition: "all 0.15s",
-          }}
+          className={`pa-filter${active === tab.key ? " active" : ""}`}
+          style={{ textDecoration: "none" }}
         >
           {tab.label}
         </Link>

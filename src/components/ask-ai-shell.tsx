@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useLocale } from "next-intl";
 import type { Tier } from "@/lib/tier";
 import type { AskAiSource } from "@/db/schema";
+import { PAClip } from "./paper";
 import { AiSubTabs } from "./ai-sub-tabs";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { trackAskAiMessage } from "@/lib/analytics";
@@ -179,72 +180,77 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
     };
 
     return (
-      <div className="fade-in">
+      <div className="pa-wrap fade-in">
         <AiSubTabs active="ask-ai" locale={locale} />
 
         <div className="ins-free-gate" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start", marginTop: 8 }}>
           {/* Left: blurred chat preview */}
           <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4, marginBottom: 4 }}>ASK AI</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: 0.4, marginBottom: 4 }}>ASK AI</div>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 20px" }}>
               {isTh ? "คุยกับข้อมูลของคุณ" : "Chat with your data"}
             </h1>
-            <div style={{
-              background: "var(--surface)", borderRadius: 22, padding: 20, marginBottom: 14,
-              border: "1.5px solid var(--hairline-2)", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+            <div className="pa-sheet" style={{
+              borderRadius: 18, padding: 20, marginBottom: 14,
+              filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
             }}>
-              <div style={{ fontSize: 14, color: "var(--ink)" }}>{isTh ? "ทำไมวันจันทร์มักจะแย่?" : "Why are Mondays usually bad?"}</div>
+              <div style={{ fontSize: 14, color: "var(--w-ink)" }}>{isTh ? "ทำไมวันจันทร์มักจะแย่?" : "Why are Mondays usually bad?"}</div>
             </div>
-            <div style={{
-              background: "var(--surface)", borderRadius: 22, padding: 20, height: 120,
-              border: "1.5px solid var(--hairline-2)", filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
+            <div className="pa-sheet" style={{
+              borderRadius: 18, padding: 20, height: 120,
+              filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
             }} />
           </div>
 
-          {/* Right: premium CTA */}
-          <div style={{
-            background: "linear-gradient(135deg, #2C2435 0%, #3D2E50 60%, #A673F1 100%)",
-            borderRadius: 22, padding: "28px 24px", color: "#fff",
-          }}>
-            <div style={{ fontSize: 24, marginBottom: 12 }}>💬</div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
-              {isTh ? "Ask AI · ถามอะไรก็ได้" : "Ask AI · Ask anything"}
-            </h2>
-            <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.5, marginBottom: 16 }}>
-              {isTh
-                ? "ถามเกี่ยวกับอารมณ์ของคุณ AI วิเคราะห์จาก entries จริงพร้อมอ้างอิง"
-                : "Ask about your mood — AI analyzes real entries with citations"}
-            </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
-              {(isTh ? [
-                "ถามได้ 100 คำถาม/เดือน",
-                "Multi-turn สนทนาต่อเนื่อง",
-                "อ้างอิง entries จริง",
-                "วิเคราะห์ pattern + trend",
-              ] : [
-                "100 questions per month",
-                "Multi-turn conversations",
-                "Real entry citations",
-                "Pattern + trend analysis",
-              ]).map((item, i) => (
-                <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
-                  <span style={{ position: "absolute", left: 0 }}>•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={handleCheckout}
-              style={{
-                width: "100%", padding: "14px 0", borderRadius: 16,
-                background: "var(--surface)", border: "none", color: "#A673F1",
-                fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
-              }}
-            >
-              ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
-            </button>
-            <div style={{ fontSize: 14, opacity: 0.7, textAlign: "center" }}>
-              ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+          {/* Right: premium CTA (plum folder) */}
+          <div style={{ position: "relative" }}>
+            <div className="pa-tab purple">✦ ASK AI · PRO</div>
+            <div style={{
+              background: "linear-gradient(135deg, #2C2435 0%, #3D2E50 60%, #A673F1 100%)",
+              borderRadius: "4px 18px 18px 18px", padding: "28px 24px", color: "#fff",
+              position: "relative", boxShadow: "0 18px 40px -20px rgba(60,40,20,.45)",
+            }}>
+              <PAClip style={{ top: -22, right: 26, transform: "rotate(8deg)" }} />
+              <div style={{ fontSize: 24, marginBottom: 12 }}>💬</div>
+              <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
+                {isTh ? "Ask AI · ถามอะไรก็ได้" : "Ask AI · Ask anything"}
+              </h2>
+              <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.5, marginBottom: 16 }}>
+                {isTh
+                  ? "ถามเกี่ยวกับอารมณ์ของคุณ AI วิเคราะห์จาก entries จริงพร้อมอ้างอิง"
+                  : "Ask about your mood — AI analyzes real entries with citations"}
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+                {(isTh ? [
+                  "ถามได้ 100 คำถาม/เดือน",
+                  "Multi-turn สนทนาต่อเนื่อง",
+                  "อ้างอิง entries จริง",
+                  "วิเคราะห์ pattern + trend",
+                ] : [
+                  "100 questions per month",
+                  "Multi-turn conversations",
+                  "Real entry citations",
+                  "Pattern + trend analysis",
+                ]).map((item, i) => (
+                  <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
+                    <span style={{ position: "absolute", left: 0 }}>•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={handleCheckout}
+                style={{
+                  width: "100%", padding: "14px 0", borderRadius: 16,
+                  background: "#fff", border: "none", color: "var(--purple-strong)",
+                  fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
+                }}
+              >
+                ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
+              </button>
+              <div style={{ fontSize: 14, opacity: 0.75, textAlign: "center" }}>
+                ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+              </div>
             </div>
           </div>
         </div>
@@ -255,14 +261,14 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
   const isNewThread = !activeThreadId || messages.length === 0;
 
   return (
-    <div className="ask-ai-wrap" style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+    <div className="ask-ai-wrap pa-wrap" style={{ margin: "-32px -32px -100px", height: "calc(100dvh - 64px)", overflow: "hidden", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
       <div style={{ padding: "8px 16px 0", flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
         <AiSubTabs active="ask-ai" locale={locale} />
         {threads.length > 0 && (
           <button
-            className="ask-ai-history-btn"
+            className={`ask-ai-history-btn pa-filter${showHistory ? " active" : ""}`}
             onClick={() => setShowHistory(!showHistory)}
-            style={{ display: "none", padding: "6px 12px", borderRadius: 10, border: "1.5px solid var(--hairline-2)", background: showHistory ? "var(--primary-bg)" : "var(--surface)", color: "var(--ink)", fontSize: 14, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+            style={{ whiteSpace: "nowrap", flexShrink: 0 }}
           >
             📋 {threads.length}
           </button>
@@ -288,12 +294,9 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
             ← {locale === "th" ? "กลับ" : "Back"}
           </button>
           <button
+            className="pa-btn ink"
             onClick={() => { setActiveThreadId(null); setMessages([]); setShowHistory(false); }}
-            style={{
-              width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
-              background: "var(--ink)", color: "var(--bg)", fontSize: 15, fontWeight: 700,
-              cursor: "pointer", marginBottom: 20,
-            }}
+            style={{ width: "100%", marginBottom: 20 }}
           >
             + {locale === "th" ? "คำถามใหม่" : "New question"}
           </button>
@@ -312,7 +315,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
                 width: "100%", textAlign: "left", padding: "14px 14px",
                 borderRadius: 14, border: "none", cursor: "pointer", marginBottom: 4,
                 background: activeThreadId === t.id ? "var(--primary-bg)" : "transparent",
-                borderLeft: activeThreadId === t.id ? "3px solid #A673F1" : "3px solid transparent",
+                borderLeft: activeThreadId === t.id ? "3px solid var(--purple)" : "3px solid transparent",
               }}
             >
               <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -347,6 +350,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
                     background: "linear-gradient(135deg, #FCA45B, #A673F1)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 16, color: "#fff", fontWeight: 700,
+                    boxShadow: "0 10px 22px -8px rgba(166,115,241,.5)",
                   }}>✦</div>
                   <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
                     {locale === "th" ? "กำลังคิด..." : "Thinking..."}
@@ -362,7 +366,8 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
         <div className="ask-ai-input-bar" style={{ borderTop: "1.5px solid var(--hairline-2)", padding: "16px 32px 20px" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
-            background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 16, padding: "10px 16px",
+            background: "#fff", border: "1.5px solid var(--w-rule-strong)", borderRadius: 16, padding: "10px 16px",
+            boxShadow: "0 10px 28px -16px rgba(60,40,20,.4)",
           }}>
             <input
               type="text"
@@ -372,7 +377,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               placeholder={locale === "th" ? "ถามอะไรก็ได้เกี่ยวกับอารมณ์ของคุณ..." : "Ask anything about your mood..."}
               disabled={sending}
               style={{
-                flex: 1, border: "none", outline: "none", fontSize: 15, color: "var(--ink)",
+                flex: 1, border: "none", outline: "none", fontSize: 15, color: "var(--w-ink)",
                 background: "transparent", fontFamily: "inherit",
               }}
             />
@@ -381,10 +386,10 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
               disabled={!input.trim() || sending}
               style={{
                 width: 36, height: 36, borderRadius: "50%", border: "none",
-                background: input.trim() && !sending ? "var(--peach)" : "var(--surface-3)",
-                color: input.trim() && !sending ? "var(--bg)" : "var(--ink-3)",
+                background: input.trim() && !sending ? "linear-gradient(135deg, var(--purple), var(--purple-strong))" : "var(--w-tint)",
+                color: input.trim() && !sending ? "#fff" : "var(--w-ink-3)",
                 fontSize: 18, fontWeight: 700, cursor: input.trim() && !sending ? "pointer" : "default",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               }}
             >
               ↑
@@ -410,6 +415,7 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
         background: "linear-gradient(135deg, #FCA45B, #A673F1)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 28, color: "#fff", marginBottom: 16,
+        boxShadow: "0 16px 32px -12px rgba(166,115,241,.55)",
       }}>✦</div>
       <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
         {locale === "th" ? "ถามอะไรก็ได้เกี่ยวกับคุณ" : "Ask anything about you"}
@@ -428,14 +434,13 @@ function EmptyState({ locale, suggested, onAsk }: { locale: string; suggested: s
               <button
                 key={i}
                 onClick={() => onAsk(q)}
+                className="pa-card-lift"
                 style={{
                   textAlign: "left", padding: "14px 16px", borderRadius: 14,
-                  border: "1.5px solid var(--hairline-2)", background: "var(--surface)", cursor: "pointer",
-                  fontSize: 15, fontWeight: 600, color: "var(--ink)", lineHeight: 1.4,
-                  transition: "background 0.15s",
+                  border: "none", background: "#fff", cursor: "pointer",
+                  fontSize: 15, fontWeight: 600, color: "var(--w-ink)", lineHeight: 1.4,
+                  boxShadow: "0 10px 26px -16px rgba(60,40,20,.45)",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--primary-bg)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--surface)"; }}
               >
                 {q}
               </button>
@@ -458,8 +463,9 @@ function UserBubble({ msg, locale }: { msg: Message; locale: string }) {
           {locale === "th" ? "คุณเอง" : "You"} · {time}
         </div>
         <div style={{
-          background: "var(--surface-2)", borderRadius: 16, padding: "14px 18px",
-          fontSize: 15, color: "var(--ink)", lineHeight: 1.5,
+          background: "#F1E7FA", borderRadius: "16px 16px 4px 16px", padding: "14px 18px",
+          fontSize: 15, color: "var(--w-ink)", lineHeight: 1.5,
+          boxShadow: "0 10px 24px -16px rgba(60,40,20,.4)",
         }}>
           {msg.content}
         </div>
@@ -481,40 +487,43 @@ function AiBubble({ msg, locale, feedbackSent, onFeedback }: {
         background: "linear-gradient(135deg, #FCA45B, #A673F1)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 16, color: "#fff", fontWeight: 700,
+        boxShadow: "0 10px 22px -8px rgba(166,115,241,.5)",
       }}>✦</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginBottom: 6, letterSpacing: 0.3 }}>
-          DAILYMOOD AI · {locale === "th" ? "ดู" : "read"} {entriesUsed} ENTRIES
-        </div>
-        <div
-          style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.65, marginBottom: 14 }}
-          dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }}
-        />
+        <div className="pa-sheet" style={{ borderRadius: "4px 16px 16px 16px", padding: "16px 18px" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", marginBottom: 6, letterSpacing: 0.3 }}>
+            DAILYMOOD AI · {locale === "th" ? "ดู" : "read"} {entriesUsed} ENTRIES
+          </div>
+          <div
+            style={{ fontSize: 15, color: "var(--w-ink)", lineHeight: 1.65, marginBottom: 14 }}
+            dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }}
+          />
 
-        {/* Feedback */}
-        <div className="flex items-center gap-2">
-          <FbBtn
-            label={`👍 ${locale === "th" ? "มีประโยชน์" : "Helpful"}`}
-            active={feedbackSent.has(`${msg.id}:up`) || msg.feedback === "up"}
-            disabled={feedbackSent.has(msg.id)}
-            onClick={() => onFeedback(msg.id, "up")}
-          />
-          <FbBtn
-            label={`👎 ${locale === "th" ? "ไม่ตรง" : "Not relevant"}`}
-            active={feedbackSent.has(`${msg.id}:down`) || msg.feedback === "down"}
-            disabled={feedbackSent.has(msg.id)}
-            onClick={() => onFeedback(msg.id, "down")}
-          />
-          <button
-            onClick={() => { navigator.clipboard.writeText(msg.content); }}
-            style={{
-              background: "none", border: "1.5px solid var(--hairline-2)", borderRadius: 20,
-              padding: "6px 14px", fontSize: 14, fontWeight: 600, color: "var(--ink-2)",
-              cursor: "pointer",
-            }}
-          >
-            📋 {locale === "th" ? "คัดลอก" : "Copy"}
-          </button>
+          {/* Feedback */}
+          <div className="flex items-center gap-2">
+            <FbBtn
+              label={`👍 ${locale === "th" ? "มีประโยชน์" : "Helpful"}`}
+              active={feedbackSent.has(`${msg.id}:up`) || msg.feedback === "up"}
+              disabled={feedbackSent.has(msg.id)}
+              onClick={() => onFeedback(msg.id, "up")}
+            />
+            <FbBtn
+              label={`👎 ${locale === "th" ? "ไม่ตรง" : "Not relevant"}`}
+              active={feedbackSent.has(`${msg.id}:down`) || msg.feedback === "down"}
+              disabled={feedbackSent.has(msg.id)}
+              onClick={() => onFeedback(msg.id, "down")}
+            />
+            <button
+              onClick={() => { navigator.clipboard.writeText(msg.content); }}
+              style={{
+                background: "none", border: "1.5px solid var(--w-rule-strong)", borderRadius: 20,
+                padding: "6px 14px", fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)",
+                cursor: "pointer",
+              }}
+            >
+              📋 {locale === "th" ? "คัดลอก" : "Copy"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -527,9 +536,9 @@ function FbBtn({ label, active, disabled, onClick }: { label: string; active: bo
       onClick={onClick}
       disabled={disabled || active}
       style={{
-        background: active ? "var(--primary-bg)" : "var(--surface)",
-        color: active ? "#A673F1" : "var(--ink-2)",
-        border: `1.5px solid ${active ? "#A673F1" : "#F2F0F5"}`,
+        background: active ? "var(--primary-bg)" : "#fff",
+        color: active ? "var(--purple-strong)" : "var(--w-ink-2)",
+        border: `1.5px solid ${active ? "var(--purple)" : "var(--w-rule-strong)"}`,
         borderRadius: 20, padding: "6px 14px", fontSize: 14, fontWeight: 600,
         cursor: active ? "default" : "pointer",
       }}
