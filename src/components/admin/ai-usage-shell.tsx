@@ -47,6 +47,7 @@ export function AiUsageShell({
         title="AI Calls 30 วันล่าสุด"
         data={chartData}
         height={180}
+        unit="ครั้ง"
         legend={[
           { key: "nlp", color: "var(--purple)", label: "NLP" },
           { key: "vision", color: "var(--peach)", label: "Vision" },

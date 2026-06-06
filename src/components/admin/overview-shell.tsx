@@ -92,6 +92,7 @@ export function OverviewShell({
           title="DAU · 30 วัน"
           data={chartData}
           height={180}
+          unit="คน"
           legend={[
             {
               key: "dau",
