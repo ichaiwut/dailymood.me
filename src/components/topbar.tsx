@@ -12,7 +12,7 @@ export async function TopBar() {
   const session = await auth();
 
   let avatarUrl: string | null = session?.user?.image ?? null;
-  let trialBannerMode: "activate" | "countdown" | "none" = "none";
+  let trialBannerMode: "countdown" | "none" = "none";
   let trialDaysLeft = 0;
   let trialWarning = false;
   let tier: "free" | "premium" = "free";
@@ -36,15 +36,14 @@ export async function TopBar() {
       if (row?.isPremium === true || inAppTrialActive) tier = "premium";
 
       const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
-      if (!stripeActive) {
-        if (row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now()) {
-          const msLeft = row.trialEndsAt.getTime() - Date.now();
-          trialBannerMode = "countdown";
-          trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
-          trialWarning = trialDaysLeft <= 3;
-        } else if (!row?.trialActivatedAt && !row?.isPremium) {
-          trialBannerMode = "activate";
-        }
+      // Only the countdown (active-trial) banner lives here now. The trial OFFER
+      // is the dismissible TrialPromoBar in the layout (with one-click activate),
+      // so we no longer render an "activate" banner here — it double-stacked.
+      if (!stripeActive && row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now()) {
+        const msLeft = row.trialEndsAt.getTime() - Date.now();
+        trialBannerMode = "countdown";
+        trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
+        trialWarning = trialDaysLeft <= 3;
       }
     } catch {
       // fall back to session image
@@ -55,9 +54,6 @@ export async function TopBar() {
     <>
       {session?.user ? (
         <>
-          {trialBannerMode === "activate" && (
-            <TrialBanner mode="activate" />
-          )}
           {trialBannerMode === "countdown" && (
             <TrialBanner mode="countdown" daysLeft={trialDaysLeft} isWarning={trialWarning} />
           )}

@@ -25,13 +25,15 @@ export default async function LocaleLayout({
   if (isLoggedIn && session?.user?.id) {
     const db = getDb();
     const [u] = await db
-      .select({ welcomeShownAt: users.welcomeShownAt, isPremium: users.isPremium, trialEndsAt: users.trialEndsAt })
+      .select({ welcomeShownAt: users.welcomeShownAt, isPremium: users.isPremium, trialEndsAt: users.trialEndsAt, trialActivatedAt: users.trialActivatedAt })
       .from(users)
       .where(eq(users.id, session.user.id))
       .limit(1);
     if (!u?.welcomeShownAt) showChrome = false;
     const trialActive = !!u?.trialEndsAt && u.trialEndsAt.getTime() > Date.now();
-    showPromo = !u?.isPremium && !trialActive;
+    // Only show the trial promo to users who can actually start one (never
+    // activated) — the bar's CTA activates the trial in one click.
+    showPromo = !u?.isPremium && !trialActive && !u?.trialActivatedAt;
     // Canonical tier (matches getSessionInfo): premium if stripe-active OR in active trial.
     if (u?.isPremium === true || trialActive) tier = "premium";
   }

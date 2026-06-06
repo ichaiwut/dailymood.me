@@ -1,7 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { Link } from "@/i18n/navigation";
+import { useState, useSyncExternalStore } from "react";
+import { TrialConfirmSheet } from "./trial-confirm-sheet";
 
 const KEY = "promo-dismissed";
 
@@ -18,6 +18,7 @@ const getServerSnapshot = () => false;
  *  Reads storage via useSyncExternalStore so it stays SSR/hydration-safe. */
 export function TrialPromoBar({ locale }: { locale: string }) {
   const dismissed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   if (dismissed) return null;
 
@@ -27,25 +28,29 @@ export function TrialPromoBar({ locale }: { locale: string }) {
   };
 
   return (
-    <div
-      className="thai"
-      style={{ background: "linear-gradient(90deg, var(--peach) 0%, #FBA0A0 45%, var(--purple) 100%)", color: "#fff", minHeight: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 16, fontSize: 14, fontWeight: 700, padding: "8px 44px 8px 16px", position: "relative" }}
-    >
-      <span>{locale === "th" ? "✨ ลองใช้ Pro ฟรี 14 วัน — ไม่ต้องใช้บัตร" : "✨ Try Pro free for 14 days — no card required"}</span>
-      <Link
-        href={"/pricing" as "/"}
-        style={{ background: "rgba(255,255,255,.92)", color: "#1A1320", borderRadius: 100, padding: "6px 15px", fontWeight: 800, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}
+    <>
+      <div
+        className="thai"
+        style={{ background: "linear-gradient(90deg, var(--peach) 0%, #FBA0A0 45%, var(--purple) 100%)", color: "#fff", minHeight: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 16, fontSize: 14, fontWeight: 700, padding: "8px 44px 8px 16px", position: "relative" }}
       >
-        {locale === "th" ? "เริ่มเลย →" : "Start now →"}
-      </Link>
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label={locale === "th" ? "ปิด" : "Dismiss"}
-        style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "rgba(255,255,255,.85)", cursor: "pointer", fontSize: 22, lineHeight: 1, padding: 4 }}
-      >
-        ×
-      </button>
-    </div>
+        <span>{locale === "th" ? "✨ ลองใช้ Pro ฟรี 14 วัน — ไม่ต้องใช้บัตร" : "✨ Try Pro free for 14 days — no card required"}</span>
+        <button
+          type="button"
+          onClick={() => setShowConfirm(true)}
+          style={{ background: "rgba(255,255,255,.92)", color: "#1A1320", border: "none", borderRadius: 100, padding: "6px 15px", fontWeight: 800, fontSize: 14, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+        >
+          {locale === "th" ? "เริ่มเลย →" : "Start now →"}
+        </button>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label={locale === "th" ? "ปิด" : "Dismiss"}
+          style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "rgba(255,255,255,.85)", cursor: "pointer", fontSize: 22, lineHeight: 1, padding: 4 }}
+        >
+          ×
+        </button>
+      </div>
+      <TrialConfirmSheet open={showConfirm} onClose={() => setShowConfirm(false)} />
+    </>
   );
 }
