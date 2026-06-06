@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAction } from "@/lib/admin-auth";
 import { getDb } from "@/lib/cf";
-import { articles } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { articles, articleReactions } from "@/db/schema";
+import { desc, sql } from "drizzle-orm";
 import { ulid } from "@/lib/ulid";
 import { calcReadingTime } from "@/lib/articles";
 
 export async function GET() {
   await requireAdminAction();
   const db = getDb();
-  const rows = await db.select().from(articles).orderBy(desc(articles.createdAt));
-  return NextResponse.json({ articles: rows });
+  const [rows, reactionRows] = await Promise.all([
+    db.select().from(articles).orderBy(desc(articles.createdAt)),
+    db
+      .select({ articleId: articleReactions.articleId, count: sql<number>`count(*)` })
+      .from(articleReactions)
+      .groupBy(articleReactions.articleId),
+  ]);
+  const reactionMap = new Map(reactionRows.map((r) => [r.articleId, Number(r.count)]));
+  const result = rows.map((a) => ({ ...a, reactionCount: reactionMap.get(a.id) ?? 0 }));
+  return NextResponse.json({ articles: result });
 }
 
 export async function POST(req: NextRequest) {

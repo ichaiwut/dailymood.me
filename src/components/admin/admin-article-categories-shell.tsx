@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 
 interface Category {
   id: string;
@@ -82,7 +83,13 @@ export function AdminArticleCategoriesShell() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 24 }}>หมวดหมู่บทความ</h1>
+      <Link
+        href="/admin/articles"
+        style={{ fontSize: 13, fontWeight: 700, color: "var(--purple-strong)", textDecoration: "none" }}
+      >
+        ← บทความ
+      </Link>
+      <h1 style={{ fontSize: 22, fontWeight: 800, margin: "10px 0 24px" }}>หมวดหมู่บทความ</h1>
 
       {/* Create form */}
       <div style={{ ...CARD, marginBottom: 24 }}>

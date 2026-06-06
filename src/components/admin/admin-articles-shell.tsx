@@ -12,6 +12,8 @@ interface Article {
   published: boolean;
   publishedAt: string | null;
   readingTimeMinutes: number;
+  viewCount: number;
+  reactionCount: number;
   createdAt: string;
 }
 
@@ -75,11 +77,16 @@ export function AdminArticlesShell() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800 }}>บทความ ({articles.length})</h1>
-        <Link href="/admin/articles/new" className="w-btn w-btn-primary" style={{ textDecoration: "none" }}>
-          + สร้างบทความ
-        </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href="/admin/article-categories" className="w-btn w-btn-ghost" style={{ textDecoration: "none" }}>
+            จัดการหมวดหมู่
+          </Link>
+          <Link href="/admin/articles/new" className="w-btn w-btn-primary" style={{ textDecoration: "none" }}>
+            + สร้างบทความ
+          </Link>
+        </div>
       </div>
 
       <div style={{ ...CARD }}>
@@ -89,7 +96,9 @@ export function AdminArticlesShell() {
               <th style={{ padding: "8px 12px", fontWeight: 600 }}>ชื่อบทความ</th>
               <th style={{ padding: "8px 12px", fontWeight: 600 }}>หมวดหมู่</th>
               <th style={{ padding: "8px 12px", fontWeight: 600 }}>สถานะ</th>
-              <th style={{ padding: "8px 12px", fontWeight: 600 }}>อ่าน</th>
+              <th style={{ padding: "8px 12px", fontWeight: 600 }}>ยอดอ่าน</th>
+              <th style={{ padding: "8px 12px", fontWeight: 600 }}>ความรู้สึก</th>
+              <th style={{ padding: "8px 12px", fontWeight: 600 }}>เวลาอ่าน</th>
               <th style={{ padding: "8px 12px", fontWeight: 600 }}>สร้าง</th>
               <th style={{ padding: "8px 12px", fontWeight: 600 }}>Actions</th>
             </tr>
@@ -119,7 +128,9 @@ export function AdminArticlesShell() {
                       {a.published ? "Published" : "Draft"}
                     </span>
                   </td>
-                  <td style={{ padding: "10px 12px" }}>{a.readingTimeMinutes} min</td>
+                  <td style={{ padding: "10px 12px", fontWeight: 700 }}>{a.viewCount.toLocaleString()}</td>
+                  <td style={{ padding: "10px 12px", fontWeight: 700 }}>{a.reactionCount.toLocaleString()}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--w-ink-3)" }}>{a.readingTimeMinutes} min</td>
                   <td style={{ padding: "10px 12px", fontSize: 12, color: "var(--ink-3)" }}>
                     {new Date(a.createdAt).toLocaleDateString("th-TH")}
                   </td>

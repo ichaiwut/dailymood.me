@@ -2,23 +2,33 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { IconHome, IconUsers, IconEdit, IconHeart, IconSparkle, IconAi } from "./admin-icons";
+import { IconHome, IconUsers, IconEdit, IconDoc, IconHeart, IconSparkle, IconAi } from "./admin-icons";
 
-const NAV = [
+const NAV: {
+  href: string;
+  label: string;
+  Icon: typeof IconHome;
+  /** prefix used for active-state matching (defaults to href) */
+  activePrefix?: string;
+  /** render a section divider above this item */
+  dividerBefore?: boolean;
+}[] = [
   { href: "/admin", label: "ภาพรวม", Icon: IconHome },
   { href: "/admin/users", label: "ผู้ใช้", Icon: IconUsers },
   { href: "/admin/entries", label: "บันทึก", Icon: IconEdit },
+  // matches /admin/articles and /admin/article-categories
+  { href: "/admin/articles", label: "บทความ", Icon: IconDoc, activePrefix: "/admin/article" },
   { href: "/admin/feedback", label: "Feedback", Icon: IconHeart },
-  { href: "/admin/packs", label: "Mood Packs", Icon: IconSparkle },
+  { href: "/admin/packs", label: "Mood Packs", Icon: IconSparkle, dividerBefore: true },
   { href: "/admin/ai", label: "AI Usage", Icon: IconAi },
 ];
 
 export function AdminSidebar({ email }: { email: string }) {
   const pathname = usePathname();
 
-  function isActive(href: string) {
-    if (href === "/admin") return pathname === "/admin";
-    return pathname.startsWith(href);
+  function isActive(item: (typeof NAV)[number]) {
+    if (item.href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(item.activePrefix ?? item.href);
   }
 
   return (
@@ -63,11 +73,11 @@ export function AdminSidebar({ email }: { email: string }) {
       </div>
 
       <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, paddingRight: 14 }}>
-        {NAV.map((item, i) => {
-          const active = isActive(item.href);
+        {NAV.map((item) => {
+          const active = isActive(item);
           return (
             <div key={item.href}>
-              {i === 4 && (
+              {item.dividerBefore && (
                 <div
                   style={{
                     height: 1,

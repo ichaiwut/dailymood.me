@@ -1,5 +1,5 @@
 import { getDb } from "@/lib/cf";
-import { users, moodEntries, feedbacks, aiUsage } from "@/db/schema";
+import { users, moodEntries, feedbacks, aiUsage, articles, articleReactions } from "@/db/schema";
 import { sql, gte, eq, desc } from "drizzle-orm";
 import { todayICT, ymdICT, nowICT } from "@/lib/timezone";
 
@@ -23,6 +23,8 @@ export interface OverviewStats {
   totalCost30d: number;
   pendingFeedback: number;
   totalFeedback: number;
+  articleViews: number;
+  articleReactions: number;
 }
 
 export async function getOverviewStats(): Promise<OverviewStats> {
@@ -42,6 +44,8 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     [{ nlp: totalNlp30d, vision: totalVision30d, tokIn: totalTokensIn30d, tokOut: totalTokensOut30d, cost: totalCost30d }],
     [{ total: pendingFeedback }],
     [{ total: totalFeedback }],
+    [{ total: articleViews }],
+    [{ total: articleReactionCount }],
   ] = await Promise.all([
     db.select({ total: sql<number>`count(*)` }).from(users),
     db.select({ total: sql<number>`count(*)` }).from(users).where(eq(users.isPremium, true)),
@@ -71,6 +75,8 @@ export async function getOverviewStats(): Promise<OverviewStats> {
       .from(feedbacks)
       .where(eq(feedbacks.status, "pending")),
     db.select({ total: sql<number>`count(*)` }).from(feedbacks),
+    db.select({ total: sql<number>`coalesce(sum(${articles.viewCount}), 0)` }).from(articles),
+    db.select({ total: sql<number>`count(*)` }).from(articleReactions),
   ]);
 
   return {
@@ -89,6 +95,8 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     totalCost30d,
     pendingFeedback,
     totalFeedback,
+    articleViews: Number(articleViews),
+    articleReactions: Number(articleReactionCount),
   };
 }
 

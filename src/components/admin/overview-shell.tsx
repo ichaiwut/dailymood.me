@@ -88,6 +88,34 @@ export function OverviewShell({
         />
       </div>
 
+      {/* Article engagement */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ ...A.eyebrow, color: "var(--ink-3)", marginBottom: 12 }}>
+          บทความ
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: 16,
+            maxWidth: 524,
+          }}
+        >
+          <AdminStatCard
+            label="ยอดอ่านบทความ"
+            value={stats.articleViews}
+            sub="รวมทุกบทความ"
+            tab="lav"
+          />
+          <AdminStatCard
+            label="คนให้ความรู้สึก"
+            value={stats.articleReactions}
+            sub="หลังอ่านบทความ"
+            tab="purple"
+          />
+        </div>
+      </div>
+
       <div style={{ marginBottom: 18 }}>
         <AdminBarChart
           title="DAU · 30 วัน"
