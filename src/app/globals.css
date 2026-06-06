@@ -265,6 +265,8 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 @keyframes ai-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
 .ai-spin { animation: ai-spin 1.6s linear infinite; }
+@keyframes pa-float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+.pa-float { animation: pa-float 3.2s ease-in-out infinite; }
 
 .fade-in { animation: fade-up 320ms cubic-bezier(0.16,1,0.3,1) backwards; }
 .pop     { animation: pop 360ms cubic-bezier(0.34,1.56,0.64,1) both; }
@@ -283,7 +285,7 @@ button { font-family: inherit; cursor: pointer; }
 .scrim-close { animation: scrim-out  280ms ease both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .fade-in, .pop, .pulse, .shimmer, .ai-spin, .sheet-open, .sheet-close, .scrim-open, .scrim-close { animation: none; }
+  .fade-in, .pop, .pulse, .shimmer, .ai-spin, .pa-float, .sheet-open, .sheet-close, .scrim-open, .scrim-close { animation: none; }
 }
 
 /* ─── action card ─── */
@@ -877,7 +879,7 @@ gmp-place-autocomplete::part(predictions) {
 
 /* Today two-column desk grid */
 .pa-today-grid { display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: flex-start; }
-.pa-entries-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.pa-entries-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px 18px; }
 
 /* paper icon button (mic / photo / location) */
 .pa-icon-btn {
@@ -935,8 +937,8 @@ gmp-place-autocomplete::part(predictions) {
 
 /* responsive: single column + modal becomes a bottom sheet */
 @media (max-width: 767px) {
-  .pa-today-grid { grid-template-columns: 1fr; gap: 20px; }
-  .pa-entries-grid { grid-template-columns: 1fr; }
+  .pa-today-grid { grid-template-columns: 1fr; gap: 38px; }
+  .pa-entries-grid { grid-template-columns: 1fr; gap: 34px; }
   .pa-desk { padding: 0; }
 }
 @media (max-width: 640px) {

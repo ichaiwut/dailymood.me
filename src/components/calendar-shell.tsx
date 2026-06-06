@@ -479,28 +479,32 @@ export function CalendarShell({
       </div>{/* end left column */}
 
       {/* ── Right sidebar stats ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 14, alignSelf: "start", position: "sticky", top: 80 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 22, alignSelf: "start", position: "sticky", top: 80 }}>
         {[
-          { label: locale === "th" ? "อารมณ์เฉลี่ย" : "Avg Mood", value: stats?.avgMood ? stats.avgMood.toFixed(1) : "—", sub: stats?.avgMoodDelta ? `${stats.avgMoodDelta > 0 ? "↑" : "↓"} ${Math.abs(stats.avgMoodDelta).toFixed(1)} ${locale === "th" ? "จากเดือนก่อน" : "vs last month"}` : "", color: "var(--peach)" },
-          { label: "Streak", value: String(stats?.streak ?? 0), sub: `${locale === "th" ? "วันติดต่อกัน 🔥" : "consecutive days 🔥"}`, color: "var(--purple)" },
-          { label: locale === "th" ? "บันทึก" : "Logged", value: String(stats?.loggedDays ?? 0), sub: `${locale === "th" ? "ครั้งในเดือนนี้" : "this month"}`, color: "var(--mint)" },
+          { label: locale === "th" ? "อารมณ์เฉลี่ย" : "Avg Mood", value: stats?.avgMood ? stats.avgMood.toFixed(1) : "—", sub: stats?.avgMoodDelta ? `${stats.avgMoodDelta > 0 ? "↑" : "↓"} ${Math.abs(stats.avgMoodDelta).toFixed(1)} ${locale === "th" ? "จากเดือนก่อน" : "vs last month"}` : "", variant: "" },
+          { label: locale === "th" ? "ต่อเนื่อง" : "Streak", value: String(stats?.streak ?? 0), sub: `${locale === "th" ? "วันติดต่อกัน 🔥" : "consecutive days 🔥"}`, variant: "purple" },
+          { label: locale === "th" ? "บันทึก" : "Logged", value: String(stats?.loggedDays ?? 0), sub: `${locale === "th" ? "ครั้งในเดือนนี้" : "this month"}`, variant: "mint" },
         ].map(s => (
-          <div key={s.label} className="pa-sheet" style={{ padding: 18, borderRadius: 16, borderLeft: `4px solid ${s.color}` }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase" }}>{s.label}</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-              <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--w-ink)" }}>{s.value}</span>
-              <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{s.sub}</span>
+          <div key={s.label} style={{ position: "relative" }}>
+            <span className={`pa-tab ${s.variant}`} style={{ fontSize: 12, padding: "8px 15px 10px" }}>{s.label}</span>
+            <div className="pa-sheet" style={{ padding: "16px 18px 18px" }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: 38, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1, color: "var(--w-ink)" }}>{s.value}</span>
+                <span style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{s.sub}</span>
+              </div>
             </div>
           </div>
         ))}
-        <div className="pa-sheet" style={{ padding: 18, borderRadius: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 10 }}>{locale === "th" ? "คำอธิบายสี" : "Legend"}</div>
-          {DEFAULT_MOODS.slice(0, 6).map(m => (
-            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
-              <span style={{ width: 14, height: 14, borderRadius: 4, background: m.color }} />
-              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>{locale === "th" ? m.labelTh : m.label}</span>
-            </div>
-          ))}
+        <div style={{ position: "relative" }}>
+          <span className="pa-tab ink" style={{ fontSize: 12, padding: "8px 15px 10px" }}>{locale === "th" ? "คำอธิบายสี" : "Legend"}</span>
+          <div className="pa-sheet" style={{ padding: "16px 18px 18px" }}>
+            {DEFAULT_MOODS.slice(0, 6).map(m => (
+              <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
+                <span style={{ width: 14, height: 14, borderRadius: 4, background: m.color }} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>{locale === "th" ? m.labelTh : m.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
 import { DEFAULT_MOOD_PACK, moodIconUrl, R2_PUBLIC_URL } from "@/lib/moods";
@@ -20,6 +20,7 @@ import { EntryFolderCard } from "./paper/today/entry-folder-card";
 import { AiWeeklyFolder } from "./paper/today/ai-weekly-folder";
 import { StreakCard } from "./paper/today/streak-card";
 import { MiniCalendarFolder } from "./paper/today/mini-calendar-folder";
+import { EmptyToday } from "./paper/today/empty-today";
 import type { SpecialDay } from "@/db/schema";
 
 type Tier = "guest" | "free" | "premium";
@@ -66,6 +67,11 @@ export function HomeShell({
     m.iconKey ? `${R2_PUBLIC_URL}/${m.iconKey}` : moodIconUrl(m.id, pack, iconFormat);
 
   const [logMoodId, setLogMoodId] = useState<string | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const focusComposer = () => {
+    composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    composerRef.current?.focus({ preventScroll: true });
+  };
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [customMoods, setCustomMoods] = useState<CustomMoodItem[]>(initialCustomMoods);
@@ -316,6 +322,7 @@ export function HomeShell({
                 </div>
 
                 <textarea
+                  ref={composerRef}
                   value={composerText}
                   onChange={(e) => {
                     setComposerText(e.target.value);
@@ -521,9 +528,7 @@ export function HomeShell({
                 })}
               </div>
             ) : (
-              <div className="text-center py-10" style={{ color: "var(--w-ink-3)", fontSize: 15 }}>
-                {t("emptyTitle")}
-              </div>
+              <EmptyToday locale={locale} pack={pack} iconFormat={iconFormat} onWriteFreely={focusComposer} />
             )}
           </div>
 
