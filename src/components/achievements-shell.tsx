@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { PAClip, PAMark } from "@/components/paper";
+import { AchievementDetailSheet } from "@/components/achievement-detail-sheet";
+import { AchievementShareModal } from "@/components/achievement-share-modal";
+import { formatBadgeDate } from "@/lib/format-badge-date";
 
 type BadgeStatus = "earned" | "in_progress" | "locked";
 
@@ -48,6 +51,11 @@ export function AchievementsShell() {
   const [data, setData] = useState<AchievementsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
+  const [detailBadge, setDetailBadge] = useState<Badge | null>(null);
+  const [shareBadge, setShareBadge] = useState<Badge | null>(null);
+
+  const badgeTitle = (b: Badge | null) => (b ? t(`badge_${b.id}` as "badge_streak_7") : "");
+  const badgeDesc = (b: Badge | null) => (b ? t(`badge_${b.id}_desc` as "badge_streak_7_desc") : "");
 
   useEffect(() => {
     fetch("/api/profile/achievements")
@@ -161,7 +169,7 @@ export function AchievementsShell() {
         {/* ── Sticker grid ── */}
         <div className="ach-grid">
           {filtered.map((badge, i) => (
-            <BadgeStickerCard key={badge.id} badge={badge} index={i} t={t} locale={locale} />
+            <BadgeStickerCard key={badge.id} badge={badge} index={i} t={t} locale={locale} onOpen={setDetailBadge} />
           ))}
           {filtered.length === 0 && (
             <div className="pa-sheet" style={{ gridColumn: "1 / -1", borderRadius: 18, padding: "44px 20px", textAlign: "center", color: "var(--w-ink-3)" }}>
@@ -171,17 +179,39 @@ export function AchievementsShell() {
           )}
         </div>
       </div>
+
+      <AchievementDetailSheet
+        open={!!detailBadge}
+        onClose={() => setDetailBadge(null)}
+        badge={detailBadge}
+        title={badgeTitle(detailBadge)}
+        desc={badgeDesc(detailBadge)}
+        locale={locale}
+        onShare={() => {
+          setShareBadge(detailBadge);
+          setDetailBadge(null);
+        }}
+      />
+      <AchievementShareModal
+        open={!!shareBadge}
+        onClose={() => setShareBadge(null)}
+        badge={shareBadge}
+        title={badgeTitle(shareBadge)}
+        desc={badgeDesc(shareBadge)}
+        locale={locale}
+      />
     </div>
   );
 }
 
 function BadgeStickerCard({
-  badge, index, t, locale,
+  badge, index, t, locale, onOpen,
 }: {
   badge: Badge;
   index: number;
   t: (k: string, v?: Record<string, string>) => string;
   locale: string;
+  onOpen: (b: Badge) => void;
 }) {
   const earned = badge.status === "earned";
   const inProgress = badge.status === "in_progress";
@@ -190,8 +220,11 @@ function BadgeStickerCard({
   const washi = WASHI_BY_COLOR[badge.color] ?? "";
 
   return (
-    <div
-      className={`pa-sheet ${locked ? "" : "pa-card-lift"}`}
+    <button
+      type="button"
+      onClick={() => onOpen(badge)}
+      aria-label={t(`badge_${badge.id}` as "badge_streak_7")}
+      className="pa-sheet pa-card-lift"
       style={{
         position: "relative",
         borderRadius: 18,
@@ -204,6 +237,9 @@ function BadgeStickerCard({
         transform: `rotate(${rot}deg)`,
         border: locked ? "2px dashed var(--w-rule-strong)" : undefined,
         opacity: locked ? 0.72 : 1,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        width: "100%",
       }}
     >
       {earned && <span className={`pa-washi ${washi}`} aria-hidden style={{ width: 84 }} />}
@@ -241,7 +277,7 @@ function BadgeStickerCard({
           </div>
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -264,14 +300,4 @@ function BadgeSticker({ emoji, color, status }: { emoji: string; color: string; 
       <span style={{ fontSize: 30, lineHeight: 1 }}>{emoji}</span>
     </div>
   );
-}
-
-function formatBadgeDate(iso: string, locale: string): string {
-  const d = new Date(iso);
-  if (locale === "th") {
-    const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-    return `${d.getDate()} ${months[d.getMonth()]}`;
-  }
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[d.getMonth()]} ${d.getDate()}`;
 }

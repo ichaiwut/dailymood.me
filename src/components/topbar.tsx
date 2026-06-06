@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
 import { TopBarClient } from "./topbar-client";
+import { BrandMark } from "./brand-mark";
 import { TrialBanner } from "./trial-banner";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
@@ -88,17 +89,7 @@ export async function TopBar() {
 function DMLogo() {
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: "var(--ink)" }}>
-      <svg width={26} height={26} viewBox="0 0 32 32">
-        <defs>
-          <linearGradient id="dmlg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
-          </linearGradient>
-        </defs>
-        <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#dmlg)" />
-        <circle cx="12" cy="14" r="1.6" fill="#1A1320" />
-        <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
-        <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </svg>
+      <BrandMark size={28} />
       <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em" }}>DailyMood</span>
     </span>
   );

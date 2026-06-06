@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { signOut } from "next-auth/react";
 import { Link } from "@/i18n/navigation";
 import { SmartLogModal } from "./smart-log-modal";
+import { BrandMark } from "./brand-mark";
 import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { useTheme } from "./theme-provider";
 
@@ -318,21 +319,8 @@ function ThemeToggle({ isDark, onToggle }: { isDark: boolean; onToggle: () => vo
   );
 }
 
-function DMLogo({ size = 26 }: { size?: number }) {
-  const gid = useId().replace(/:/g, "");
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="28" height="28" rx="9" fill={`url(#${gid})`} />
-      <circle cx="12" cy="14" r="1.6" fill="#1A1320" />
-      <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
-      <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
-  );
+function DMLogo({ size = 28 }: { size?: number }) {
+  return <BrandMark size={size} />;
 }
 
 function UserMenu({

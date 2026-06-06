@@ -77,6 +77,10 @@ export function trackShareInsight() {
   trackEvent({ action: "share_insight", category: "engagement" });
 }
 
+export function trackShareAchievement(badgeId: string) {
+  trackEvent({ action: "share_achievement", category: "engagement", label: badgeId });
+}
+
 export function trackExportData() {
   trackEvent({ action: "export_data", category: "engagement" });
 }

@@ -9,6 +9,7 @@
 
 import React from "react";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
+import { BrandMark } from "./brand-mark";
 
 export type ShareTemplate = "streak" | "signature";
 export type ShareTheme = "light" | "dark";
@@ -26,7 +27,7 @@ export const CARD_H = 630;
 
 const FIRE = "#FB923C";
 const BRAND = "#A673F1";
-const THAI_FONT = 'var(--font-thai), "Noto Sans Thai", system-ui, sans-serif';
+export const THAI_FONT = 'var(--font-thai), "Noto Sans Thai", system-ui, sans-serif';
 
 function moodById(id: string | null | undefined) {
   return id ? DEFAULT_MOODS.find((m) => m.id === id) : undefined;
@@ -42,7 +43,7 @@ function hexToRgba(hex: string, a: number): string {
 
 // Blend a hex color toward a target hex by t (0..1). Used to push pastel mood
 // colors to a readable shade for text (darker on light theme, brighter on dark).
-function mix(hex: string, target: string, t: number): string {
+export function mix(hex: string, target: string, t: number): string {
   const a = hex.replace("#", "");
   const b = target.replace("#", "");
   const ar = parseInt(a.slice(0, 2), 16), ag = parseInt(a.slice(2, 4), 16), ab = parseInt(a.slice(4, 6), 16);
@@ -53,7 +54,7 @@ function mix(hex: string, target: string, t: number): string {
   return `rgb(${r}, ${g}, ${bl})`;
 }
 
-interface Palette {
+export interface Palette {
   ink: string;
   sub: string;
   surface: string;
@@ -64,7 +65,7 @@ interface Palette {
 const DARK_BASE = "#15101D";
 const LIGHT_BASE = "#FFFFFF";
 
-function palette(theme: ShareTheme, accent: string): Palette {
+export function palette(theme: ShareTheme, accent: string): Palette {
   if (theme === "dark") {
     return {
       ink: "#FFFFFF",
@@ -84,7 +85,7 @@ function palette(theme: ShareTheme, accent: string): Palette {
   };
 }
 
-function Watermark({ pal }: { pal: Palette }) {
+export function Watermark({ pal }: { pal: Palette }) {
   return (
     <div
       style={{
@@ -96,23 +97,7 @@ function Watermark({ pal }: { pal: Palette }) {
         gap: 14,
       }}
     >
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 13,
-          background: BRAND,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        {/* sparkle mark */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
-        </svg>
-      </div>
+      <BrandMark size={52} style={{ flexShrink: 0 }} />
       <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
         <div style={{ fontSize: 30, fontWeight: 800, color: pal.ink, letterSpacing: "-0.01em" }}>
           DailyMood
