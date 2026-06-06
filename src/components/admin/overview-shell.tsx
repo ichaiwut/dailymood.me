@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminStatCard } from "./admin-stat-card";
 import { AdminBarChart } from "./admin-bar-chart";
+import { AdminBadge } from "./admin-badge";
 import { A } from "./admin-ui";
 import type {
   OverviewStats,
@@ -174,24 +175,41 @@ export function OverviewShell({
                           gap: 10,
                         }}
                       >
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 50,
-                            background:
-                              "linear-gradient(135deg, var(--peach), var(--purple))",
-                            color: "#fff",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: 800,
-                            fontSize: 11,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {initials}
-                        </div>
+                        {u.image ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={u.image}
+                            alt=""
+                            width={28}
+                            height={28}
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 50,
+                              objectFit: "cover",
+                              flexShrink: 0,
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 50,
+                              background:
+                                "linear-gradient(135deg, var(--peach), var(--purple))",
+                              color: "#fff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 800,
+                              fontSize: 11,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {initials}
+                          </div>
+                        )}
                         <span style={{ fontWeight: 700 }}>
                           {u.name || "—"}
                         </span>
@@ -207,25 +225,21 @@ export function OverviewShell({
                       {u.email}
                     </td>
                     <td style={{ ...A.td, borderBottom: "none" }}>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          padding: "3px 10px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          background: u.isPremium
-                            ? "var(--w-tint-info)"
-                            : "var(--w-tint)",
-                          color: u.isPremium
-                            ? "var(--w-tint-info-fg)"
-                            : "var(--w-ink-2)",
-                        }}
+                      <AdminBadge
+                        variant={
+                          u.plan === "premium"
+                            ? "info"
+                            : u.plan === "trial"
+                              ? "warning"
+                              : "free"
+                        }
                       >
-                        {u.isPremium ? "Premium" : "Free"}
-                      </span>
+                        {u.plan === "premium"
+                          ? "Premium"
+                          : u.plan === "trial"
+                            ? "Trial"
+                            : "Free"}
+                      </AdminBadge>
                     </td>
                     <td
                       style={{

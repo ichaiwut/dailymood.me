@@ -114,11 +114,14 @@ export async function getDauApproximation(days: number): Promise<DauRow[]> {
   return rows;
 }
 
+export type UserPlan = "free" | "premium" | "trial";
+
 export interface RecentUser {
   id: string;
   name: string | null;
   email: string;
-  isPremium: boolean;
+  image: string | null;
+  plan: UserPlan;
   entryCount: number;
   createdAt: string;
 }
@@ -130,18 +133,36 @@ export async function getRecentUsers(limit = 5): Promise<RecentUser[]> {
       id: users.id,
       name: users.name,
       email: users.email,
+      image: users.image,
       isPremium: users.isPremium,
-      entryCount: sql<number>`(SELECT count(*) FROM mood_entries WHERE user_id = ${users.id})`,
+      trialEndsAt: users.trialEndsAt,
+      // NB: `${users.id}` renders unqualified as "id", which collides with
+      // mood_entries.id inside the subquery (count always 0). Qualify the
+      // outer column explicitly and alias the inner table.
+      entryCount: sql<number>`(SELECT count(*) FROM mood_entries me WHERE me.user_id = "users"."id")`,
       createdAt: users.createdAt,
     })
     .from(users)
     .orderBy(desc(users.createdAt))
     .limit(limit);
 
-  return rows.map((r) => ({
-    ...r,
-    createdAt: r.createdAt.toISOString(),
-  }));
+  const now = Date.now();
+  return rows.map((r) => {
+    const plan: UserPlan = r.isPremium
+      ? "premium"
+      : r.trialEndsAt && r.trialEndsAt.getTime() > now
+        ? "trial"
+        : "free";
+    return {
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      image: r.image,
+      plan,
+      entryCount: Number(r.entryCount),
+      createdAt: r.createdAt.toISOString(),
+    };
+  });
 }
 
 export interface StripeRevenue {
