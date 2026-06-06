@@ -34,7 +34,7 @@ export function AdminBarChart({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "var(--ink-3)",
+            color: "var(--w-ink-3)",
             fontSize: 14,
           }}
         >

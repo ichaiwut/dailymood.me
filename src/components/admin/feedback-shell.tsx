@@ -85,10 +85,10 @@ export function FeedbackShell({
 
       {/* Stat cards row */}
       <div style={A.statGrid}>
-        <AdminStatCard label="NPS" value="—" sub="ยังไม่มีข้อมูล" />
-        <AdminStatCard label="Bugs" value={bugCount} />
-        <AdminStatCard label="Requests" value={requestCount} />
-        <AdminStatCard label="Praise" value={praiseCount} />
+        <AdminStatCard label="NPS" value="—" sub="ยังไม่มีข้อมูล" tab="purple" />
+        <AdminStatCard label="Bugs" value={bugCount} tab="yellow" />
+        <AdminStatCard label="Requests" value={requestCount} tab="mint" />
+        <AdminStatCard label="Praise" value={praiseCount} tab="peach" />
       </div>
 
       {/* Feedback list */}

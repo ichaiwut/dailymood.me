@@ -60,6 +60,8 @@
   --w-tint-info-fg:   #2563EB;
   --w-tint-success:   #E8F5E9;
   --w-tint-success-fg:#2E7D32;
+  --w-tint-warning:   #FDF3E2;
+  --w-tint-warning-fg:#9A6B1E;
 
   --shadow-card: 4px 4px 16px rgba(66,66,66,0.08);
   --shadow-lift: 0 14px 40px rgba(0,0,0,0.10), 0 0 0 1px rgba(26,19,32,0.08);
@@ -112,6 +114,8 @@
   --w-tint-info-fg:   #A6C8F5;
   --w-tint-success:   rgba(74, 201, 150, .16);
   --w-tint-success-fg:#8FE3BD;
+  --w-tint-warning:   rgba(229, 176, 90, .18);
+  --w-tint-warning-fg:#E8C07A;
 }
 
 html, body {

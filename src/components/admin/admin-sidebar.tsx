@@ -37,22 +37,32 @@ export function AdminSidebar({ email }: { email: string }) {
         zIndex: 50,
       }}
     >
-      <div style={{ padding: "0 20px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ padding: "2px 20px 22px", display: "flex", alignItems: "center", gap: 11 }}>
         <div
           style={{
-            width: 30,
-            height: 30,
-            borderRadius: 8,
+            width: 34,
+            height: 34,
+            borderRadius: 10,
             background: "linear-gradient(135deg, var(--peach), var(--purple))",
+            boxShadow: "0 6px 14px -6px rgba(166,115,241,.7)",
           }}
         />
         <div>
-          <div style={{ fontWeight: 800, fontSize: 14 }}>DailyMood</div>
-          <div style={{ fontSize: 10, opacity: 0.6, fontWeight: 600 }}>ADMIN</div>
+          <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.01em" }}>DailyMood</div>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: "0.18em",
+              color: "var(--peach)",
+            }}
+          >
+            ADMIN
+          </div>
         </div>
       </div>
 
-      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, paddingRight: 14 }}>
         {NAV.map((item, i) => {
           const active = isActive(item.href);
           return (
@@ -62,7 +72,7 @@ export function AdminSidebar({ email }: { email: string }) {
                   style={{
                     height: 1,
                     background: "rgba(255,255,255,.1)",
-                    margin: "8px 20px",
+                    margin: "10px 20px 11px",
                   }}
                 />
               )}
@@ -72,21 +82,23 @@ export function AdminSidebar({ email }: { email: string }) {
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
-                  padding: "11px 20px",
-                  fontSize: 13,
-                  fontWeight: active ? 700 : 600,
+                  padding: "11px 18px",
+                  /* folder tab — pulls out to the right when active */
+                  borderRadius: "0 13px 13px 0",
+                  fontSize: 13.5,
+                  fontWeight: active ? 800 : 600,
                   color: active ? "#fff" : "rgba(255,255,255,.55)",
-                  background: active
-                    ? "rgba(255,255,255,.08)"
-                    : "transparent",
+                  background: active ? "rgba(255,255,255,.10)" : "transparent",
                   borderLeft: active
                     ? "3px solid var(--peach)"
                     : "3px solid transparent",
                   textDecoration: "none",
-                  transition: "all 160ms",
+                  transition: "color 160ms, background 160ms",
                 }}
               >
-                <item.Icon size={16} />
+                <span style={{ color: active ? "var(--peach)" : "inherit", display: "inline-flex" }}>
+                  <item.Icon size={17} />
+                </span>
                 {item.label}
               </Link>
             </div>

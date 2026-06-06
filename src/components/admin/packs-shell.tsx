@@ -214,6 +214,8 @@ export function PacksShell() {
             style={{
               ...A.btnPrimary,
               background: "var(--purple)",
+              boxShadow:
+                "0 7px 0 -2px var(--purple-strong), 0 16px 24px -12px rgba(166, 115, 241, .6)",
               opacity: !newId || !newLabel || creating ? 0.5 : 1,
             }}
           >
@@ -489,6 +491,8 @@ export function PacksShell() {
                     style={{
                       ...A.btnPrimary,
                       background: "var(--purple)",
+                      boxShadow:
+                        "0 7px 0 -2px var(--purple-strong), 0 16px 24px -12px rgba(166, 115, 241, .6)",
                       opacity:
                         Object.keys(files).length === 0 || uploading
                           ? 0.5

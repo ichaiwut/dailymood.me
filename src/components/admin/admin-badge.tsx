@@ -3,37 +3,38 @@ import type { CSSProperties } from "react";
 type Variant = "premium" | "free" | "admin" | "success" | "warning" | "danger" | "info" | "neutral";
 
 const STYLES: Record<Variant, CSSProperties> = {
+  /* brand accent — reads on both themes, kept literal */
   premium: {
     background: "linear-gradient(135deg, var(--peach), var(--purple))",
     color: "#fff",
   },
   free: {
-    background: "var(--surface-2)",
-    color: "var(--ink-2)",
+    background: "var(--w-tint)",
+    color: "var(--w-ink-2)",
   },
   admin: {
-    background: "var(--ink)",
-    color: "#fff",
+    background: "var(--w-ink)",
+    color: "var(--bg)",
   },
   success: {
-    background: "rgba(46, 166, 125, 0.12)",
-    color: "#2EA67D",
+    background: "var(--w-tint-success)",
+    color: "var(--w-tint-success-fg)",
   },
   warning: {
-    background: "rgba(229, 176, 90, 0.12)",
-    color: "#B8860B",
+    background: "var(--w-tint-warning)",
+    color: "var(--w-tint-warning-fg)",
   },
   danger: {
-    background: "#FFF5F5",
-    color: "#D45353",
+    background: "var(--w-tint-danger)",
+    color: "var(--w-tint-danger-fg)",
   },
   info: {
-    background: "rgba(166, 115, 241, 0.12)",
-    color: "var(--purple-strong)",
+    background: "var(--w-tint-info)",
+    color: "var(--w-tint-info-fg)",
   },
   neutral: {
-    background: "var(--surface-2)",
-    color: "var(--ink-3)",
+    background: "var(--w-tint)",
+    color: "var(--w-ink-3)",
   },
 };
 

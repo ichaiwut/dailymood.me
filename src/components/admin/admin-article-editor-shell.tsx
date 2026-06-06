@@ -20,10 +20,11 @@ interface ReactionCount {
 }
 
 const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline)",
-  borderRadius: 16,
+  background: "var(--w-surface)",
+  border: "1px solid var(--w-rule)",
+  borderRadius: "4px 18px 18px 18px",
   padding: 24,
+  boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
 };
 
 export function AdminArticleEditorShell({ articleId }: { articleId: string }) {

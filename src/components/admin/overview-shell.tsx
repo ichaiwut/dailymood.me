@@ -57,12 +57,13 @@ export function OverviewShell({
           value={stats.totalUsers}
           delta={stats.newUsers7d}
           deltaLabel="(7d)"
+          tab="peach"
         />
         <AdminStatCard
           label="Premium"
           value={stats.premiumUsers}
           sub={`${((stats.premiumUsers / Math.max(1, stats.totalUsers)) * 100).toFixed(1)}%`}
-          color="var(--purple)"
+          tab="purple"
         />
         <AdminStatCard
           label="รายได้ MTD"
@@ -76,12 +77,13 @@ export function OverviewShell({
               ? `${revenue.chargeCount} transactions`
               : "ไม่มีข้อมูล Stripe"
           }
-          color="var(--mint)"
+          tab="mint"
         />
         <AdminStatCard
           label="AI calls วันนี้"
           value={stats.aiTodayNlp + stats.aiTodayVision}
           sub={`NLP ${stats.aiTodayNlp} · Vision ${stats.aiTodayVision}`}
+          tab="yellow"
         />
       </div>
 
@@ -105,7 +107,7 @@ export function OverviewShell({
         <div
           style={{
             padding: "18px 24px",
-            borderBottom: "1px solid var(--hairline)",
+            borderBottom: "1px solid var(--w-rule)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -144,7 +146,7 @@ export function OverviewShell({
                   style={{
                     ...A.td,
                     textAlign: "center",
-                    color: "var(--ink-3)",
+                    color: "var(--w-ink-3)",
                     padding: 32,
                   }}
                 >
@@ -160,7 +162,7 @@ export function OverviewShell({
                   <tr
                     key={u.id}
                     style={{
-                      borderTop: "1px solid var(--hairline)",
+                      borderTop: "1px solid var(--w-rule)",
                     }}
                   >
                     <td style={{ ...A.td, borderBottom: "none" }}>
@@ -198,7 +200,7 @@ export function OverviewShell({
                       style={{
                         ...A.td,
                         borderBottom: "none",
-                        color: "var(--ink-3)",
+                        color: "var(--w-ink-3)",
                       }}
                     >
                       {u.email}
@@ -214,11 +216,11 @@ export function OverviewShell({
                           fontSize: 11,
                           fontWeight: 700,
                           background: u.isPremium
-                            ? "rgba(166,115,241,.12)"
-                            : "var(--surface-2)",
+                            ? "var(--w-tint-info)"
+                            : "var(--w-tint)",
                           color: u.isPremium
-                            ? "var(--purple-strong)"
-                            : "var(--ink-2)",
+                            ? "var(--w-tint-info-fg)"
+                            : "var(--w-ink-2)",
                         }}
                       >
                         {u.isPremium ? "Premium" : "Free"}
@@ -237,7 +239,7 @@ export function OverviewShell({
                       style={{
                         ...A.td,
                         borderBottom: "none",
-                        color: "var(--ink-3)",
+                        color: "var(--w-ink-3)",
                       }}
                     >
                       {timeAgo(u.createdAt)}
@@ -251,7 +253,7 @@ export function OverviewShell({
                     >
                       <Link
                         href={`/admin/users/${u.id}`}
-                        style={{ color: "var(--ink-3)" }}
+                        style={{ color: "var(--w-ink-3)" }}
                       >
                         ⋯
                       </Link>

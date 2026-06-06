@@ -17,11 +17,13 @@ export default async function AdminLayout({
           flex: 1,
           marginLeft: 240,
           background: "var(--bg)",
-          padding: "24px 28px 64px",
+          padding: "30px 30px 72px",
           minHeight: "100vh",
         }}
       >
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>{children}</div>
+        <div className="pa-wrap" style={{ maxWidth: 1200, margin: "0 auto" }}>
+          {children}
+        </div>
       </main>
     </div>
   );
