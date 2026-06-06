@@ -22,13 +22,37 @@ async function main() {
 
   console.log("=== Seeding local DB ===\n");
 
-  // 1. Mood Pack
-  console.log("1. Mood pack...");
-  await pool.query(`
-    INSERT INTO mood_packs (id, label, premium, icon_format, created_at)
-    VALUES ('set_486038', 'Vecteezy Classic', false, 'svg', NOW())
-    ON CONFLICT (id) DO NOTHING
-  `);
+  // 1. Mood Packs — mirrors production. Icon files live in the shared R2 bucket
+  // (same bucket for dev/prod), so these rows are all that's needed locally for
+  // the profile pack picker to show + premium packs to render.
+  console.log("1. Mood packs...");
+  const packs: [string, string, boolean, string][] = [
+    ["set_486038", "Vecteezy Classic", false, "svg"],
+    ["cartoon_mood", "Cartoon Mood", true, "png"],
+    ["expressing_emotions", "Expressing Emotions", true, "png"],
+    ["handdraw_ii", "Handdraw II", true, "png"],
+    ["vecteezy_flat_491639", "Vecteezy Flat", true, "svg"],
+    ["vecteezy_handdrawn_162277", "Vecteezy Handdrawn", true, "webp"],
+    ["emoji_icons8", "Icon8 Emoji", true, "svg"],
+    ["roywj-emoji-mustache", "Roywj Emoji Mustache", true, "svg"],
+    ["roywj-emoji", "Roywj Emoji", true, "svg"],
+    ["anton_kalash_emoji", "Anton Kalash Emoji", true, "webp"],
+    ["icons8_hires", "Icon8 Hires", true, "webp"],
+    ["icons8_hires_2", "Icons8 Hires 2", true, "webp"],
+    ["icons8_hugo", "Icons Hugo", true, "webp"],
+    ["justicon_emoji", "Justicon Emoji", true, "webp"],
+    ["icons8_premium", "Icons8 Premium", true, "webp"],
+  ];
+  for (let i = 0; i < packs.length; i++) {
+    const [id, label, premium, fmt] = packs[i];
+    // Preserve creation order so the picker lists them deterministically.
+    await pool.query(
+      `INSERT INTO mood_packs (id, label, premium, icon_format, created_at)
+       VALUES ($1, $2, $3, $4, NOW() + ($5 || ' milliseconds')::interval)
+       ON CONFLICT (id) DO NOTHING`,
+      [id, label, premium, fmt, i],
+    );
+  }
 
   // 2. Default Mood Types
   console.log("2. Default mood types...");

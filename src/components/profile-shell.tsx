@@ -551,7 +551,10 @@ export function ProfileShell() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {packs.map((pack) => {
                   const isSelected = selectedPack === pack.id;
-                  const locked = pack.premium && !data.user.isPremium;
+                  // Gate on effective premium (Stripe OR active trial), matching the
+                  // server PATCH check (getSessionInfo().tier). data.user.isPremium is the
+                  // raw DB flag and is false for trial users, who ARE allowed to switch.
+                  const locked = pack.premium && data.tier !== "premium";
                   return (
                     <button
                       key={pack.id}
