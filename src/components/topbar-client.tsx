@@ -383,13 +383,15 @@ function LanguageToggle({ locale }: { locale: string }) {
 
   function switchLocale() {
     document.cookie = `NEXT_LOCALE=${next};path=/;max-age=31536000;SameSite=Lax`;
+    // Persist to the profile too, but never let a failed PATCH block the switch —
+    // the cookie above is what drives the locale, so always reload.
     fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: next }),
-    }).then(() => {
-      globalThis.location.assign("/");
-    });
+    })
+      .catch(() => {})
+      .finally(() => globalThis.location.assign("/"));
   }
 
   return (
