@@ -162,7 +162,7 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
           <div style={{ position: "relative" }}>
             <span className="pa-tab">★ {t("featured")}</span>
             <Link href={`/articles/${featured.slug}` as "/"} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
-              <article className="pa-sheet pa-card-lift" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <article className="pa-sheet pa-card-lift" style={{ overflow: "visible", display: "flex", flexDirection: "column" }}>
                 <PAClip style={{ top: -15, right: 34, transform: "rotate(8deg)", zIndex: 8 }} />
                 <div style={{ position: "relative", margin: 14, marginBottom: 0, borderRadius: 14, overflow: "hidden", aspectRatio: "16 / 10" }}>
                   <Cover article={featured} />

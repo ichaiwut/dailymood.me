@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { trackLogin, trackSignUp } from "@/lib/analytics";
 import { GUEST_TOKEN_COOKIE } from "@/components/guest-entry-claim";
+import { PAClip } from "@/components/paper";
 
 type Step =
   | { kind: "landing" }
@@ -128,27 +129,36 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <Sparkles />
-      <h1
-        className="leading-[1.1] mt-6"
-        style={{
-          fontSize: 30,
-          fontWeight: 800,
-          color: "var(--ink)",
-          letterSpacing: "-0.5px",
-        }}
-      >
-        {t("welcome")}
-      </h1>
-      <p
-        className="mt-3 text-base leading-snug"
-        style={{ color: "var(--ink-2)" }}
-      >
-        {t("signInDescription")}
-      </p>
+    <div className="pa-wrap" style={{ width: "100%", maxWidth: 408, margin: "0 auto" }}>
+      <div style={{ position: "relative" }}>
+        <span className="pa-tab purple">✦ {locale === "th" ? "เข้าสู่ระบบ" : "Sign in"}</span>
+        <div className="pa-sheet" style={{ padding: "28px 26px 26px", overflow: "visible" }}>
+          <PAClip style={{ top: -16, right: 28, transform: "rotate(8deg)", zIndex: 5 }} />
 
-      {step.kind === "landing" && (
+          {/* brand */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <svg width={34} height={34} viewBox="0 0 32 32" aria-hidden>
+              <defs>
+                <linearGradient id="dmlf" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#dmlf)" />
+              <circle cx="12" cy="14" r="1.6" fill="#1A1320" />
+              <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
+              <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
+            </svg>
+            <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.01em", color: "var(--w-ink)" }}>DailyMood</span>
+          </div>
+
+          <h1 style={{ fontSize: 27, fontWeight: 800, color: "var(--w-ink)", letterSpacing: "-0.5px", lineHeight: 1.15 }}>
+            {t("welcome")}
+          </h1>
+          <p style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: "var(--w-ink-2)" }}>
+            {t("signInDescription")}
+          </p>
+
+          {step.kind === "landing" && (
         <LandingStep
           onGoogle={() => { trackLogin("google"); signIn("google", { callbackUrl: "/" }); }}
           onEmailSignIn={() => setStep({ kind: "email" })}
@@ -207,6 +217,8 @@ export function LoginForm() {
           t={t}
         />
       )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -470,8 +482,12 @@ function VerifySentStep({
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-3 text-base font-medium rounded-full"
-          style={{ background: "var(--surface)", color: "var(--ink)" }}
+          className="px-5 text-base font-bold"
+          style={{
+            height: 48, borderRadius: 12,
+            background: "var(--w-surface)", color: "var(--w-ink)",
+            border: "1px solid var(--w-rule-strong)", cursor: "pointer",
+          }}
         >
           {t("back")}
         </button>
@@ -479,18 +495,19 @@ function VerifySentStep({
           type="button"
           onClick={onResend}
           disabled={busy}
-          className="flex-1 px-5 py-3 text-base font-semibold rounded-full"
+          className="flex-1 px-5 text-base font-extrabold transition active:translate-y-[2px]"
           style={{
-            background: "var(--ink)",
-            color: "var(--primary-on)",
-            opacity: busy ? 0.6 : 1,
+            height: 48, borderRadius: 12,
+            background: "var(--w-ink)", color: "var(--bg)", border: "none",
+            boxShadow: "0 6px 0 -2px #000, 0 14px 22px -14px rgba(0,0,0,.5)",
+            opacity: busy ? 0.55 : 1, cursor: busy ? "default" : "pointer",
           }}
         >
           {t("resendEmail")}
         </button>
       </div>
       {msg && (
-        <p className="text-base" style={{ color: "var(--ink-3)" }}>
+        <p className="text-base" style={{ color: "var(--w-ink-3)" }}>
           {msg}
         </p>
       )}
@@ -520,8 +537,8 @@ function Input({
   return (
     <label className="block">
       <span
-        className="block text-sm font-medium mb-1.5"
-        style={{ color: "var(--ink-2)" }}
+        className="block font-bold mb-1.5"
+        style={{ color: "var(--w-ink-2)", fontSize: 14 }}
       >
         {label}
       </span>
@@ -532,12 +549,13 @@ function Input({
         placeholder={placeholder}
         autoFocus={autoFocus}
         autoComplete={autoComplete}
-        className="w-full px-4 py-3 text-base focus:outline-none"
+        className="w-full px-4 text-base focus:outline-none"
         style={{
-          background: "var(--surface)",
-          color: "var(--ink)",
-          borderRadius: 14,
-          border: "1px solid var(--hairline)",
+          height: 50,
+          background: "var(--w-surface-2)",
+          color: "var(--w-ink)",
+          borderRadius: 12,
+          border: "1px solid var(--w-rule-strong)",
         }}
       />
     </label>
@@ -557,12 +575,15 @@ function SocialButton({
     <button
       type="button"
       onClick={onClick}
-      className="w-full inline-flex items-center justify-center gap-3 rounded-full text-base font-bold transition active:scale-[0.98]"
+      className="w-full inline-flex items-center justify-center gap-3 text-base font-extrabold transition active:translate-y-[1px]"
       style={{
-        height: 56,
-        background: "var(--surface)",
-        color: "var(--ink)",
-        border: "1px solid var(--hairline)",
+        height: 52,
+        borderRadius: 13,
+        background: "var(--w-surface)",
+        color: "var(--w-ink)",
+        border: "1px solid var(--w-rule-strong)",
+        boxShadow: "0 6px 16px -10px rgba(60,40,20,.4)",
+        cursor: "pointer",
       }}
     >
       {icon}
@@ -587,13 +608,16 @@ function PrimaryButton({
       type={onClick ? "button" : "submit"}
       onClick={onClick}
       disabled={busy || disabled}
-      className="w-full rounded-full text-[17px] font-bold transition active:scale-[0.98]"
+      className="w-full text-[16px] font-extrabold transition active:translate-y-[2px]"
       style={{
-        height: 56,
-        background: "#FCA45B",
+        height: 52,
+        borderRadius: 13,
+        background: "var(--peach)",
         color: "#fff",
-        boxShadow: "0 10px 24px rgba(252,164,91,0.4)",
-        opacity: busy || disabled ? 0.55 : 1,
+        border: "none",
+        boxShadow: "0 7px 0 -2px #d97f3b, 0 16px 26px -12px rgba(217,127,59,.6)",
+        opacity: busy || disabled ? 0.5 : 1,
+        cursor: busy || disabled ? "default" : "pointer",
       }}
     >
       {children}
@@ -611,18 +635,23 @@ function EmailRow({
   backLabel: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-2">
-      <span
-        className="text-base truncate"
-        style={{ color: "var(--ink)" }}
-      >
+    <div
+      className="flex items-center justify-between"
+      style={{
+        padding: "10px 8px 10px 14px",
+        borderRadius: 12,
+        background: "var(--w-surface-2)",
+        border: "1px solid var(--w-rule)",
+      }}
+    >
+      <span className="text-base truncate font-semibold" style={{ color: "var(--w-ink)" }}>
         {email}
       </span>
       <button
         type="button"
         onClick={onBack}
-        className="text-base font-medium ml-3 shrink-0"
-        style={{ color: "var(--ink-2)" }}
+        className="text-base font-bold ml-3 shrink-0"
+        style={{ color: "var(--purple-strong)" }}
       >
         {backLabel}
       </button>
@@ -644,8 +673,8 @@ function Divider({ label }: { label: string }) {
       </div>
       <div className="relative flex justify-center">
         <span
-          className="px-3"
-          style={{ fontSize: 14, background: "var(--bg)", color: "var(--ink-3)" }}
+          className="px-3 font-bold"
+          style={{ fontSize: 14, background: "var(--w-surface)", color: "var(--w-ink-3)" }}
         >
           {label}
         </span>
@@ -658,27 +687,17 @@ function ErrorLine({ msg }: { msg: string | null }) {
   if (!msg) return null;
   return (
     <p
-      className="text-base text-center"
-      style={{ color: "#D14343" }}
+      className="text-base font-semibold"
+      style={{
+        color: "var(--w-tint-danger-fg)",
+        background: "var(--w-tint-danger)",
+        padding: "10px 14px",
+        borderRadius: 12,
+        margin: 0,
+      }}
     >
       {msg}
     </p>
-  );
-}
-
-function Sparkles() {
-  return (
-    <div aria-hidden className="relative" style={{ width: 60, height: 40 }}>
-      <span className="absolute" style={{ top: 0, left: 0, fontSize: 20 }}>
-        ✨
-      </span>
-      <span className="absolute" style={{ top: 4, left: 32, fontSize: 16 }}>
-        ✨
-      </span>
-      <span className="absolute" style={{ top: 18, left: 20, fontSize: 14 }}>
-        ✦
-      </span>
-    </div>
   );
 }
 
