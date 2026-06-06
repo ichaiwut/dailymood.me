@@ -341,22 +341,17 @@ export function ProfileShell() {
               {t("achievementsCount", { earned: String(achievements.earned), total: String(achievements.total) })} →
             </Link>
           </div>
-          <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+          <div style={{ display: "flex", gap: 14, overflowX: "auto", padding: "4px 2px 8px", scrollbarWidth: "none" }}>
             {achievements.badges.filter((b) => b.status === "earned").slice(0, 6).map((badge) => (
               <div
                 key={badge.id}
+                aria-hidden
                 style={{
-                  flexShrink: 0, width: 72, height: 72, borderRadius: 18,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 28,
-                  background: badge.status === "earned" ? `${badge.color}18` : "var(--surface-2)",
-                  border: badge.status === "earned"
-                    ? `2px solid ${badge.color}`
-                    : badge.status === "in_progress"
-                      ? "2px dashed var(--hairline-2)"
-                      : "2px dashed var(--hairline)",
-                  opacity: badge.status === "locked" ? 0.45 : 1,
-                  filter: badge.status === "locked" ? "grayscale(1)" : "none",
+                  flexShrink: 0, width: 62, height: 62, borderRadius: "50%",
+                  display: "grid", placeItems: "center", fontSize: 28,
+                  background: badge.color,
+                  border: "4px solid #fff",
+                  boxShadow: "0 10px 22px -8px rgba(0,0,0,.3)",
                 }}
               >
                 {badge.icon}
