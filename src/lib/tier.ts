@@ -1,8 +1,10 @@
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/cf";
 import { users, moodPacks } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { DEFAULT_MOOD_PACK, isValidPack } from "@/lib/moods";
+import { verifyAccessToken } from "@/lib/mobile-auth";
 
 export type Tier = "guest" | "free" | "premium";
 
@@ -23,9 +25,21 @@ const GUEST_SESSION: SessionInfo = {
   hidePreview: false, isTrialing: false, trialDaysLeft: null, trialWarning: false, trialActivatedAt: null,
 };
 
-export async function getSessionInfo(): Promise<SessionInfo> {
+// Resolve the caller's user id from either auth scheme: a mobile Bearer access
+// token takes precedence (native app), otherwise the NextAuth session cookie (web).
+// An invalid Bearer token resolves to null rather than silently falling back to the
+// cookie — the client explicitly chose token auth.
+async function resolveUserId(): Promise<string | null> {
+  const authz = (await headers()).get("authorization");
+  if (authz?.startsWith("Bearer ")) {
+    return verifyAccessToken(authz.slice("Bearer ".length).trim());
+  }
   const session = await auth();
-  const userId = session?.user?.id;
+  return session?.user?.id ?? null;
+}
+
+export async function getSessionInfo(): Promise<SessionInfo> {
+  const userId = await resolveUserId();
   if (!userId) return GUEST_SESSION;
 
   const db = getDb();

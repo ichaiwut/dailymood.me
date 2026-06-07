@@ -1,0 +1,127 @@
+/* DailyMood Web App — design tokens layered on tokens.css */
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;700&display=swap');
+
+:root {
+  --w-bg: #FBF6EE;
+  --w-card: #FFFFFF;
+  --w-ink: #1A1320;
+  --w-ink-2: #4A3F55;
+  --w-ink-3: #8C8497;
+  --w-rule: rgba(26, 19, 32, 0.08);
+  --w-rule-strong: rgba(26, 19, 32, 0.12);
+  --w-tint: #F4EEE6;
+}
+
+.webapp { background: var(--w-bg); color: var(--w-ink); font-family: 'Urbanist', 'Noto Sans Thai', sans-serif; min-height: 100%; }
+.webapp * { box-sizing: border-box; }
+.webapp .thai { font-family: 'Noto Sans Thai', 'Urbanist', sans-serif; }
+
+.w-container { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+/* ============ RESPONSIVE — container queries ============
+   Every screen wraps content in .w-screen which becomes a container.
+   Mobile breakpoint: 640px container width. */
+.w-screen { container-type: inline-size; container-name: screen; width: 100%; }
+
+/* Responsive grid: row of N → single column on mobile */
+.w-row { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; }
+.w-row-3 { display: grid; gap: 18px; grid-template-columns: 1fr 1fr 1fr; }
+.w-row-4 { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
+.w-row-5 { display: grid; gap: 14px; grid-template-columns: repeat(5, 1fr); }
+.w-row-6 { display: grid; gap: 14px; grid-template-columns: repeat(6, 1fr); }
+.w-row-aside { display: grid; gap: 24px; grid-template-columns: 2fr 1fr; }
+.w-row-aside-reverse { display: grid; gap: 24px; grid-template-columns: 1fr 2fr; }
+.w-row-sidebar { display: grid; gap: 20px; grid-template-columns: .7fr 2fr 1fr; }
+.w-row-hero { display: grid; gap: 32px; grid-template-columns: 1.4fr 1fr; align-items: center; }
+.w-row-fixed-aside { display: grid; gap: 32px; grid-template-columns: 320px 1fr; }
+.w-stack { display: flex; flex-direction: column; gap: 12px; }
+.w-auto-fit { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* Display helpers driven by container width */
+.w-only-mobile { display: none; }
+.w-only-desktop { display: initial; }
+
+@container screen (max-width: 640px) {
+  .w-row, .w-row-3, .w-row-4, .w-row-5, .w-row-6, .w-row-aside, .w-row-aside-reverse, .w-row-sidebar, .w-row-hero, .w-row-fixed-aside { grid-template-columns: 1fr; gap: 14px; }
+  .w-only-mobile { display: initial; }
+  .w-only-mobile-flex { display: flex; }
+  .w-only-desktop { display: none !important; }
+  .w-pad { padding: 16px !important; }
+  .w-pad-lg { padding: 22px 20px !important; }
+  .w-h1 { font-size: 28px !important; line-height: 1.15 !important; }
+  .w-h2 { font-size: 22px !important; line-height: 1.2 !important; }
+  .w-h3 { font-size: 17px !important; }
+  .w-display { font-size: 36px !important; line-height: 1.05 !important; }
+}
+
+/* Mobile-specific page chrome */
+.w-mobile-top {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; padding: 0 16px; border-bottom: 1px solid var(--w-rule);
+  background: rgba(251,246,238,0.92); backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 30;
+}
+.w-mobile-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 72px;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--w-rule);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 8px 8px;
+}
+.w-mobile-tab {
+  background: transparent; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 14px; color: var(--w-ink-3); font-family: inherit;
+  font-weight: 500; font-size: 10px;
+}
+.w-mobile-tab.active { color: var(--w-ink); font-weight: 700; }
+.w-mobile-fab {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--peach), var(--purple));
+  color: #fff; border: none; cursor: pointer;
+  font-size: 28px; font-weight: 300; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: -28px;
+  box-shadow: 0 10px 22px -6px rgba(166,115,241,.5), 0 4px 10px rgba(252,164,91,.35);
+  border: 4px solid var(--w-bg);
+}
+
+/* Footer hide on mobile */
+@container screen (max-width: 640px) {
+  .w-footer-desktop { display: none !important; }
+}
+
+/* Topbar */
+.w-topbar {
+  height: 64px; border-bottom: 1px solid var(--w-rule);
+  background: rgba(251, 246, 238, 0.85); backdrop-filter: saturate(180%) blur(10px);
+  display: flex; align-items: center;
+}
+.w-topbar-inner { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+.w-nav-link { color: var(--w-ink-2); font-weight: 600; font-size: 14px; text-decoration: none; padding: 6px 10px; border-radius: 8px; }
+.w-nav-link.active { color: var(--w-ink); background: rgba(26,19,32,0.05); }
+.w-nav-link:hover { color: var(--w-ink); }
+
+/* Buttons */
+.w-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px; font-family: inherit; font-weight: 700; font-size: 14px; border: none; cursor: pointer; }
+.w-btn-primary { background: var(--peach); color: #fff; box-shadow: 0 6px 16px -6px rgba(252,164,91,.55); }
+.w-btn-ink { background: var(--w-ink); color: #fff; }
+.w-btn-ghost { background: transparent; color: var(--w-ink); border: 1px solid var(--w-rule); }
+.w-btn-purple { background: var(--purple); color: #fff; }
+
+/* Card */
+.w-card { background: var(--w-card); border-radius: 14px; border: 1px solid var(--w-rule); }
+
+/* Eyebrow text */
+.w-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--w-ink-3); }
+
+/* Input */
+.w-input { width: 100%; height: 42px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--w-rule); background: #fff; font-family: inherit; font-size: 14px; outline: none; }
+.w-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(166,115,241,.15); }
+.w-textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--w-rule); background: #fff; font-family: inherit; font-size: 14px; outline: none; resize: vertical; }
+
+/* Pills */
+.w-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+
+/* Scroll containers shouldn't be used in static artboards — but no scrollbar utility */
+.w-no-sb::-webkit-scrollbar { display: none; }

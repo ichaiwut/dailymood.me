@@ -20,26 +20,18 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
       <div style={{ marginTop: 12, marginBottom: 12 }} className="fade-in">
         <div className="flex items-center gap-1.5" style={{ marginBottom: 12 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="#A673F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: "0.3px" }}>
             {t("patternsTitle")}
           </span>
         </div>
-        <div
-          style={{
-            borderRadius: 18,
-            padding: "28px 20px",
-            background: "var(--surface-2)",
-            border: "1px solid var(--hairline)",
-            textAlign: "center",
-          }}
-        >
+        <div className="pa-sheet" style={{ borderRadius: 16, padding: "28px 20px", background: "var(--w-surface-2)", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", textAlign: "center" }}>
           <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>
             {t("patternsLocked")}
           </div>
-          <p style={{ fontSize: 14, color: "var(--ink-2)" }}>
+          <p style={{ fontSize: 14, color: "var(--w-ink-2)" }}>
             {t("patternsLockedBody")}
           </p>
         </div>
@@ -55,12 +47,12 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
   return (
     <div style={{ marginTop: 12, marginBottom: 12 }} className="fade-in">
       <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 10, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" />
+            <path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.3px" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: "0.3px" }}>
           {t("patternsTitle")}
         </span>
       </div>
@@ -68,8 +60,8 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
         {displayPatterns.map((p, i) => (
           <div
             key={i}
-            className="card"
-            style={{ padding: "18px 16px", display: "flex", alignItems: "flex-start", gap: 14 }}
+            className="pa-sheet"
+            style={{ borderRadius: 16, padding: "18px 16px", display: "flex", alignItems: "flex-start", gap: 14 }}
           >
             <div
               style={{
@@ -87,7 +79,7 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
               {p.icon}
             </div>
             <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
-              <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--ink)" }}>
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--w-ink)" }}>
                 {p.explanation}
               </p>
             </div>
@@ -97,13 +89,14 @@ export function PatternsFeed({ patterns, tier, onDateSelect }: Props) {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#A673F1",
+                  color: "var(--purple-strong)",
                   fontSize: 14,
-                  fontWeight: 700,
+                  fontWeight: 800,
                   whiteSpace: "nowrap",
                   flexShrink: 0,
                   paddingTop: 4,
                   cursor: "pointer",
+                  fontFamily: "inherit",
                 }}
               >
                 {t("view")} →

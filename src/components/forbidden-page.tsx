@@ -8,7 +8,7 @@ export function ForbiddenPage() {
 
   return (
     <main
-      className="flex-1 flex flex-col"
+      className="pa-wrap flex-1 flex flex-col"
       style={{ background: "var(--bg-grad)", backgroundColor: "var(--bg)" }}
     >
       {/* header */}
@@ -16,8 +16,8 @@ export function ForbiddenPage() {
         <div className="mx-auto w-full max-w-[768px] flex items-center gap-3">
           <a
             href="/"
-            className="icon-btn"
-            style={{ width: 40, height: 40, borderRadius: 12, textDecoration: "none" }}
+            className="pa-icon-btn"
+            style={{ textDecoration: "none" }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path
@@ -107,15 +107,10 @@ export function ForbiddenPage() {
         >
           <a
             href="/login"
-            className="btn-purple"
+            className="pa-btn purple"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
               width: "100%",
               textDecoration: "none",
-              boxShadow: "0 8px 20px rgba(166,115,241,0.35)",
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -126,8 +121,8 @@ export function ForbiddenPage() {
           </a>
           <a
             href="/"
-            className="btn-ghost"
-            style={{ textAlign: "center", textDecoration: "none", width: "100%" }}
+            className="pa-filter"
+            style={{ textAlign: "center", textDecoration: "none", width: "100%", padding: "13px 0" }}
           >
             {t("403back")}
           </a>

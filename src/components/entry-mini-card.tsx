@@ -112,7 +112,7 @@ export function EntryMiniCard({ entry, pack = DEFAULT_MOOD_PACK, iconFormat = "s
             alt=""
             style={{
               width: "100%", maxHeight: 280, objectFit: "contain",
-              display: "block", background: "#F9F7F4",
+              display: "block", background: "var(--w-surface-2)",
             }}
           />
         </div>

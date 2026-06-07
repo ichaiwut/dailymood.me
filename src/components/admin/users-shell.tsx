@@ -13,6 +13,7 @@ interface UserRow {
   email: string;
   image: string | null;
   isPremium: boolean;
+  plan: "free" | "premium" | "trial";
   planInterval: string | null;
   createdAt: string;
   entryCount: number;
@@ -217,7 +218,7 @@ export function UsersShell({
 
               {/* Plan pill */}
               <div>
-                {u.isPremium ? (
+                {u.plan === "premium" ? (
                   <span
                     style={{
                       display: "inline-flex",
@@ -226,13 +227,28 @@ export function UsersShell({
                       padding: "3px 10px",
                       borderRadius: 100,
                       fontSize: 11,
-                      fontWeight: 700,
+                      fontWeight: 800,
                       background:
                         "linear-gradient(135deg, var(--peach), var(--purple))",
                       color: "#fff",
                     }}
                   >
                     ✨ Premium
+                  </span>
+                ) : u.plan === "trial" ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "3px 10px",
+                      borderRadius: 100,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      background: "var(--w-tint-warning)",
+                      color: "var(--w-tint-warning-fg)",
+                    }}
+                  >
+                    Trial
                   </span>
                 ) : (
                   <span
@@ -242,9 +258,9 @@ export function UsersShell({
                       padding: "3px 10px",
                       borderRadius: 100,
                       fontSize: 11,
-                      fontWeight: 700,
-                      background: "var(--surface-2)",
-                      color: "var(--ink-2)",
+                      fontWeight: 800,
+                      background: "var(--w-tint)",
+                      color: "var(--w-ink-2)",
                     }}
                   >
                     Free

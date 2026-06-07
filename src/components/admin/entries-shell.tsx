@@ -205,20 +205,20 @@ export function EntriesShell({
               : undefined
           }
           delta={todayDelta !== 0 ? todayDelta : undefined}
+          tab="peach"
         />
-        <AdminStatCard
-          label="7 วัน"
-          value={stats.entries7d}
-        />
+        <AdminStatCard label="7 วัน" value={stats.entries7d} tab="purple" />
         <AdminStatCard
           label="มีรูปประกอบ"
           value={`${imagePct}%`}
           sub={`${stats.withImage7d.toLocaleString()} entries 7d`}
+          tab="mint"
         />
         <AdminStatCard
           label="AI TAGGED"
           value={`${aiPct}%`}
           sub={`${stats.aiTagged30d.toLocaleString()} entries 30d`}
+          tab="yellow"
         />
       </div>
 

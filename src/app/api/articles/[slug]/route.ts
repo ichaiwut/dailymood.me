@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/cf";
-import { articles, articleCategories, articleBookmarks } from "@/db/schema";
+import { articles, articleCategories, articleBookmarks, articleReactions } from "@/db/schema";
 import { and, eq, ne, desc, count, sql, inArray } from "drizzle-orm";
 import { getSignedReadUrl } from "@/lib/r2";
 import { generateKeyTakeaway } from "@/lib/gemini";
@@ -33,13 +33,16 @@ export async function GET(
     .then(() => {});
 
   // All secondary queries in parallel (including related + their categories via subquery)
-  const [category, coverImageUrl, bookmarkRows, saveCountRows, relatedRows, allCats] = await Promise.all([
+  const [category, coverImageUrl, bookmarkRows, reactionRows, saveCountRows, relatedRows, allCats] = await Promise.all([
     row.categoryId
       ? db.select().from(articleCategories).where(eq(articleCategories.id, row.categoryId)).limit(1).then((r) => r[0] ?? null)
       : Promise.resolve(null),
     row.coverImageKey ? getSignedReadUrl(row.coverImageKey) : Promise.resolve(null),
     userId
       ? db.select().from(articleBookmarks).where(and(eq(articleBookmarks.userId, userId), eq(articleBookmarks.articleId, row.id))).limit(1)
+      : Promise.resolve([]),
+    userId
+      ? db.select({ moodTypeId: articleReactions.moodTypeId }).from(articleReactions).where(and(eq(articleReactions.userId, userId), eq(articleReactions.articleId, row.id))).limit(1)
       : Promise.resolve([]),
     db.select({ c: count() }).from(articleBookmarks).where(eq(articleBookmarks.articleId, row.id)),
     db.select({
@@ -95,6 +98,7 @@ export async function GET(
     },
     category,
     bookmarked: bookmarkRows.length > 0,
+    reaction: reactionRows[0]?.moodTypeId ?? null,
     saveCount: saveCountRows[0]?.c ?? 0,
     related,
   });

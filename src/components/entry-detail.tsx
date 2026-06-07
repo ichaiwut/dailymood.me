@@ -8,6 +8,8 @@ import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
 import { AiDisclaimer } from "./ai-disclaimer";
 import { SpecialDayBanner } from "./special-day-banner";
 import { ActivityChip } from "./activity-picker";
+import { PAClip } from "./paper/pa-clip";
+import { PASticker } from "./paper/pa-sticker";
 import type { SpecialDay } from "@/db/schema";
 
 interface EntryData {
@@ -37,6 +39,14 @@ interface NearbyDay {
 
 const MOOD_SCORES: Record<string, number> = {
   amazing: 10, happy: 8, neutral: 6, sad: 4, angry: 2, anxious: 3, tired: 3,
+};
+
+// loose pill (sits on the themed page background → theme-adaptive ink)
+const pill: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 15px",
+  borderRadius: 11, background: "var(--surface)", border: "none", cursor: "pointer",
+  boxShadow: "0 5px 14px -8px rgba(60,40,20,.4)", fontFamily: "inherit", fontWeight: 800,
+  fontSize: 14, color: "var(--ink-2)", textDecoration: "none",
 };
 
 export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { id: string; pack?: string; iconFormat?: string }) {
@@ -88,7 +98,7 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
   if (loading) return <LoadingSkeleton />;
   if (!entry) {
     return (
-      <div className="w-container text-center py-20 fade-in">
+      <div className="text-center py-20 fade-in">
         <div style={{ fontSize: 48, marginBottom: 12 }}>😶</div>
         <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{t("notFound")}</p>
       </div>
@@ -109,212 +119,177 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
   const dayNum = parseInt(entry.date.slice(8, 10), 10);
   const monthShort = date.toLocaleDateString(th ? "th-TH" : "en-US", { month: "short" });
   const yearNum = parseInt(entry.date.slice(0, 4), 10);
+  const dateTab = date.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" });
 
   return (
-    <div className="fade-in" style={{ paddingBottom: 60 }}>
+    <div className="pa-wrap fade-in" style={{ paddingBottom: 60 }}>
       {/* ── Top bar ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <button onClick={() => router.back()} style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-3)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0 22px" }}>
+        <button onClick={() => router.back()} style={{ ...pill, background: "transparent", boxShadow: "none", padding: 0, color: "var(--ink-2)" }}>
           ← {th ? "กลับ" : "Back"}
         </button>
-        <Link href={`/entry/${id}/edit` as "/"} style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
-          ✏️ {th ? "แก้ไข" : "Edit"}
+        <Link href={`/entry/${id}/edit` as "/"} style={pill}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M4 20 H8 L19 9 L15 5 L4 16 Z" stroke="var(--ink-2)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {th ? "แก้ไข" : "Edit"}
         </Link>
       </div>
 
-      {/* ── Mood Hero ── */}
-      <div style={{
-        borderRadius: 22, padding: "28px 24px 24px", marginBottom: 20,
-        background: `linear-gradient(145deg, ${moodColor}30 0%, ${moodColor}15 100%)`,
-        position: "relative",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {mood && (
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: moodColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={40} height={40} />
+      {/* ── Mood hero folder ── */}
+      <div style={{ position: "relative", marginBottom: 24 }}>
+        <span className="pa-tab lav">{dateTab}</span>
+        <div className="pa-sheet" style={{ borderRadius: "4px 18px 18px 18px", padding: "26px 28px 24px", position: "relative" }}>
+          {/* mood-tinted glow, clipped to the card */}
+          <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden", pointerEvents: "none" }}>
+            <div style={{ position: "absolute", top: -50, right: -40, width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle, ${moodColor}, transparent 70%)`, opacity: 0.4 }} />
+          </div>
+          <PAClip style={{ top: -15, right: 36, transform: "rotate(7deg)", zIndex: 8 }} />
+
+          <div style={{ position: "relative" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {mood && <PASticker moodId={mood.id} color={moodColor} size={64} pack={pack} iconFormat={iconFormat} style={{ transform: "rotate(-6deg)" }} />}
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "var(--w-ink)", lineHeight: 1.1 }}>{moodLabel}</div>
+                <div style={{ fontSize: 14, color: "var(--w-ink-2)", marginTop: 4 }}>
+                  {weekday} · {timeLabel} {th ? "น." : ""} · {period}
+                </div>
+              </div>
             </div>
-          )}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", lineHeight: 1.1 }}>{moodLabel}</div>
-            <div style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>
-              {weekday} · {timeLabel} {th ? "น." : ""} · {period}
+
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 18 }}>
+              <span style={{ fontSize: "clamp(48px, 10vw, 72px)", fontWeight: 800, color: "var(--w-ink)", lineHeight: 0.9, letterSpacing: "-0.03em" }}>{dayNum}</span>
+              <span style={{ fontSize: "clamp(28px, 6vw, 44px)", fontWeight: 800, color: "var(--w-ink-2)", fontStyle: "italic", letterSpacing: "-0.02em" }}>{monthShort}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: "var(--w-ink-3)", marginLeft: 4 }}>{yearNum}</span>
             </div>
+
+            {entry.entryNumber && (
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)", marginTop: 6, letterSpacing: ".04em", textTransform: "uppercase" }}>
+                {th ? "บันทึกที่" : "Entry #"} {entry.entryNumber}
+              </div>
+            )}
+            {specialDays.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <SpecialDayBanner days={specialDays} locale={locale} />
+              </div>
+            )}
+            {entry.activityId && (
+              <div style={{ marginTop: 10 }}>
+                <ActivityChip activityId={entry.activityId} />
+              </div>
+            )}
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 16 }}>
-          <span style={{ fontSize: "clamp(48px, 10vw, 72px)", fontWeight: 800, color: "var(--ink)", lineHeight: 0.9, letterSpacing: "-0.03em" }}>{dayNum}</span>
-          <span style={{ fontSize: "clamp(28px, 6vw, 44px)", fontWeight: 800, color: "var(--ink-2)", fontStyle: "italic", letterSpacing: "-0.02em" }}>{monthShort}</span>
-          <span style={{ fontSize: 16, fontWeight: 700, color: "var(--ink-3)", marginLeft: 4 }}>{yearNum}</span>
-        </div>
-        {entry.entryNumber && (
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-3)", marginTop: 6, letterSpacing: 0.3, textTransform: "uppercase" }}>
-            {th ? "บันทึกที่" : "Entry #"} {entry.entryNumber}
-          </div>
-        )}
-        {specialDays.length > 0 && (
-          <div style={{ marginTop: 12 }}>
-            <SpecialDayBanner days={specialDays} locale={locale} />
-          </div>
-        )}
-        {entry.activityId && (
-          <div style={{ marginTop: 10 }}>
-            <ActivityChip activityId={entry.activityId} />
-          </div>
-        )}
       </div>
 
-      {/* ── 2-Column Layout ── */}
+      {/* ── 2-column layout ── */}
       <div className="grid-2col" style={{ alignItems: "start" }}>
 
-        {/* ═══ LEFT COLUMN ═══ */}
-        <div className="entry-detail-left" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* ═══ LEFT ═══ */}
+        <div className="entry-detail-left" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
           {/* Note */}
           {entry.note && (
-            <div style={{ background: "var(--surface)", border: "1.5px solid var(--hairline)", borderRadius: 18, padding: "18px 20px" }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>{th ? "บันทึก" : "Note"}</div>
-              <p style={{ fontSize: 16, lineHeight: 1.7, color: "var(--ink)", margin: 0 }}>{entry.note}</p>
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "20px 22px", position: "relative" }}>
+              <span className="pa-washi" aria-hidden style={{ width: 84, left: 28, transform: "translateX(0) rotate(-3deg)" }} />
+              <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase", margin: "6px 0 8px" }}>{th ? "บันทึก" : "Note"}</div>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: "var(--w-ink)", margin: 0, whiteSpace: "pre-wrap" }}>{entry.note}</p>
             </div>
           )}
 
           {/* AI Insight */}
           {entry.aiSummary && (
-            <div style={{
-              borderRadius: 18, padding: "18px 20px",
-              background: "var(--hero-grad)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="#fff" /></svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: 0.3 }}>AI {th ? "สังเกตเห็น" : "INSIGHT"}</span>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", position: "relative", background: "var(--w-ai-grad)" }}>
+              <span className="pa-washi yellow" aria-hidden style={{ width: 96 }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 10 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="var(--purple-strong)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--purple-strong)", textTransform: "uppercase", letterSpacing: ".06em" }}>AI {th ? "สังเกตเห็น" : "insight"}</span>
               </div>
-              <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
-              <div style={{ marginTop: 10 }}>
-                <AiDisclaimer variant="analysis" />
-              </div>
+              <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--w-ink)" }} dangerouslySetInnerHTML={{ __html: (entry.aiSummary ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+              <div style={{ marginTop: 10 }}><AiDisclaimer variant="analysis" /></div>
             </div>
           )}
 
           {/* AI Flashback */}
           {flashback && (
-            <div style={{
-              borderRadius: 18, padding: "18px 20px",
-              background: "var(--hero-grad)",
-              border: "1px solid rgba(154, 205, 226, 0.3)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#9ACDE2", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#5B8FA8", letterSpacing: 0.3 }}>{th ? "ย้อนดูตัวเอง" : "FLASHBACK"}</span>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", position: "relative", background: "var(--w-ai-grad)" }}>
+              <span className="pa-washi lav" aria-hidden style={{ width: 96 }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 10 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#5B8FA8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#5B8FA8", textTransform: "uppercase", letterSpacing: ".06em" }}>{th ? "ย้อนดูตัวเอง" : "Flashback"}</span>
               </div>
-              <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--ink)" }} dangerouslySetInnerHTML={{ __html: (flashback.message ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+              <div style={{ fontSize: 15, lineHeight: 1.65, color: "var(--w-ink)" }} dangerouslySetInnerHTML={{ __html: (flashback.message ?? "").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
               {flashback.pastDate && (
-                <div style={{ marginTop: 10, fontSize: 13, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" /></svg>
+                <div style={{ marginTop: 10, fontSize: 14, color: "var(--w-ink-3)", display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" /></svg>
                   {new Date(flashback.pastDate + "T12:00:00").toLocaleDateString(th ? "th-TH" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
                 </div>
               )}
-              <div style={{ marginTop: 10 }}>
-                <AiDisclaimer variant="analysis" />
-              </div>
+              <div style={{ marginTop: 10 }}><AiDisclaimer variant="analysis" /></div>
             </div>
           )}
 
-          {/* Free tier flashback teaser */}
+          {/* Free flashback teaser */}
           {!entry.isPremium && score <= 4 && !flashback && (
-            <div style={{
-              borderRadius: 18, padding: "18px 20px",
-              background: "#F8F6FB",
-              border: "1px dashed rgba(166, 115, 241, 0.3)",
-              textAlign: "center",
-            }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>🕰️</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink-2)", marginBottom: 4 }}>
-                {th ? "ย้อนดูตัวเอง" : "Flashback"}
-              </div>
-              <div style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 12 }}>
+            <div className="pa-sheet" style={{ borderRadius: 18, padding: "20px 22px", textAlign: "center", border: "1.5px dashed var(--w-rule-strong)", boxShadow: "none", background: "var(--w-surface-2)" }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>🕰️</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink-2)", marginBottom: 4 }}>{th ? "ย้อนดูตัวเอง" : "Flashback"}</div>
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.5, marginBottom: 12 }}>
                 {th ? "AI จะช่วยดึงบันทึกเก่าที่คุณเคยผ่านช่วงเวลาคล้ายๆ กันมาได้ พร้อมข้อความให้กำลังใจ" : "AI finds past entries where you overcame similar moments, with an encouraging reflection"}
               </div>
-              <a href="/pricing" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 700, color: "#A673F1", textDecoration: "none" }}>
+              <Link href={"/pricing" as "/"} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", textDecoration: "none" }}>
                 ✦ {th ? "ปลดล็อกด้วย Pro" : "Unlock with Pro"}
-              </a>
+              </Link>
             </div>
           )}
 
-          {/* Image + Location section */}
+          {/* Image + Location */}
           {(entry.imageUrl || entry.location) && (
             <div>
-              {(entry.imageUrl || entry.location) && (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase" }}>
-                    {th ? "ช่วงเวลานี้" : "This moment"}
-                  </div>
-                  <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
-                    {[entry.imageUrl && (th ? "1 รูป" : "1 photo"), entry.location && (th ? "1 สถานที่" : "1 place")].filter(Boolean).join(" · ")}
-                  </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase" }}>{th ? "ช่วงเวลานี้" : "This moment"}</div>
+                <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
+                  {[entry.imageUrl && (th ? "1 รูป" : "1 photo"), entry.location && (th ? "1 สถานที่" : "1 place")].filter(Boolean).join(" · ")}
                 </div>
-              )}
+              </div>
 
-              {/* Photo */}
+              {/* Photo — framed in a paper sheet */}
               {entry.imageUrl && (
-                <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", background: "var(--surface-2)" }}>
-                  <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 420, objectFit: "cover", display: "block" }} />
-                  <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{timeLabel} {th ? "น." : ""}</span>
-                  </div>
-                  {entry.note && (
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 16px 14px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {entry.note.slice(0, 60)}
-                      </div>
+                <div className="pa-sheet" style={{ borderRadius: 16, padding: 12, position: "relative" }}>
+                  <PAClip style={{ top: -15, right: 28, transform: "rotate(8deg)", zIndex: 8 }} />
+                  <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", background: "var(--w-tint)" }}>
+                    <img src={entry.imageUrl} alt="" style={{ width: "100%", maxHeight: 420, objectFit: "cover", display: "block" }} />
+                    <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{timeLabel} {th ? "น." : ""}</span>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 
               {/* Map */}
               {entry.location && entry.locationLat && entry.locationLng && (
-                <div style={{ marginTop: entry.imageUrl ? 12 : 0, borderRadius: 18, overflow: "hidden", border: "1.5px solid var(--hairline)" }}>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${entry.locationLat},${entry.locationLng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: "block", position: "relative" }}
-                  >
-                    <img
-                      src={`https://maps.googleapis.com/maps/api/staticmap?center=${entry.locationLat},${entry.locationLng}&zoom=15&size=600x200&scale=2&markers=color:red|${entry.locationLat},${entry.locationLng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
-                      alt={entry.location}
-                      style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }}
-                    />
-                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "var(--surface)", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>G</span>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>Maps</span>
+                <div className="pa-sheet" style={{ marginTop: entry.imageUrl ? 12 : 0, borderRadius: 16, overflow: "hidden" }}>
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${entry.locationLat},${entry.locationLng}`} target="_blank" rel="noopener noreferrer" style={{ display: "block", position: "relative" }}>
+                    <img src={`https://maps.googleapis.com/maps/api/staticmap?center=${entry.locationLat},${entry.locationLng}&zoom=15&size=600x200&scale=2&markers=color:red|${entry.locationLat},${entry.locationLng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`} alt={entry.location} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
+                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "var(--w-surface)", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink)" }}>G</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)" }}>Maps</span>
                     </div>
                   </a>
                   <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#D14343" />
-                    </svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }} aria-hidden><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#D14343" /></svg>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{entry.location}</div>
-                      <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
-                        {entry.locationLat.toFixed(4)}° N, {entry.locationLng.toFixed(4)}° E
-                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)" }}>{entry.location}</div>
+                      <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{entry.locationLat.toFixed(4)}° N, {entry.locationLng.toFixed(4)}° E</div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Location without coordinates — text only */}
+              {/* Location without coordinates */}
               {entry.location && (!entry.locationLat || !entry.locationLng) && (
-                <div style={{ marginTop: entry.imageUrl ? 12 : 0, display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", background: "var(--surface)", border: "1.5px solid var(--hairline)", borderRadius: 14 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="var(--ink-3)" />
-                  </svg>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>{entry.location}</span>
+                <div className="pa-sheet" style={{ marginTop: entry.imageUrl ? 12 : 0, display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderRadius: 14 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }} aria-hidden><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="var(--w-ink-3)" /></svg>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)" }}>{entry.location}</span>
                 </div>
               )}
             </div>
@@ -322,16 +297,14 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
 
           {/* Tags */}
           <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>{th ? "แท็กของบันทึก" : "Entry tags"}</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 10 }}>{th ? "แท็กของบันทึก" : "Entry tags"}</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {entry.tags && entry.tags.length > 0 ? (
                 entry.tags.map((tag, i) => (
-                  <span key={i} style={{ padding: "8px 16px", borderRadius: 100, background: "var(--surface-2)", fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
-                    # {tag}
-                  </span>
+                  <span key={i} style={{ padding: "8px 16px", borderRadius: 100, background: "var(--w-tint)", fontSize: 14, fontWeight: 700, color: "var(--w-ink-2)" }}>#{tag}</span>
                 ))
               ) : (
-                <span style={{ fontSize: 14, color: "var(--ink-3)", fontStyle: "italic" }}>{th ? "ไม่มีแท็ก" : "No tags"}</span>
+                <span style={{ fontSize: 14, color: "var(--w-ink-3)", fontStyle: "italic" }}>{th ? "ไม่มีแท็ก" : "No tags"}</span>
               )}
             </div>
           </div>
@@ -342,11 +315,11 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
               onClick={handleDelete}
               disabled={deleting}
               style={{
-                fontSize: 14, fontWeight: 700, cursor: "pointer", borderRadius: 100,
-                color: confirmDelete ? "var(--bg)" : "var(--ink-3)",
-                background: confirmDelete ? "#D14343" : "none",
-                border: confirmDelete ? "none" : "none",
-                padding: confirmDelete ? "8px 20px" : 0,
+                fontSize: 14, fontWeight: 800, cursor: "pointer", borderRadius: 100,
+                color: confirmDelete ? "#fff" : "var(--ink-3)",
+                background: confirmDelete ? "#D14343" : "transparent",
+                border: "none",
+                padding: confirmDelete ? "9px 20px" : 0,
               }}
             >
               {deleting ? "..." : confirmDelete ? (th ? "ยืนยันลบ" : "Confirm delete") : `× ${th ? "ลบบันทึกนี้" : "Delete this entry"}`}
@@ -354,57 +327,59 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
           </div>
         </div>
 
-        {/* ═══ RIGHT COLUMN ═══ */}
-        <div className="entry-detail-right" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* ═══ RIGHT ═══ */}
+        <div className="entry-detail-right" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-          {/* Nearby days — timeline style */}
+          {/* Nearby days */}
           {nearby.length > 0 && (
-            <div className="card" style={{ padding: 18 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 14 }}>{th ? "วันใกล้เคียง" : "Nearby days"}</div>
-              <div style={{ position: "relative", paddingLeft: 44 }}>
-                <div style={{ position: "absolute", left: 17, top: 8, bottom: 8, width: 2, background: "var(--hairline)" }} />
-                {nearby.map((n) => {
-                  const nm = DEFAULT_MOODS.find((m) => m.id === n.moodTypeId);
-                  const nd = new Date(n.date + "T12:00:00");
-                  const isCur = n.date === entry.date;
-                  return (
-                    <div key={n.date} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", position: "relative" }}>
-                      <div style={{ position: "absolute", left: -40, top: 12, width: 28, display: "flex", justifyContent: "center" }}>
-                        {nm ? (
-                          <img src={moodIconUrl(nm.id, pack, iconFormat)} alt="" width={isCur ? 28 : 22} height={isCur ? 28 : 22} style={{ borderRadius: "50%", border: isCur ? "2px solid var(--ink)" : "none" }} />
-                        ) : (
-                          <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--surface-2)", border: "2px solid var(--hairline)" }} />
-                        )}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: isCur ? 800 : 600, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
-                          {nd.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
-                          {isCur && <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "var(--peach)", padding: "1px 8px", borderRadius: 100 }}>{th ? "บันทึกนี้" : "This"}</span>}
+            <div style={{ position: "relative" }}>
+              <span className="pa-tab ink" style={{ fontSize: 12, padding: "8px 16px 10px" }}>{th ? "วันใกล้เคียง" : "Nearby days"}</span>
+              <div className="pa-sheet" style={{ borderRadius: "4px 16px 16px 16px", padding: "16px 18px" }}>
+                <div style={{ position: "relative", paddingLeft: 44 }}>
+                  <div style={{ position: "absolute", left: 17, top: 8, bottom: 8, width: 2, background: "var(--w-rule)" }} />
+                  {nearby.map((n) => {
+                    const nm = DEFAULT_MOODS.find((m) => m.id === n.moodTypeId);
+                    const nd = new Date(n.date + "T12:00:00");
+                    const isCur = n.date === entry.date;
+                    return (
+                      <div key={n.date} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", position: "relative" }}>
+                        <div style={{ position: "absolute", left: -40, top: 10, width: 30, display: "flex", justifyContent: "center" }}>
+                          {nm ? (
+                            <PASticker moodId={nm.id} color={nm.color} size={isCur ? 30 : 24} borderWidth={isCur ? 3 : 2} pack={pack} iconFormat={iconFormat} />
+                          ) : (
+                            <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--w-tint)", border: "2px solid var(--w-rule)" }} />
+                          )}
                         </div>
-                        <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
-                          {n.note ? n.note.slice(0, 40) + (n.note.length > 40 ? "..." : "") : (n.moodTypeId ? (th ? nm?.labelTh : nm?.label) : (th ? "ยังไม่มีบันทึก" : "No entry"))}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: isCur ? 800 : 600, color: "var(--w-ink)", display: "flex", alignItems: "center", gap: 8 }}>
+                            {nd.toLocaleDateString(th ? "th-TH" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
+                            {isCur && <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", background: "var(--purple)", padding: "1px 8px", borderRadius: 100 }}>{th ? "บันทึกนี้" : "This"}</span>}
+                          </div>
+                          <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 2 }}>
+                            {n.note ? n.note.slice(0, 40) + (n.note.length > 40 ? "..." : "") : (n.moodTypeId ? (th ? nm?.labelTh : nm?.label) : (th ? "ยังไม่มีบันทึก" : "No entry"))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
 
           {/* This day last month */}
           {lastYear && (
-            <div className="card" style={{ padding: 18 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>{th ? "วันนี้เมื่อเดือนที่แล้ว" : "This day last month"}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {(() => { const lm = DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId); return lm ? <img src={moodIconUrl(lm.id, pack, iconFormat)} alt="" width={32} height={32} /> : null; })()}
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
+            <div style={{ position: "relative" }}>
+              <span className="pa-tab mint" style={{ fontSize: 12, padding: "8px 16px 10px" }}>{th ? "เดือนที่แล้ว" : "Last month"}</span>
+              <div className="pa-sheet" style={{ borderRadius: "4px 16px 16px 16px", padding: "16px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+                {(() => { const lm = DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId); return lm ? <PASticker moodId={lm.id} color={lm.color} size={36} borderWidth={3} pack={pack} iconFormat={iconFormat} /> : null; })()}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)" }}>
                     {new Date(lastYear.date + "T12:00:00").toLocaleDateString(th ? "th-TH" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
                     {" · "}{th ? DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId)?.labelTh : DEFAULT_MOODS.find((m) => m.id === lastYear.moodTypeId)?.label}
                   </div>
                   {lastYear.note && (
-                    <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2 }}>
+                    <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 2 }}>
                       &ldquo;{lastYear.note.slice(0, 50)}{lastYear.note.length > 50 ? "..." : ""}&rdquo;
                     </div>
                   )}
@@ -415,13 +390,14 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
 
           {/* Streak */}
           {streak > 1 && (
-            <div className="card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🔥</div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
+              <span className="pa-washi" aria-hidden style={{ width: 80 }} />
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: "var(--w-tint)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, marginTop: 6 }}>🔥</div>
+              <div style={{ marginTop: 6 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)" }}>
                   {th ? `วันที่ ${streak} ของสตรีค` : `Day ${streak} of your streak`}
                 </div>
-                <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+                <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
                   {th ? "บันทึกครบทุกวันติดต่อกัน" : "Logged every day in a row"}
                 </div>
               </div>
@@ -435,16 +411,17 @@ export function EntryDetail({ id, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }
 
 function LoadingSkeleton() {
   return (
-    <div className="w-container pt-16 fade-in">
+    <div className="pa-wrap pt-4 fade-in">
+      <div style={{ height: 40, width: "40%", borderRadius: 11, background: "var(--w-tint)", opacity: 0.6, marginBottom: 20 }} />
+      <div className="pa-sheet" style={{ height: 180, borderRadius: 18, opacity: 0.6, marginBottom: 24 }} />
       <div className="grid-2col">
         <div className="space-y-4">
-          <div style={{ height: 80, width: "60%", borderRadius: 12, background: "var(--surface-2)", opacity: 0.6 }} />
-          <div style={{ height: 40, width: "40%", borderRadius: 100, background: "var(--surface-2)", opacity: 0.5 }} />
-          <div style={{ height: 80, borderRadius: 16, background: "var(--surface-2)", opacity: 0.4 }} />
+          <div className="pa-sheet" style={{ height: 110, borderRadius: 16, opacity: 0.5 }} />
+          <div className="pa-sheet" style={{ height: 90, borderRadius: 16, opacity: 0.4 }} />
         </div>
         <div className="space-y-4">
-          <div style={{ height: 200, borderRadius: 22, background: "var(--surface-2)", opacity: 0.5 }} />
-          <div style={{ height: 120, borderRadius: 14, background: "var(--surface-2)", opacity: 0.4 }} />
+          <div className="pa-sheet" style={{ height: 200, borderRadius: 16, opacity: 0.5 }} />
+          <div className="pa-sheet" style={{ height: 90, borderRadius: 16, opacity: 0.4 }} />
         </div>
       </div>
     </div>

@@ -2,12 +2,14 @@
 
 import { signIn } from "next-auth/react";
 import { useLocale } from "next-intl";
+import { PAClip, PAMark, ArticleArt } from "@/components/paper";
 
 interface ArticleCard {
   slug: string;
   title: string;
   excerpt: string;
   coverUrl: string | null;
+  tone: string;
   categoryLabel: string;
   readingMinutes: number;
   publishedDate: string;
@@ -23,17 +25,18 @@ export function MobileLoginFeed({
   totalCount: number;
 }) {
   const locale = useLocale();
+  const th = locale === "th";
   const featured = articles[0];
   const rest = articles.slice(1, 4);
 
   return (
-    <div className="auth-mobile">
+    <div className="auth-mobile pa-wrap">
       {/* Sticky top bar */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 24px 10px",
-        borderBottom: "1px solid rgba(26,19,32,0.08)",
-        background: "rgba(251,246,238,0.96)", backdropFilter: "blur(10px)",
+        padding: "14px 22px 12px",
+        borderBottom: "1px solid var(--hairline)",
+        background: "color-mix(in srgb, var(--bg) 92%, transparent)", backdropFilter: "blur(10px)",
         position: "sticky", top: 0, zIndex: 10,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -43,128 +46,126 @@ export function MobileLoginFeed({
             <circle cx="12" cy="14" r="1.6" fill="#1A1320" /><circle cx="20" cy="14" r="1.6" fill="#1A1320" />
             <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
           </svg>
-          <span style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.01em", color: "#1A1320" }}>DailyMood</span>
+          <span style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.01em", color: "var(--ink)" }}>DailyMood</span>
         </div>
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#9747FF", background: "rgba(151,71,255,.10)", padding: "4px 9px", borderRadius: 999 }}>
-          {locale === "th" ? "อ่านฟรี · ไม่ต้องสมัคร" : "Read free · No signup"}
+        <span style={{
+          fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", background: "var(--w-surface)",
+          padding: "5px 12px", borderRadius: 999, boxShadow: "0 5px 14px -8px rgba(60,40,20,.35)",
+        }}>
+          {th ? "อ่านฟรี" : "Read free"}
         </span>
       </div>
 
       {/* Scrollable feed */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px 160px" }}>
-        {/* Heading */}
-        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: "#C56A1F", marginBottom: 6 }}>
-          {locale === "th" ? "บทความล่าสุด" : "Latest"}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 22px 168px" }}>
+        {/* Heading — loose on the desk */}
+        <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: "var(--ink-3)", marginBottom: 8 }}>
+          {th ? "บทความล่าสุด" : "Latest"}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.02em", lineHeight: 1.2, color: "#1A1320" }}>
-          {locale === "th" ? "ลองอ่านก่อน — แล้วค่อยตัดสินใจสมัคร" : "Read first — then decide to sign up"}
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.02em", lineHeight: 1.22, color: "var(--ink)" }}>
+          {th
+            ? (<>ลองอ่านก่อน — แล้วค่อย <PAMark color="var(--peach)">ตัดสินใจสมัคร</PAMark></>)
+            : (<>Read first — then <PAMark color="var(--peach)">decide</PAMark> to sign up</>)}
         </h1>
-        <p style={{ fontSize: 13, color: "#4A3F55", margin: "8px 0 18px", lineHeight: 1.55 }}>
-          {locale === "th" ? "บทความดูแลสุขภาพใจ · อัปเดตทุกสัปดาห์" : "Mental health articles · Updated weekly"}
+        <p style={{ fontSize: 14, color: "var(--ink-2)", margin: "10px 0 22px", lineHeight: 1.55 }}>
+          {th ? "บทความดูแลสุขภาพใจ · อัปเดตทุกสัปดาห์" : "Mental health articles · Updated weekly"}
         </p>
 
-        {/* Featured card */}
+        {/* Featured clipping */}
         {featured && (
-          <a
-            href={`/articles/${featured.slug}`}
-            style={{
-              display: "block", textDecoration: "none", color: "inherit",
-              background: "var(--surface)", borderRadius: 16, overflow: "hidden",
-              border: "1px solid rgba(26,19,32,0.08)",
-              boxShadow: "0 6px 20px -14px rgba(26,19,32,.25)",
-              marginBottom: 16,
-            }}
-          >
-            <div aria-hidden="true" style={{
-              height: 160, display: "flex", alignItems: "center", justifyContent: "center",
-              background: featured.coverUrl ? `url(${featured.coverUrl}) center/cover` : featured.toneBg,
-            }} />
-            <div style={{ padding: 16 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: featured.toneHue, marginBottom: 6 }}>
-                {featured.categoryLabel} · {featured.readingMinutes} {locale === "th" ? "นาที" : "min"}
+          <a href={`/articles/${featured.slug}`} style={{ display: "block", textDecoration: "none", color: "inherit", marginBottom: 20 }}>
+            <article className="pa-sheet" style={{ overflow: "visible", position: "relative", transform: "rotate(-0.5deg)" }}>
+              <PAClip style={{ top: -15, right: 28, transform: "rotate(8deg)", zIndex: 8 }} />
+              <div style={{ position: "relative", margin: 12, marginBottom: 0, borderRadius: 12, overflow: "hidden", aspectRatio: "16 / 10", background: featured.toneBg }}>
+                {featured.coverUrl
+                  ? <div style={{ width: "100%", height: "100%", background: `url(${featured.coverUrl}) center/cover` }} />
+                  : <ArticleArt tone={featured.tone} />}
               </div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
-                {featured.title}
-              </h2>
-              <p style={{
-                fontSize: 13, color: "#4A3F55", margin: "6px 0 8px", lineHeight: 1.5,
-                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
-              }}>
-                {featured.excerpt}
-              </p>
-              <div style={{ fontSize: 11, color: "#8C8497", fontWeight: 600 }}>
-                {locale === "th" ? "ทีม DailyMood" : "DailyMood Team"} · {featured.publishedDate}
+              <div style={{ padding: "14px 16px 16px" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: ".03em", textTransform: "uppercase" as const, color: featured.toneHue, marginBottom: 6 }}>
+                  {featured.categoryLabel}{featured.categoryLabel && " · "}{featured.readingMinutes} {th ? "นาที" : "min"}
+                </div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.3, letterSpacing: "-0.01em", color: "var(--w-ink)" }}>
+                  {featured.title}
+                </h2>
+                <p style={{
+                  fontSize: 14, color: "var(--w-ink-2)", margin: "6px 0 8px", lineHeight: 1.5,
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+                }}>
+                  {featured.excerpt}
+                </p>
+                <div style={{ fontSize: 14, color: "var(--w-ink-3)", fontWeight: 600 }}>
+                  {featured.publishedDate}
+                </div>
               </div>
-            </div>
+            </article>
           </a>
         )}
 
-        {/* Compact list */}
-        {rest.map((a) => (
-          <a
-            key={a.slug}
-            href={`/articles/${a.slug}`}
-            style={{
-              display: "grid", gridTemplateColumns: "88px 1fr", gap: 14,
-              padding: "14px 0", textDecoration: "none", color: "inherit",
-              borderTop: "1px solid rgba(26,19,32,0.08)",
-            }}
-          >
-            <div aria-hidden="true" style={{
-              width: 88, height: 72, borderRadius: 10, overflow: "hidden",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: a.coverUrl ? `url(${a.coverUrl}) center/cover` : a.toneBg,
-            }} />
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: a.toneHue, marginBottom: 4 }}>
-                {a.categoryLabel} · {a.readingMinutes} {locale === "th" ? "นาที" : "min"}
-              </div>
-              <h3 style={{
-                fontSize: 14, fontWeight: 800, margin: 0, lineHeight: 1.3, letterSpacing: "-0.01em",
-                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
-              }}>
-                {a.title}
-              </h3>
-              <div style={{ fontSize: 11, color: "#8C8497", marginTop: 4, fontWeight: 600 }}>
-                {a.publishedDate}
-              </div>
-            </div>
-          </a>
-        ))}
+        {/* Compact clippings */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {rest.map((a, i) => (
+            <a key={a.slug} href={`/articles/${a.slug}`} style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+              <article
+                className="pa-sheet"
+                style={{ overflow: "visible", position: "relative", display: "flex", gap: 14, padding: 12, transform: `rotate(${i % 2 ? 0.5 : -0.4}deg)` }}
+              >
+                <PAClip style={{ top: -14, left: 22, zIndex: 4 }} />
+                <div style={{ width: 96, height: 72, borderRadius: 10, flexShrink: 0, overflow: "hidden", background: a.toneBg, border: "3px solid #fff", boxShadow: "0 6px 14px -8px rgba(60,40,20,.5)" }}>
+                  {a.coverUrl
+                    ? <div style={{ width: "100%", height: "100%", background: `url(${a.coverUrl}) center/cover` }} />
+                    : <ArticleArt tone={a.tone} />}
+                </div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: ".03em", textTransform: "uppercase" as const, color: a.toneHue, marginBottom: 4 }}>
+                    {a.categoryLabel || (th ? "บทความ" : "Article")}
+                  </div>
+                  <h3 style={{
+                    fontSize: 15, fontWeight: 800, margin: 0, lineHeight: 1.3, letterSpacing: "-0.01em", color: "var(--w-ink)",
+                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+                  }}>
+                    {a.title}
+                  </h3>
+                  <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 4, fontWeight: 600 }}>
+                    {a.publishedDate}
+                  </div>
+                </div>
+              </article>
+            </a>
+          ))}
+        </div>
 
         {/* See all */}
-        <a
-          href={"/articles"}
-          style={{
+        <a href={"/articles"} style={{ display: "block", textDecoration: "none", color: "inherit", marginTop: 18 }}>
+          <div className="pa-sheet" style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            marginTop: 16, padding: "12px 14px", borderRadius: 12,
-            background: "var(--surface)", border: "1px solid rgba(26,19,32,0.08)",
-            textDecoration: "none", color: "#1A1320", fontSize: 13, fontWeight: 700,
-          }}
-        >
-          {locale === "th" ? `ดูบทความทั้งหมด · ${totalCount} เรื่อง` : `See all articles · ${totalCount}`}
-          <span style={{ color: "#9747FF" }}>→</span>
+            padding: "14px", fontSize: 15, fontWeight: 800, color: "var(--w-ink)",
+          }}>
+            {th ? `ดูบทความทั้งหมด · ${totalCount} เรื่อง` : `See all articles · ${totalCount}`}
+            <span style={{ color: "var(--purple-strong)" }}>→</span>
+          </div>
         </a>
       </div>
 
       {/* Sticky bottom CTA */}
       <div style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 20,
-        padding: "16px 24px calc(24px + env(safe-area-inset-bottom, 0px))",
+        padding: "16px 22px calc(24px + env(safe-area-inset-bottom, 0px))",
         background: "var(--surface)",
-        borderTop: "1px solid rgba(26,19,32,0.08)",
+        borderTop: "1px solid var(--hairline)",
         boxShadow: "0 -10px 30px -16px rgba(26,19,32,.18)",
       }}>
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, textAlign: "center", color: "#1A1320" }}>
-          {locale === "th" ? "พร้อมเริ่มบันทึกอารมณ์ของคุณ?" : "Ready to start tracking your mood?"}
+        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 12, textAlign: "center", color: "var(--ink)" }}>
+          {th ? "พร้อมเริ่มบันทึกอารมณ์ของคุณ?" : "Ready to start tracking your mood?"}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={() => signIn("google", { callbackUrl: "/" })}
             style={{
-              flex: 1, height: 46, borderRadius: 12,
-              background: "var(--surface)", border: "1.5px solid rgba(26,19,32,0.12)",
-              fontFamily: "inherit", fontWeight: 700, fontSize: 13, cursor: "pointer",
+              flex: 1, height: 48, borderRadius: 12,
+              background: "var(--w-surface)", border: "1px solid var(--w-rule-strong)",
+              boxShadow: "0 6px 16px -10px rgba(60,40,20,.4)",
+              fontFamily: "inherit", fontWeight: 800, fontSize: 14, cursor: "pointer", color: "var(--w-ink)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
@@ -174,14 +175,15 @@ export function MobileLoginFeed({
           <button
             onClick={() => { window.location.href = "/login"; }}
             style={{
-              flex: 1, height: 46, borderRadius: 12,
-              background: "#1A1320", color: "#fff", border: "none",
-              fontFamily: "inherit", fontWeight: 700, fontSize: 13, cursor: "pointer",
+              flex: 1, height: 48, borderRadius: 12,
+              background: "var(--w-ink)", color: "var(--bg)", border: "none",
+              boxShadow: "0 6px 0 -2px #000, 0 14px 22px -14px rgba(0,0,0,.5)",
+              fontFamily: "inherit", fontWeight: 800, fontSize: 14, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
-            <svg width={16} height={16} viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M22 6l-10 7L2 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            {locale === "th" ? "อีเมล" : "Email"}
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M22 6l-10 7L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            {th ? "อีเมล" : "Email"}
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { trackInsightsView, trackShareInsight } from "@/lib/analytics";
 import type { Tier } from "@/lib/tier";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
+import { PAClip } from "./paper";
 import { AiSubTabs } from "./ai-sub-tabs";
 import { AiDisclaimer } from "./ai-disclaimer";
 
@@ -89,11 +90,12 @@ interface DnaData {
 
 /* ── Constants ─────────────────────────────────────────── */
 
+// White paper sheet — text inside MUST use --w-ink* (always-dark, dark-mode safe).
 const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline-2)",
-  borderRadius: 22,
+  background: "var(--w-surface)",
+  borderRadius: 18,
   padding: 20,
+  boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
 };
 
 const TAG_ICON: Record<string, string> = {
@@ -112,6 +114,16 @@ function parseWeekNumber(weekKey: string): number | null {
   const m = weekKey.match(/W(\d+)$/);
   return m ? parseInt(m[1], 10) : null;
 }
+
+/* ── Sparkle square (shared accent) ────────────────────── */
+
+const SparkleSquare = ({ from = "var(--purple)", to = "#C9A6F5" }: { from?: string; to?: string }) => (
+  <div style={{ width: 32, height: 32, borderRadius: 10, background: `linear-gradient(135deg, ${from}, ${to})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </div>
+);
 
 /* ── Main Component ────────────────────────────────────── */
 
@@ -229,7 +241,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
   const stats = data.stats;
 
   return (
-    <>
+    <div className="pa-wrap">
       {/* ── AI Sub-tabs ─── */}
       <AiSubTabs active="insights" locale={locale} />
 
@@ -239,11 +251,12 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           <div className="flex items-center gap-2">
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: status.ready ? "var(--primary-bg)" : "var(--surface-2)",
-              color: status.ready ? "#A673F1" : "var(--ink-3)",
-              padding: "4px 12px", borderRadius: 20, fontWeight: 700,
+              background: "var(--w-surface)",
+              color: status.ready ? "var(--purple-strong)" : "var(--w-ink-3)",
+              padding: "5px 13px", borderRadius: 100, fontWeight: 800,
+              boxShadow: "0 6px 16px -8px rgba(60,40,20,.3)",
             }}>
-              {status.ready && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7C4DFF", animation: "pulse 2s infinite" }} />}
+              {status.ready && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", animation: "pulse 2s infinite" }} />}
               {status.ready ? t("statusReady") : t("statusNeedMore", { count: String(7 - status.entryCount) })}
             </span>
             <span style={{ color: "var(--ink-3)" }}>
@@ -253,11 +266,11 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
           {status.aiQuota && (
             <div className="flex items-center gap-2" style={{ color: "var(--ink-3)" }}>
               <span>Ask AI {status.aiQuota.used}/{status.aiQuota.limit}</span>
-              <div style={{ width: 60, height: 4, borderRadius: 2, background: "var(--surface-3)", overflow: "hidden" }}>
+              <div style={{ width: 60, height: 5, borderRadius: 3, background: "var(--w-tint)", overflow: "hidden" }}>
                 <div style={{
                   width: `${(status.aiQuota.used / status.aiQuota.limit) * 100}%`,
-                  height: "100%", borderRadius: 2,
-                  background: status.aiQuota.used / status.aiQuota.limit > 0.95 ? "#E05A5A" : "#A673F1",
+                  height: "100%", borderRadius: 3,
+                  background: status.aiQuota.used / status.aiQuota.limit > 0.95 ? "#E05A5A" : "var(--purple)",
                 }} />
               </div>
             </div>
@@ -265,21 +278,19 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </div>
       )}
 
+      {/* ── Disclaimer note (washi-taped tinted sheet) ─── */}
       <div
-        className="fade-in"
+        className="pa-sheet fade-in"
         style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 10,
-          padding: "12px 16px",
-          borderRadius: 14,
-          background: "var(--surface-2)",
-          border: "1px solid var(--hairline)",
-          marginBottom: 12,
+          display: "flex", alignItems: "flex-start", gap: 10,
+          padding: "14px 16px", borderRadius: 16,
+          background: "var(--w-ai-grad)",
+          position: "relative", marginBottom: 14,
         }}
       >
+        <span className="pa-washi yellow" aria-hidden style={{ width: 76 }} />
         <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>✨</span>
-        <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink-2)", margin: 0 }}>
+        <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--w-ink-2)", margin: 0 }}>
           {locale === "th"
             ? "ข้อมูลทั้งหมดในหน้านี้ AI วิเคราะห์จากบันทึกของคุณ เป็นแค่มุมมองหนึ่ง อาจไม่ตรงทุกครั้ง และไม่ใช่คำแนะนำสุขภาพ"
             : "Everything on this page is AI-analyzed from your entries. It's just one perspective — it may not always be accurate and is not health advice."}
@@ -290,7 +301,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
       <header className="pb-5 fade-in">
         <div className="flex items-start justify-between ins-header">
           <div>
-            <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: "0.4px" }}>
+            <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: "0.4px" }}>
               ✨ AI INSIGHTS {weekNum != null ? `· ${locale === "th" ? `สัปดาห์ที่ ${weekNum}` : `Week ${weekNum}`}` : ""}
             </span>
             <h1 style={{ fontSize: "clamp(22px, 5vw, 26px)", fontWeight: 800, color: "var(--ink)", margin: "2px 0 0" }}>
@@ -298,9 +309,9 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
             </h1>
           </div>
           <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
-            <button style={WEEK_NAV_BTN} onClick={() => setWeekOffset((o) => o - 1)}>← {t("prevWeek")}</button>
+            <button className="pa-filter" onClick={() => setWeekOffset((o) => o - 1)}>← {t("prevWeek")}</button>
             {weekOffset < 0 && (
-              <button style={WEEK_NAV_BTN} onClick={() => setWeekOffset((o) => o + 1)}>
+              <button className="pa-filter" onClick={() => setWeekOffset((o) => o + 1)}>
                 {t("nextWeek")} →
               </button>
             )}
@@ -308,84 +319,87 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </div>
       </header>
 
-      {/* ── F2: HERO RECAP (2-col: text left, tiles right) ─── */}
+      {/* ── F2: HERO RECAP — folder (purple tab + clip + gradient sheet) ─── */}
       <section className="mb-5 fade-in" style={{ animationDelay: "40ms" }}>
-        <div style={{
-          background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 40%, #FCA45B 100%)",
-          borderRadius: 28, padding: "28px 24px", color: "#fff", position: "relative", overflow: "hidden",
-        }}>
-          <div className={`ins-hero-grid ${stats ? "ins-hero-2col" : ""}`}>
-            {/* Left: summary + buttons */}
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, opacity: 0.85, letterSpacing: "0.5px", marginBottom: 12 }}>
-                {locale === "th" ? "สรุปสัปดาห์ · เขียนโดย AI" : "Weekly summary · by AI"}
-              </div>
-
-              {data.headline ? (
-                <>
-                  <p
-                    style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.45, margin: "0 0 8px" }}
-                    dangerouslySetInnerHTML={{
-                      __html: data.headline.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
-                    }}
-                  />
-
-                  {expanded && data.summary && (
+        <div style={{ position: "relative" }}>
+          <div className="pa-tab purple">
+            {locale === "th" ? "สรุปสัปดาห์ · เขียนโดย AI" : "Weekly summary · by AI"}
+          </div>
+          <div style={{
+            background: "linear-gradient(135deg, #A673F1 0%, #C89BF5 40%, #FCA45B 100%)",
+            borderRadius: "4px 18px 18px 18px", padding: "26px 24px", color: "#fff",
+            position: "relative", boxShadow: "0 18px 40px -20px rgba(60,40,20,.45)",
+          }}>
+            <PAClip style={{ top: -22, right: 28, transform: "rotate(9deg)" }} />
+            <div className={`ins-hero-grid ${stats ? "ins-hero-2col" : ""}`}>
+              {/* Left: summary + buttons */}
+              <div>
+                {data.headline ? (
+                  <>
                     <p
-                      className="fade-in"
-                      style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.6, margin: "0 0 8px", opacity: 0.92 }}
+                      style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.45, margin: "0 0 8px" }}
                       dangerouslySetInnerHTML={{
-                        __html: data.summary.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                        __html: data.headline.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
                       }}
                     />
-                  )}
 
-                  <div style={{ height: 12 }} />
+                    {expanded && data.summary && (
+                      <p
+                        className="fade-in"
+                        style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.6, margin: "0 0 8px", opacity: 0.92 }}
+                        dangerouslySetInnerHTML={{
+                          __html: data.summary.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
+                        }}
+                      />
+                    )}
 
-                  {!isLocked && (
-                    <div className="flex items-center gap-3 flex-wrap">
-                      {!expanded && (
-                        <button onClick={() => setExpanded(true)} style={HERO_BTN}>
-                          {locale === "th" ? "อ่านฉบับเต็ม →" : "Read full →"}
+                    <div style={{ height: 12 }} />
+
+                    {!isLocked && (
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {!expanded && (
+                          <button onClick={() => setExpanded(true)} style={HERO_BTN}>
+                            {locale === "th" ? "อ่านฉบับเต็ม →" : "Read full →"}
+                          </button>
+                        )}
+                        <button onClick={handleShare} style={HERO_BTN}>
+                          {copied ? t("copied") : `📩 ${locale === "th" ? "อีเมล / แชร์" : "Email / Share"}`}
                         </button>
-                      )}
-                      <button onClick={handleShare} style={HERO_BTN}>
-                        {copied ? t("copied") : `📩 ${locale === "th" ? "อีเมล / แชร์" : "Email / Share"}`}
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{ margin: "8px 0 12px" }}>
-                  <p style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.5, opacity: 0.9, margin: 0 }}>
-                    {locale === "th"
-                      ? "สัปดาห์นี้ยังไม่มีข้อมูลเพียงพอให้ AI สรุป ลองบันทึกอารมณ์เพิ่มอีกสักหน่อย แล้ว AI จะเริ่มวิเคราะห์ให้"
-                      : "Not enough entries this week for AI to summarize. Log a few more moods and AI will generate your recap."}
-                  </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ margin: "8px 0 12px" }}>
+                    <p style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.5, opacity: 0.9, margin: 0 }}>
+                      {locale === "th"
+                        ? "สัปดาห์นี้ยังไม่มีข้อมูลเพียงพอให้ AI สรุป ลองบันทึกอารมณ์เพิ่มอีกสักหน่อย แล้ว AI จะเริ่มวิเคราะห์ให้"
+                        : "Not enough entries this week for AI to summarize. Log a few more moods and AI will generate your recap."}
+                    </p>
+                  </div>
+                )}
+
+                {isLocked && (
+                  <a href="/pricing" style={{
+                    display: "inline-block", padding: "10px 16px",
+                    background: "rgba(255,255,255,0.2)", borderRadius: 14, backdropFilter: "blur(4px)",
+                    textAlign: "center", textDecoration: "none", color: "#fff",
+                  }}>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{t("locked")}</div>
+                    <div style={{ fontSize: 14, opacity: 0.8, marginTop: 2 }}>{t("lockedBody")}</div>
+                  </a>
+                )}
+              </div>
+
+              {/* Right: 2×2 stat tiles */}
+              {stats && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <GlassTile label={locale === "th" ? "คะแนนเฉลี่ย" : "Avg mood"} value={stats.avgMood.toFixed(1)} delta={stats.avgMoodDelta > 0 ? `↑ ${stats.avgMoodDelta}` : stats.avgMoodDelta < 0 ? `↓ ${Math.abs(stats.avgMoodDelta)}` : undefined} />
+                  <GlassTile label={locale === "th" ? "วันที่ดี" : "Good days"} value={`${stats.goodDays}/7`} delta={stats.goodDays >= 4 ? (locale === "th" ? "มากกว่าก่อน" : "More than before") : undefined} />
+                  <GlassTile label="PATTERN" value={`${locale === "th" ? "พบ" : "found"} ${stats.patternsCount}`} delta={stats.patternsCount > 0 ? `+${stats.patternsCount} ${locale === "th" ? "ใหม่" : "new"}` : undefined} />
+                  <GlassTile label="WELLNESS" value={String(stats.wellnessScore)} delta={stats.wellnessDelta > 0 ? `+${stats.wellnessDelta} pts` : undefined} />
                 </div>
               )}
-
-              {isLocked && (
-                <a href="/pricing" style={{
-                  display: "inline-block", padding: "10px 16px",
-                  background: "rgba(255,255,255,0.2)", borderRadius: 14, backdropFilter: "blur(4px)",
-                  textAlign: "center", textDecoration: "none", color: "#fff",
-                }}>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{t("locked")}</div>
-                  <div style={{ fontSize: 14, opacity: 0.8, marginTop: 2 }}>{t("lockedBody")}</div>
-                </a>
-              )}
             </div>
-
-            {/* Right: 2×2 stat tiles */}
-            {stats && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <GlassTile label={locale === "th" ? "คะแนนเฉลี่ย" : "Avg mood"} value={stats.avgMood.toFixed(1)} delta={stats.avgMoodDelta > 0 ? `↑ ${stats.avgMoodDelta}` : stats.avgMoodDelta < 0 ? `↓ ${Math.abs(stats.avgMoodDelta)}` : undefined} />
-                <GlassTile label={locale === "th" ? "วันที่ดี" : "Good days"} value={`${stats.goodDays}/7`} delta={stats.goodDays >= 4 ? (locale === "th" ? "มากกว่าก่อน" : "More than before") : undefined} />
-                <GlassTile label="PATTERN" value={`${locale === "th" ? "พบ" : "found"} ${stats.patternsCount}`} delta={stats.patternsCount > 0 ? `+${stats.patternsCount} ${locale === "th" ? "ใหม่" : "new"}` : undefined} />
-                <GlassTile label="WELLNESS" value={String(stats.wellnessScore)} delta={stats.wellnessDelta > 0 ? `+${stats.wellnessDelta} pts` : undefined} />
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -395,17 +409,17 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         <div className="ins-4col">
           {/* Forecast */}
           {isPremium && forecast && !forecast.tooFewEntries ? (
-            <div style={CARD}>
+            <div className="pa-card-lift" style={CARD}>
               <div className="flex items-center gap-1.5 mb-2">
                 <span style={{ fontSize: 14 }}>🔮</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>{locale === "th" ? "พยากรณ์" : "FORECAST"}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>{locale === "th" ? "พยากรณ์" : "FORECAST"}</span>
               </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>{t("forecastTomorrow")}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)", marginBottom: 6 }}>{t("forecastTomorrow")}</div>
               <div className="flex items-center gap-2 mb-2">
                 <img src={moodIconUrl(forecast.predictedMood)} alt="" width={28} height={28} style={{ width: 28, height: 28 }} />
-                <span style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>{Math.round(forecast.confidence * 100)}%</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: "var(--w-ink)" }}>{Math.round(forecast.confidence * 100)}%</span>
               </div>
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.4, margin: 0 }}>{forecast.reasoning}</p>
+              <p style={{ fontSize: 14, color: "var(--w-ink-2)", lineHeight: 1.4, margin: 0 }}>{forecast.reasoning}</p>
               {forecast.factors.length > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 6 }}>
                   {forecast.factors.slice(0, 3).map((f, i) => (
@@ -417,10 +431,10 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
               )}
             </div>
           ) : isPremium && !forecast ? (
-            <div style={{ ...CARD, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+            <div className="pa-card-lift" style={{ ...CARD, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
               <span style={{ fontSize: 24, marginBottom: 6 }}>🔮</span>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{locale === "th" ? "พยากรณ์" : "Forecast"}</div>
-              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 2, lineHeight: 1.4 }}>{locale === "th" ? "AI กำลังสร้างให้ — กลับมาดูอีกทีนะ" : "AI is generating — check back soon"}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)" }}>{locale === "th" ? "พยากรณ์" : "Forecast"}</div>
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 2, lineHeight: 1.4 }}>{locale === "th" ? "AI กำลังสร้างให้ — กลับมาดูอีกทีนะ" : "AI is generating — check back soon"}</div>
             </div>
           ) : (
             <FeatureTeaser icon="🔮" label={t("forecast")} desc={forecast?.tooFewEntries ? t("forecastNeedMore", { count: String(forecast.entriesNeeded ?? 7) }) : t("forecast")} locked={!isPremium} locale={locale} />
@@ -428,16 +442,16 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
           {/* Mood DNA */}
           {isPremium && dna && !dna.tooFewEntries ? (
-            <div style={CARD}>
+            <div className="pa-card-lift" style={CARD}>
               <div className="flex items-center gap-1.5 mb-2">
                 <span style={{ fontSize: 14 }}>🧬</span>
                 <span style={{ fontSize: 14, fontWeight: 800, color: "#1B7A5A" }}>MOOD DNA</span>
               </div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>
                 {dna.archetypeIcon} {dna.archetype}
               </div>
               <RadarChart axes={dna.axes} locale={locale} />
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.3, margin: 0 }}>{dna.description}</p>
+              <p style={{ fontSize: 14, color: "var(--w-ink-2)", lineHeight: 1.3, margin: 0 }}>{dna.description}</p>
             </div>
           ) : (
             <FeatureTeaser icon="🧬" label={t("moodDna")} desc={t("moodDnaDesc")} locked={!isPremium} locale={locale} />
@@ -445,18 +459,18 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
           {/* Themes */}
           {isPremium && themes && !themes.tooFewEntries && themes.themes.length > 0 ? (
-            <div style={CARD}>
+            <div className="pa-card-lift" style={CARD}>
               <div className="flex items-center gap-1.5 mb-2">
                 <span style={{ fontSize: 14 }}>🔁</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>{locale === "th" ? "ธีมที่กลับมา" : "THEMES"}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>{locale === "th" ? "ธีมที่กลับมา" : "THEMES"}</span>
               </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 6 }}>{locale === "th" ? "ที่คุณพูดถึงบ่อย" : "What comes up most"}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)", marginBottom: 6 }}>{locale === "th" ? "ที่คุณพูดถึงบ่อย" : "What comes up most"}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {themes.themes.slice(0, 5).map((th, i) => (
                   <div key={i} className="flex items-center gap-2" style={{ fontSize: 14 }}>
                     <div style={{ width: 4, height: 16, borderRadius: 2, background: th.color, flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontWeight: 600, color: "var(--ink)" }}>{th.label}</span>
-                    <span style={{ color: "var(--ink-3)", fontSize: 14 }}>{th.count}×</span>
+                    <span style={{ flex: 1, fontWeight: 600, color: "var(--w-ink)" }}>{th.label}</span>
+                    <span style={{ color: "var(--w-ink-3)", fontSize: 14 }}>{th.count}×</span>
                   </div>
                 ))}
               </div>
@@ -467,19 +481,19 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
 
           {/* Energy Clock */}
           {isPremium && energy && !energy.tooFewEntries ? (
-            <div style={CARD}>
+            <div className="pa-card-lift" style={CARD}>
               <div className="flex items-center gap-1.5 mb-2">
                 <span style={{ fontSize: 14 }}>⏰</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#A673F1" }}>ENERGY CLOCK</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>ENERGY CLOCK</span>
               </div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--w-ink)", marginBottom: 2 }}>
                 {locale === "th" ? "รู้สึกดีที่สุด" : "Peak energy"}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#FCA45B", marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#E08A2B", marginBottom: 8 }}>
                 {energy.peakHour}:00 {locale === "th" ? "น." : "h"}
               </div>
               <EnergyBars hourly={energy.hourly} peakHour={energy.peakHour} />
-              <div style={{ fontSize: 14, color: "var(--ink-3)", marginTop: 4 }}>
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 4 }}>
                 {locale === "th" ? `ต่ำสุด ${energy.troughHour}:00 น.` : `Low ${energy.troughHour}:00`}
               </div>
             </div>
@@ -506,7 +520,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                   const tagIcon = TAG_ICON[p.tag] ?? "🔍";
                   const hasViz = p.miniVizData && p.miniVizData.length > 1;
                   return (
-                    <div key={i} style={{ ...CARD, display: "flex", flexDirection: "column" }}>
+                    <div key={i} className="pa-card-lift" style={{ ...CARD, display: "flex", flexDirection: "column" }}>
                       <div className="flex items-center gap-1.5 mb-2">
                         <span style={{ fontSize: 14 }}>{tagIcon}</span>
                         <span style={{
@@ -517,8 +531,8 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                           {t(p.tag as "pattern" | "correlation" | "alert")}
                         </span>
                       </div>
-                      <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "8px 0 6px" }}>{p.title}</h3>
-                      <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, margin: 0, flex: hasViz ? undefined : 1 }}>{p.description}</p>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)", margin: "8px 0 6px" }}>{p.title}</h3>
+                      <p style={{ fontSize: 14, color: "var(--w-ink-2)", lineHeight: 1.5, margin: 0, flex: hasViz ? undefined : 1 }}>{p.description}</p>
                       {hasViz && <div style={{ marginTop: "auto", paddingTop: 16 }}><MoodBarChart data={p.miniVizData!} /></div>}
                       {!hasViz && <ActivityTags description={p.description} />}
                     </div>
@@ -528,11 +542,12 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
             </section>
           )}
 
-          {/* ── F9a: SUGGESTION ─── */}
+          {/* ── F9a: SUGGESTION — washi-taped warm sheet ─── */}
           {data.suggestion && (
             <section className="mb-5 fade-in" style={{ animationDelay: "160ms" }}>
-              <div style={{ background: "#FFFBF5", border: "1.5px solid #F5E6D0", borderRadius: 22, padding: 20 }}>
-                <div className="flex items-center gap-1.5 mb-2">
+              <div className="pa-sheet" style={{ borderRadius: 18, padding: "22px 20px", background: "var(--w-card-warm)", position: "relative" }}>
+                <span className="pa-washi yellow" aria-hidden style={{ width: 88 }} />
+                <div className="flex items-center gap-1.5 mb-2" style={{ marginTop: 6 }}>
                   <span style={{ fontSize: 14 }}>💡</span>
                   <span style={{
                     background: "#FCA45B", color: "#fff", fontSize: 14, fontWeight: 800,
@@ -541,8 +556,8 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                     SUGGESTION
                   </span>
                 </div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)", margin: "8px 0 6px" }}>{data.suggestion.title}</h3>
-                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 16 }}>{data.suggestion.description}</p>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: "var(--w-ink)", margin: "8px 0 6px" }}>{data.suggestion.title}</h3>
+                <p style={{ fontSize: 14, color: "var(--w-ink-2)", lineHeight: 1.6, marginBottom: 16 }}>{data.suggestion.description}</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <FeedbackPill label={`👍 ${locale === "th" ? "ใช่" : "Yes"}`} active={feedbackSent.has(`${data.weekKey}:up`)} onClick={() => handleFeedback("up")} />
                   <FeedbackPill label={`👎 ${locale === "th" ? "ไม่ตรง" : "Not relevant"}`} active={feedbackSent.has(`${data.weekKey}:down`)} onClick={() => handleFeedback("down")} />
@@ -564,10 +579,10 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                     width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
                     background: "linear-gradient(135deg, #FCA45B, #A673F1)", fontSize: 16,
                   }}>🤖</span>
-                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
+                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple-strong)", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
                 </div>
-                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{t("aiCoachTitle")}</h3>
-                <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0 }}>{t("aiCoachDesc")}</p>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)", margin: "0 0 4px" }}>{t("aiCoachTitle")}</h3>
+                <p style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4, margin: 0 }}>{t("aiCoachDesc")}</p>
               </div>
               <TogglePill enabled={aiCoach} disabled={!isPremium} onChange={(v) => handleToggle("aiCoachEnabled", v)} />
             </div>
@@ -578,12 +593,12 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                 <div className="flex items-center gap-2 mb-2">
                   <span style={{
                     width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "var(--surface-2)", fontSize: 16,
+                    background: "var(--w-tint)", fontSize: 16,
                   }}>📩</span>
-                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
+                  {!isPremium && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple-strong)", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>}
                 </div>
-                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{t("weeklyDigestTitle")}</h3>
-                <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0 }}>{t("weeklyDigestDesc")}</p>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)", margin: "0 0 4px" }}>{t("weeklyDigestTitle")}</h3>
+                <p style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4, margin: 0 }}>{t("weeklyDigestDesc")}</p>
               </div>
               <TogglePill enabled={weeklyDigest} disabled={!isPremium} onChange={(v) => handleToggle("weeklyDigestEnabled", v)} />
             </div>
@@ -591,17 +606,11 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         </div>
       </section>
 
-    </>
+    </div>
   );
 }
 
 /* ── Hero button style ────────────────────────────────── */
-
-const WEEK_NAV_BTN: React.CSSProperties = {
-  background: "var(--surface)", border: "1.5px solid var(--hairline-2)", borderRadius: 20,
-  padding: "6px 14px", fontSize: 14, fontWeight: 700, color: "var(--ink)",
-  cursor: "pointer",
-};
 
 const HERO_BTN: React.CSSProperties = {
   background: "rgba(255,255,255,0.25)", backdropFilter: "blur(4px)",
@@ -630,15 +639,15 @@ function FeatureTeaser({ icon, label, desc, locked, comingSoon, locale }: {
   icon: string; label: string; desc: string; locked?: boolean; comingSoon?: boolean; locale: string;
 }) {
   const inner = (
-    <div style={{ ...CARD, height: "100%", display: "flex", flexDirection: "column", opacity: comingSoon ? 0.7 : 1 }}>
+    <div className="pa-card-lift" style={{ ...CARD, height: "100%", display: "flex", flexDirection: "column", opacity: comingSoon ? 0.7 : 1 }}>
       <div className="flex items-center gap-1.5 mb-2">
         <span style={{ fontSize: 16 }}>{icon}</span>
-        {locked && <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
+        {locked && <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple-strong)", background: "var(--primary-bg)", borderRadius: 4, padding: "1px 5px" }}>PRO</span>}
       </div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>{label}</div>
-      <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.4, margin: 0, flex: 1 }}>{desc}</p>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>{label}</div>
+      <p style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4, margin: 0, flex: 1 }}>{desc}</p>
       {comingSoon && (
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", marginTop: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--purple-strong)", marginTop: 8 }}>
           {locale === "th" ? "เร็ว ๆ นี้" : "Coming soon"}
         </div>
       )}
@@ -658,13 +667,13 @@ function TogglePill({ enabled, disabled, onChange }: { enabled: boolean; disable
       onClick={() => !disabled && onChange(!enabled)}
       style={{
         width: 44, height: 24, borderRadius: 12, border: "none", padding: 2,
-        background: disabled ? "var(--surface-3)" : enabled ? "var(--purple)" : "var(--surface-3)",
+        background: disabled ? "var(--w-tint)" : enabled ? "var(--purple)" : "var(--w-tint)",
         cursor: disabled ? "default" : "pointer", flexShrink: 0, marginTop: 4,
         transition: "background 0.2s",
       }}
     >
       <div style={{
-        width: 20, height: 20, borderRadius: 10, background: "var(--surface)",
+        width: 20, height: 20, borderRadius: 10, background: "var(--w-surface)",
         transform: enabled && !disabled ? "translateX(20px)" : "translateX(0)",
         transition: "transform 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
       }} />
@@ -703,12 +712,12 @@ function RadarChart({ axes, locale }: { axes: { bright: number; calm: number; en
 
   return (
     <svg viewBox="0 0 120 110" width="100%" style={{ display: "block", margin: "6px 0" }}>
-      <polygon points={gridPts(R)} fill="none" stroke="#E8E6EC" strokeWidth={0.5} />
-      <polygon points={gridPts(R * 0.5)} fill="none" stroke="#E8E6EC" strokeWidth={0.3} />
+      <polygon points={gridPts(R)} fill="none" stroke="var(--w-rule-strong)" strokeWidth={0.5} />
+      <polygon points={gridPts(R * 0.5)} fill="none" stroke="var(--w-rule)" strokeWidth={0.3} />
       <polygon points={polygon} fill="rgba(133,236,203,0.4)" stroke="#1B7A5A" strokeWidth={1.2} />
       {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={1.8} fill="#1B7A5A" />)}
       {labelPos.map((p, i) => (
-        <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={7} fontWeight={700} fill="var(--ink-3, #999)">
+        <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={7} fontWeight={700} fill="var(--w-ink-3)">
           {labels[i]}
         </text>
       ))}
@@ -724,7 +733,7 @@ function EnergyBars({ hourly, peakHour }: { hourly: number[]; peakHour: number }
 
   return (
     <svg viewBox="0 0 120 120" width="100%" style={{ display: "block", margin: "4px 0" }}>
-      <circle cx={cx} cy={cy} r={innerR - 2} fill="none" stroke="var(--surface-3)" strokeWidth={0.5} />
+      <circle cx={cx} cy={cy} r={innerR - 2} fill="none" stroke="var(--w-rule)" strokeWidth={0.5} />
       {hourly.map((v, i) => {
         const angle = (Math.PI * 2 * i) / 24 - Math.PI / 2;
         const barLen = v > 0 ? Math.max(3, (v / maxVal) * maxBarLen) : 2;
@@ -747,7 +756,7 @@ function EnergyBars({ hourly, peakHour }: { hourly: number[]; peakHour: number }
         const lx = cx + (innerR - 8) * Math.cos(angle);
         const ly = cy + (innerR - 8) * Math.sin(angle);
         return (
-          <text key={h} x={lx} y={ly} textAnchor="middle" dominantBaseline="central" fontSize={6} fontWeight={700} fill="var(--ink-3, #999)">
+          <text key={h} x={lx} y={ly} textAnchor="middle" dominantBaseline="central" fontSize={6} fontWeight={700} fill="var(--w-ink-3)">
             {h}
           </text>
         );
@@ -783,7 +792,7 @@ function MoodBarChart({ data }: { data: number[] }) {
       {data.length <= 7 && (
         <div style={{ display: "flex", gap: 5, marginTop: 4 }}>
           {data.map((_, i) => (
-            <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 14, fontWeight: 600, color: "var(--ink-3)" }}>
+            <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 14, fontWeight: 600, color: "var(--w-ink-3)" }}>
               {days[i] ?? ""}
             </div>
           ))}
@@ -805,7 +814,7 @@ function ActivityTags({ description }: { description: string }) {
   return (
     <div className="flex flex-wrap gap-1.5" style={{ marginTop: 12 }}>
       {all.map((tag, i) => (
-        <span key={i} style={{ background: "var(--accent-soft)", color: "#E08A2B", fontSize: 14, fontWeight: 700, padding: "4px 10px", borderRadius: 8 }}>
+        <span key={i} style={{ background: "var(--w-tint)", color: "#E08A2B", fontSize: 14, fontWeight: 700, padding: "4px 10px", borderRadius: 8 }}>
           {tag}
         </span>
       ))}
@@ -821,9 +830,9 @@ function FeedbackPill({ label, active, onClick }: { label: string; active: boole
       onClick={onClick}
       disabled={active}
       style={{
-        background: active ? "var(--primary-bg)" : "var(--surface)",
-        color: active ? "#A673F1" : "var(--ink-2, #666)",
-        border: `1.5px solid ${active ? "#A673F1" : "#F2F0F5"}`,
+        background: active ? "var(--primary-bg)" : "var(--w-surface)",
+        color: active ? "var(--purple-strong)" : "var(--w-ink-2)",
+        border: `1.5px solid ${active ? "var(--purple)" : "var(--w-rule-strong)"}`,
         borderRadius: 20, padding: "7px 14px", fontSize: 14, fontWeight: 700,
         cursor: active ? "default" : "pointer", transition: "all 0.2s",
       }}
@@ -840,14 +849,15 @@ function LockedCard({ icon, title, description, delay }: { icon: string; title: 
   return (
     <section className="mb-4 fade-in" style={{ animationDelay: delay }}>
       <a href="/pricing" style={{ textDecoration: "none", display: "block" }}>
-        <div style={{ background: "var(--hero-grad)", borderRadius: 22, padding: 20 }}>
-          <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+        <div className="pa-sheet" style={{ borderRadius: 18, padding: 20, background: "var(--w-ai-grad)", position: "relative" }}>
+          <span className="pa-washi lav" aria-hidden style={{ width: 80 }} />
+          <div className="flex items-center gap-2" style={{ marginBottom: 8, marginTop: 6 }}>
             <span style={{ fontSize: 20 }}>{icon}</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--purple-strong)", background: "var(--primary-bg)", borderRadius: 6, padding: "2px 6px" }}>PRO</span>
           </div>
-          <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>{title}</h3>
-          <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.5, marginBottom: 8 }}>{description}</p>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1" }}>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)", margin: "0 0 4px" }}>{title}</h3>
+          <p style={{ fontSize: 14, color: "var(--w-ink-2)", lineHeight: 1.5, marginBottom: 8 }}>{description}</p>
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>
             {locale === "th" ? "อัปเกรด →" : "Upgrade →"}
           </span>
         </div>
@@ -860,14 +870,14 @@ function LockedCard({ icon, title, description, delay }: { icon: string; title: 
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 fade-in" style={{ paddingTop: 60 }}>
-      <div style={{ height: 20, width: 200, borderRadius: 10, background: "var(--surface-2)", opacity: 0.6 }} />
-      <div style={{ height: 240, borderRadius: 28, background: "var(--hero-grad)", opacity: 0.5 }} />
+    <div className="pa-wrap space-y-4 fade-in" style={{ paddingTop: 60 }}>
+      <div style={{ height: 20, width: 200, borderRadius: 10, background: "var(--w-tint)", opacity: 0.8 }} />
+      <div style={{ height: 240, borderRadius: 18, background: "var(--w-ai-grad)", opacity: 0.7 }} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-        {[...Array(4)].map((_, i) => <div key={i} style={{ height: 120, borderRadius: 22, background: "var(--surface-2)", opacity: 0.4 }} />)}
+        {[...Array(4)].map((_, i) => <div key={i} style={{ ...CARD, height: 120, opacity: 0.6 }} />)}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-        {[...Array(3)].map((_, i) => <div key={i} style={{ height: 180, borderRadius: 22, background: "var(--surface-2)", opacity: 0.3 }} />)}
+        {[...Array(3)].map((_, i) => <div key={i} style={{ ...CARD, height: 180, opacity: 0.5 }} />)}
       </div>
     </div>
   );
@@ -875,7 +885,7 @@ function LoadingSkeleton() {
 
 function EmptyState({ locale }: { locale: string }) {
   return (
-    <div className="text-center py-16 fade-in">
+    <div className="pa-wrap text-center py-16 fade-in">
       <div style={{ fontSize: 48, marginBottom: 12 }}>🔮</div>
       <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
         {locale === "th" ? "ยังไม่มีข้อมูลเพียงพอ" : "Not enough data yet"}
@@ -889,7 +899,7 @@ function EmptyState({ locale }: { locale: string }) {
 
 function TooFewState({ locale, t }: { locale: string; t: (key: string) => string }) {
   return (
-    <div className="text-center py-16 fade-in">
+    <div className="pa-wrap text-center py-16 fade-in">
       <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
       <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
         {locale === "th" ? "เกือบถึงแล้ว!" : "Almost there!"}
@@ -901,15 +911,12 @@ function TooFewState({ locale, t }: { locale: string; t: (key: string) => string
 
 function ErrorState({ locale, onRetry }: { locale: string; onRetry: () => void }) {
   return (
-    <div className="text-center py-16 fade-in">
+    <div className="pa-wrap text-center py-16 fade-in">
       <div style={{ fontSize: 48, marginBottom: 12 }}>😵</div>
       <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
         {locale === "th" ? "เกิดข้อผิดพลาด" : "Something went wrong"}
       </h2>
-      <button
-        onClick={onRetry}
-        style={{ marginTop: 12, background: "#A673F1", color: "#fff", border: "none", borderRadius: 100, padding: "10px 24px", fontSize: 14, fontWeight: 700 }}
-      >
+      <button onClick={onRetry} className="pa-btn purple" style={{ marginTop: 12 }}>
         {locale === "th" ? "ลองใหม่" : "Try again"}
       </button>
     </div>
@@ -930,10 +937,10 @@ function FreeGate({ locale }: { locale: string }) {
   };
 
   return (
-    <div className="fade-in">
+    <div className="pa-wrap fade-in">
       <AiSubTabs active="insights" locale={locale} />
 
-      <div style={{ fontSize: 14, fontWeight: 800, color: "#A673F1", letterSpacing: 0.4, marginBottom: 4 }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)", letterSpacing: 0.4, marginBottom: 4 }}>
         AI INSIGHTS
       </div>
       <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 24px" }}>
@@ -943,79 +950,74 @@ function FreeGate({ locale }: { locale: string }) {
       <div className="ins-free-gate">
         {/* Left: blurred preview */}
         <div>
-          <div style={{
-            background: "var(--surface)", borderRadius: 22, padding: 20,
-            border: "1.5px solid var(--hairline-2)", marginBottom: 14,
+          <div className="pa-sheet" style={{
+            borderRadius: 18, padding: 20, marginBottom: 14,
             filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
           }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--w-ink)", marginBottom: 6 }}>
               {isTh ? "สรุปสัปดาห์" : "Weekly summary"}
             </div>
-            <div style={{ fontSize: 14, color: "var(--ink-3)" }}>
+            <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>
               {isTh ? "สัปดาห์นี้ คุณรู้สึก..." : "This week, you felt..."}
             </div>
           </div>
-          <div style={{
-            background: "var(--surface)", borderRadius: 22, padding: 20, height: 200,
-            border: "1.5px solid var(--hairline-2)",
+          <div className="pa-sheet" style={{
+            borderRadius: 18, padding: 20, height: 200,
             filter: "blur(4px)", opacity: 0.6, pointerEvents: "none",
           }} />
         </div>
 
-        {/* Right: premium CTA card */}
-        <div style={{
-          background: "linear-gradient(135deg, #F9A870 0%, #C89BF5 50%, #A673F1 100%)",
-          borderRadius: 22, padding: "28px 24px", color: "#fff",
-          position: "relative",
-        }}>
-          <div style={{ fontSize: 24, marginBottom: 12 }}>+</div>
+        {/* Right: premium CTA card (folder) */}
+        <div style={{ position: "relative" }}>
+          <div className="pa-tab purple">✨ PRO</div>
           <div style={{
-            position: "absolute", top: 20, right: 20,
-            background: "rgba(255,255,255,0.2)", borderRadius: 20,
-            padding: "4px 12px", fontSize: 14, fontWeight: 700,
+            background: "linear-gradient(135deg, #F9A870 0%, #C89BF5 50%, #A673F1 100%)",
+            borderRadius: "4px 18px 18px 18px", padding: "28px 24px", color: "#fff",
+            position: "relative", boxShadow: "0 18px 40px -20px rgba(60,40,20,.45)",
           }}>
-            ✨ PRO
-          </div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
-            {isTh ? "AI Insights รายสัปดาห์" : "Weekly AI Insights"}
-          </h2>
-          <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5, marginBottom: 16 }}>
-            {isTh
-              ? "วิเคราะห์ pattern · เปรียบเทียบสัปดาห์ · ถาม AI ได้ 100 คำถาม/เดือน · ข้อมูลย้อนหลังไม่จำกัด"
-              : "Pattern analysis · Weekly comparisons · 100 AI questions/month · Unlimited history"}
-          </p>
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
-            {(isTh ? [
-              "Weekly mood report (อีเมล)",
-              "Pattern detection อัตโนมัติ",
-              "เปรียบเทียบสัปดาห์ / เดือน / ปี",
-              "Mood signature ของคุณ",
-              "Export ข้อมูลเป็น CSV",
-            ] : [
-              "Weekly mood report (email)",
-              "Automatic pattern detection",
-              "Compare week / month / year",
-              "Your mood signature",
-              "Export data as CSV",
-            ]).map((item, i) => (
-              <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
-                <span style={{ position: "absolute", left: 0 }}>•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={handleCheckout}
-            style={{
-              width: "100%", padding: "14px 0", borderRadius: 16,
-              background: "var(--surface)", border: "none", color: "#A673F1",
-              fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
-            }}
-          >
-            ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
-          </button>
-          <div style={{ fontSize: 14, opacity: 0.75, textAlign: "center" }}>
-            ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+            <PAClip style={{ top: -22, right: 26, transform: "rotate(8deg)" }} />
+            <div style={{ fontSize: 24, marginBottom: 12 }}>+</div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 10px" }}>
+              {isTh ? "AI Insights รายสัปดาห์" : "Weekly AI Insights"}
+            </h2>
+            <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.5, marginBottom: 16 }}>
+              {isTh
+                ? "วิเคราะห์ pattern · เปรียบเทียบสัปดาห์ · ถาม AI ได้ 100 คำถาม/เดือน · ข้อมูลย้อนหลังไม่จำกัด"
+                : "Pattern analysis · Weekly comparisons · 100 AI questions/month · Unlimited history"}
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+              {(isTh ? [
+                "Weekly mood report (อีเมล)",
+                "Pattern detection อัตโนมัติ",
+                "เปรียบเทียบสัปดาห์ / เดือน / ปี",
+                "Mood signature ของคุณ",
+                "Export ข้อมูลเป็น CSV",
+              ] : [
+                "Weekly mood report (email)",
+                "Automatic pattern detection",
+                "Compare week / month / year",
+                "Your mood signature",
+                "Export data as CSV",
+              ]).map((item, i) => (
+                <li key={i} style={{ fontSize: 14, opacity: 0.9, paddingLeft: 16, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0 }}>•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={handleCheckout}
+              style={{
+                width: "100%", padding: "14px 0", borderRadius: 16,
+                background: "var(--w-surface)", border: "none", color: "var(--purple-strong)",
+                fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 8,
+              }}
+            >
+              ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
+            </button>
+            <div style={{ fontSize: 14, opacity: 0.85, textAlign: "center" }}>
+              ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+            </div>
           </div>
         </div>
       </div>

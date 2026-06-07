@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AdminPageHeader } from "./admin-page-header";
 import { AdminStatCard } from "./admin-stat-card";
 import { AdminBarChart } from "./admin-bar-chart";
+import { AdminBadge } from "./admin-badge";
 import { A } from "./admin-ui";
 import type {
   OverviewStats,
@@ -57,12 +58,13 @@ export function OverviewShell({
           value={stats.totalUsers}
           delta={stats.newUsers7d}
           deltaLabel="(7d)"
+          tab="peach"
         />
         <AdminStatCard
           label="Premium"
           value={stats.premiumUsers}
           sub={`${((stats.premiumUsers / Math.max(1, stats.totalUsers)) * 100).toFixed(1)}%`}
-          color="var(--purple)"
+          tab="purple"
         />
         <AdminStatCard
           label="รายได้ MTD"
@@ -76,13 +78,42 @@ export function OverviewShell({
               ? `${revenue.chargeCount} transactions`
               : "ไม่มีข้อมูล Stripe"
           }
-          color="var(--mint)"
+          tab="mint"
         />
         <AdminStatCard
           label="AI calls วันนี้"
           value={stats.aiTodayNlp + stats.aiTodayVision}
           sub={`NLP ${stats.aiTodayNlp} · Vision ${stats.aiTodayVision}`}
+          tab="yellow"
         />
+      </div>
+
+      {/* Article engagement */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ ...A.eyebrow, color: "var(--ink-3)", marginBottom: 12 }}>
+          บทความ
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: 16,
+            maxWidth: 524,
+          }}
+        >
+          <AdminStatCard
+            label="ยอดอ่านบทความ"
+            value={stats.articleViews}
+            sub="รวมทุกบทความ"
+            tab="lav"
+          />
+          <AdminStatCard
+            label="คนให้ความรู้สึก"
+            value={stats.articleReactions}
+            sub="หลังอ่านบทความ"
+            tab="purple"
+          />
+        </div>
       </div>
 
       <div style={{ marginBottom: 18 }}>
@@ -90,6 +121,7 @@ export function OverviewShell({
           title="DAU · 30 วัน"
           data={chartData}
           height={180}
+          unit="คน"
           legend={[
             {
               key: "dau",
@@ -105,7 +137,7 @@ export function OverviewShell({
         <div
           style={{
             padding: "18px 24px",
-            borderBottom: "1px solid var(--hairline)",
+            borderBottom: "1px solid var(--w-rule)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -144,7 +176,7 @@ export function OverviewShell({
                   style={{
                     ...A.td,
                     textAlign: "center",
-                    color: "var(--ink-3)",
+                    color: "var(--w-ink-3)",
                     padding: 32,
                   }}
                 >
@@ -160,7 +192,7 @@ export function OverviewShell({
                   <tr
                     key={u.id}
                     style={{
-                      borderTop: "1px solid var(--hairline)",
+                      borderTop: "1px solid var(--w-rule)",
                     }}
                   >
                     <td style={{ ...A.td, borderBottom: "none" }}>
@@ -171,24 +203,41 @@ export function OverviewShell({
                           gap: 10,
                         }}
                       >
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 50,
-                            background:
-                              "linear-gradient(135deg, var(--peach), var(--purple))",
-                            color: "#fff",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: 800,
-                            fontSize: 11,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {initials}
-                        </div>
+                        {u.image ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={u.image}
+                            alt=""
+                            width={28}
+                            height={28}
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 50,
+                              objectFit: "cover",
+                              flexShrink: 0,
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 50,
+                              background:
+                                "linear-gradient(135deg, var(--peach), var(--purple))",
+                              color: "#fff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 800,
+                              fontSize: 11,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {initials}
+                          </div>
+                        )}
                         <span style={{ fontWeight: 700 }}>
                           {u.name || "—"}
                         </span>
@@ -198,31 +247,27 @@ export function OverviewShell({
                       style={{
                         ...A.td,
                         borderBottom: "none",
-                        color: "var(--ink-3)",
+                        color: "var(--w-ink-3)",
                       }}
                     >
                       {u.email}
                     </td>
                     <td style={{ ...A.td, borderBottom: "none" }}>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          padding: "3px 10px",
-                          borderRadius: 100,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          background: u.isPremium
-                            ? "rgba(166,115,241,.12)"
-                            : "var(--surface-2)",
-                          color: u.isPremium
-                            ? "var(--purple-strong)"
-                            : "var(--ink-2)",
-                        }}
+                      <AdminBadge
+                        variant={
+                          u.plan === "premium"
+                            ? "info"
+                            : u.plan === "trial"
+                              ? "warning"
+                              : "free"
+                        }
                       >
-                        {u.isPremium ? "Premium" : "Free"}
-                      </span>
+                        {u.plan === "premium"
+                          ? "Premium"
+                          : u.plan === "trial"
+                            ? "Trial"
+                            : "Free"}
+                      </AdminBadge>
                     </td>
                     <td
                       style={{
@@ -237,7 +282,7 @@ export function OverviewShell({
                       style={{
                         ...A.td,
                         borderBottom: "none",
-                        color: "var(--ink-3)",
+                        color: "var(--w-ink-3)",
                       }}
                     >
                       {timeAgo(u.createdAt)}
@@ -251,7 +296,7 @@ export function OverviewShell({
                     >
                       <Link
                         href={`/admin/users/${u.id}`}
-                        style={{ color: "var(--ink-3)" }}
+                        style={{ color: "var(--w-ink-3)" }}
                       >
                         ⋯
                       </Link>

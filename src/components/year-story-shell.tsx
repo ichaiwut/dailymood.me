@@ -5,8 +5,11 @@ import { useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { DEFAULT_MOODS } from "@/lib/default-moods";
-import { DEFAULT_MOOD_PACK, moodIconUrl } from "@/lib/moods";
+import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { AiDisclaimer } from "./ai-disclaimer";
+import { PASticker } from "./paper/pa-sticker";
+import { PAClip } from "./paper/pa-clip";
+import { PAMark } from "./paper/pa-mark";
 
 type Tier = "guest" | "free" | "premium";
 
@@ -44,6 +47,8 @@ function moodLabel(id: string, l: string): string | null {
 function moodColor(id: string) { return DEFAULT_MOODS.find((m) => m.id === id)?.color ?? "#F4EEE6"; }
 function daysInMonth(y: number, m: number) { return new Date(y, m, 0).getDate(); }
 
+const eyebrow: React.CSSProperties = { fontSize: 11, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--w-ink-3)", marginBottom: 12 };
+
 interface Props { tier: Tier; pack?: string; iconFormat?: string; }
 
 export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: Props) {
@@ -66,16 +71,17 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
   useEffect(() => { if (ok) load(); else setLoading(false); }, [ok, load]);
 
   if (!ok) return (
-    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ maxWidth: 400, padding: 24 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--purple)", marginBottom: 16 }}>Year Story</div>
-        <h1 style={{ fontSize: 32, fontWeight: 800, color: "var(--ink)", marginBottom: 12, lineHeight: 1.1 }}>
+    <div className="pa-wrap" style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div className="pa-sheet" style={{ maxWidth: 460, borderRadius: 18, padding: "40px 32px", position: "relative", textAlign: "center" }}>
+        <span className="pa-washi lav" aria-hidden style={{ width: 110, top: -12 }} />
+        <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--purple-strong)", marginBottom: 14 }}>Year Story</div>
+        <h1 style={{ fontSize: 30, fontWeight: 800, color: "var(--w-ink)", marginBottom: 12, lineHeight: 1.15 }}>
           {th ? "ค้นพบเรื่องราวอารมณ์ตลอดทั้งปี" : "Discover your emotional year"}
         </h1>
-        <p style={{ fontSize: 16, color: "var(--ink-3)", lineHeight: 1.6, marginBottom: 28 }}>
+        <p style={{ fontSize: 16, color: "var(--w-ink-2)", lineHeight: 1.6, marginBottom: 24 }}>
           {th ? "ดู insight, pattern, และสรุปจาก AI ที่เป็นเอกลักษณ์ของคุณ" : "See insights, patterns, and a unique AI summary of your year"}
         </p>
-        <Link href={"/pricing" as "/"} className="w-btn w-btn-primary" style={{ textDecoration: "none", fontSize: 15, padding: "12px 28px", height: "auto" }}>
+        <Link href={"/pricing" as "/"} className="pa-btn purple" style={{ textDecoration: "none", height: 46, padding: "0 28px" }}>
           {th ? "ดู Pro" : "View Pro"}
         </Link>
       </div>
@@ -83,7 +89,7 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
   );
 
   if (loading || !data) return (
-    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ textAlign: "center" }}>
         <div className="ai-spin" style={{ width: 40, height: 40, margin: "0 auto 16px", borderRadius: "50%", border: "3px solid var(--hairline)", borderTopColor: "var(--purple)" }} />
         <p style={{ fontSize: 16, fontWeight: 600, color: "var(--ink-3)" }}>{th ? "กำลังเตรียมเรื่องราว..." : "Preparing your story..."}</p>
@@ -105,286 +111,230 @@ export function YearStoryShell({ tier, pack = DEFAULT_MOOD_PACK, iconFormat = "s
   const pixelStrip = Array.from({ length: 52 }, (_, w) => {
     const d = new Date(year, 0, 1 + w * 7);
     const key = d.toISOString().slice(0, 10);
-    return data.dayMap[key] ? moodColor(data.dayMap[key]) : "var(--surface-2)";
+    return data.dayMap[key] ? moodColor(data.dayMap[key]) : "var(--w-tint)";
   });
 
   return (
-    <>
+    <div className="pa-wrap fade-in" style={{ paddingBottom: 60 }}>
       <style>{`
         .ys-reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
         .ys-reveal.visible{opacity:1;transform:none}
-        .ys-w{max-width:960px;margin:0 auto;padding:0 24px}
+        .ys-w{max-width:960px;margin:0 auto;padding:16px 24px 0}
         @media(max-width:767px){
-          .ys-w{padding:0 16px}
+          .ys-w{padding:12px 16px 0}
           .ys-2col{grid-template-columns:1fr!important}
-          .ys-hero-section{padding-top:8px!important;padding-bottom:24px!important}
-          .ys-strip span{width:10px!important;height:14px!important;border-radius:2px!important}
-          .ys-month-card{padding:32px 20px!important}
-          .ys-pixel-card{padding:14px!important}
+          .ys-strip span{width:10px!important;height:16px!important}
         }
       `}</style>
 
-      {/* ═══ HERO ═══ */}
       <div className="ys-w">
+        {/* ═══ HERO folder ═══ */}
         <Reveal>
-          <section className="ys-hero-section" style={{ paddingTop: "clamp(100px, 18vh, 180px)", paddingBottom: 48 }}>
-            <Link
-              href={"/year-in-pixels" as "/"}
-              style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 600, color: "var(--ink-3)", textDecoration: "none", marginBottom: 16 }}
-            >
-              ← {th ? "Year in Pixels" : "Year in Pixels"}
-            </Link>
-            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--purple)", marginBottom: 20 }}>
-              Year Story
+          <div style={{ position: "relative", marginBottom: 30 }}>
+            <span className="pa-tab purple">★ YEAR STORY</span>
+            <div className="pa-sheet" style={{ borderRadius: "4px 18px 18px 18px", padding: "clamp(24px, 4vw, 40px)", position: "relative" }}>
+              <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden", pointerEvents: "none" }}>
+                <div style={{ position: "absolute", top: -60, right: -50, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, var(--lavender), transparent 70%)", opacity: 0.4 }} />
+              </div>
+              <PAClip style={{ top: -15, right: 44, transform: "rotate(7deg)", zIndex: 8 }} />
+              <div style={{ position: "relative" }}>
+                <Link href={"/year-in-pixels" as "/"} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, fontWeight: 700, color: "var(--w-ink-3)", textDecoration: "none", marginBottom: 8 }}>
+                  ← Year in Pixels
+                </Link>
+                <h1 style={{ fontSize: "clamp(72px, 15vw, 148px)", fontWeight: 800, lineHeight: 0.85, letterSpacing: "-.05em", color: "var(--w-ink)", margin: "6px 0 0" }}>
+                  {year}
+                </h1>
+                {ai?.yearTheme && (
+                  <p style={{ fontSize: "clamp(18px, 3vw, 26px)", fontWeight: 700, color: "var(--w-ink-2)", marginTop: 18, maxWidth: 560 }}>
+                    <PAMark color="var(--yellow)">{ai.yearTheme}</PAMark>
+                  </p>
+                )}
+                <div className="ys-strip" style={{ display: "flex", gap: 3, marginTop: 28, overflow: "hidden" }}>
+                  {pixelStrip.map((c, i) => (
+                    <span key={i} style={{ width: 14, height: 22, borderRadius: 3, background: c, flexShrink: 0 }} />
+                  ))}
+                </div>
+              </div>
             </div>
-            <h1 style={{ fontSize: "clamp(100px, 22vw, 200px)", fontWeight: 800, lineHeight: .82, letterSpacing: "-.05em", color: "var(--ink)", margin: 0 }}>
-              {year}
-            </h1>
-            {ai?.yearTheme && (
-              <p style={{ fontSize: "clamp(18px, 3vw, 28px)", fontWeight: 600, color: "var(--ink-3)", fontStyle: "italic", marginTop: 20, maxWidth: 560 }}>
-                {ai.yearTheme}
-              </p>
+          </div>
+        </Reveal>
+
+        {/* ═══ KEY STATS — two folders ═══ */}
+        <Reveal>
+          <div className="ys-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 30 }}>
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "22px 24px 20px", position: "relative" }}>
+              <span className="pa-washi" aria-hidden style={{ width: 88 }} />
+              <div style={{ fontSize: "clamp(52px, 9vw, 80px)", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-.03em", color: "var(--w-ink)", marginTop: 6 }}>{data.totalDays}</div>
+              <div style={{ ...eyebrow, marginTop: 10, marginBottom: 4 }}>{th ? "วันที่บันทึก" : "Days logged"}</div>
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{th ? `จาก ${data.daysInYear} วัน · ${pct}%` : `of ${data.daysInYear} · ${pct}%`}</div>
+            </div>
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "22px 24px 20px", position: "relative" }}>
+              <span className="pa-washi yellow" aria-hidden style={{ width: 88 }} />
+              <div style={{ fontSize: "clamp(52px, 9vw, 80px)", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-.03em", color: "var(--w-ink)", marginTop: 6 }}>{data.streak.days} <span style={{ fontSize: 28 }}>🔥</span></div>
+              <div style={{ ...eyebrow, marginTop: 10, marginBottom: 4 }}>{th ? "วันติดต่อกัน" : "Day streak"}</div>
+              <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{th ? "สถิติสูงสุด" : "personal best"}{data.streak.month > 0 ? ` · ${mf[data.streak.month - 1]}` : ""}</div>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* ═══ DOMINANT MOOD folder ═══ */}
+        {mood && (
+          <Reveal>
+            <div style={{ position: "relative", marginBottom: 30 }}>
+              <span className="pa-tab lav">{th ? "อารมณ์ที่ครองปีนี้" : "Dominant mood"}</span>
+              <div className="pa-sheet" style={{ borderRadius: "4px 18px 18px 18px", padding: "26px 28px", position: "relative", overflow: "hidden" }}>
+                <div aria-hidden style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden", pointerEvents: "none" }}>
+                  <div style={{ position: "absolute", top: -50, right: -40, width: 200, height: 200, borderRadius: "50%", background: `radial-gradient(circle, ${moodColor(data.dominantMood)}, transparent 70%)`, opacity: 0.35 }} />
+                </div>
+                <div style={{ position: "relative" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 24 }}>
+                    <PASticker moodId={mood.id} color={mood.color} size={64} pack={pack} iconFormat={iconFormat} style={{ transform: "rotate(-6deg)" }} />
+                    <div>
+                      <div style={{ fontSize: "clamp(32px, 6vw, 48px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--w-ink)" }}>
+                        {moodLabel(data.dominantMood, locale) ?? "—"}
+                      </div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: moodColor(data.dominantMood), marginTop: 2 }}>{data.dominantPct}%</div>
+                    </div>
+                  </div>
+                  {moodDist.length > 0 && (
+                    <>
+                      <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", marginBottom: 14 }}>
+                        {moodDist.map((m) => (<div key={m.id} style={{ width: `${m.pct}%`, background: m.color, minWidth: m.pct > 0 ? 4 : 0 }} />))}
+                      </div>
+                      <div style={{ display: "flex", gap: "clamp(12px, 2vw, 22px)", flexWrap: "wrap" }}>
+                        {moodDist.slice(0, 5).map((m) => (
+                          <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color, flexShrink: 0 }} />
+                            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink-2)" }}>{th ? m.labelTh : m.label} {m.pct}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        )}
+
+        {/* ═══ BEST + HARD MONTH folders ═══ */}
+        <div className="ys-2col" style={{ display: "grid", gridTemplateColumns: data.bestMonth && data.hardMonth ? "1fr 1fr" : "1fr", gap: 18, marginBottom: 30 }}>
+          {data.bestMonth && (
+            <Reveal>
+              <div style={{ position: "relative", height: "100%" }}>
+                <span className="pa-tab yellow">{th ? "เดือนที่ดีที่สุด" : "Best month"}</span>
+                <div className="pa-sheet" style={{ borderRadius: "4px 16px 16px 16px", padding: "22px 24px", height: "calc(100% - 8px)" }}>
+                  <div style={{ fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--w-ink)", marginBottom: 4 }}>{mf[data.bestMonth.month - 1]}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#E8923E", marginBottom: ai?.bestQuarter ? 14 : 0 }}>{data.bestMonth.avg} / 5</div>
+                  {ai?.bestQuarter && <p style={{ fontSize: 15, lineHeight: 1.65, color: "var(--w-ink-2)", margin: 0 }}>{ai.bestQuarter}</p>}
+                </div>
+              </div>
+            </Reveal>
+          )}
+          {data.hardMonth && (
+            <Reveal>
+              <div style={{ position: "relative", height: "100%" }}>
+                <span className="pa-tab purple">{th ? "เดือนที่ท้าทาย" : "Toughest month"}</span>
+                <div className="pa-sheet" style={{ borderRadius: "4px 16px 16px 16px", padding: "22px 24px", height: "calc(100% - 8px)" }}>
+                  <div style={{ fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--w-ink)", marginBottom: 4 }}>{mf[data.hardMonth.month - 1]}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--purple-strong)", marginBottom: ai?.hardestPeriod ? 14 : 0 }}>{data.hardMonth.avg} / 5</div>
+                  {ai?.hardestPeriod && <p style={{ fontSize: 15, lineHeight: 1.65, color: "var(--w-ink-2)", margin: 0 }}>{ai.hardestPeriod}</p>}
+                </div>
+              </div>
+            </Reveal>
+          )}
+        </div>
+
+        {/* ═══ PATTERNS — two folders ═══ */}
+        <Reveal>
+          <div className="ys-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 30 }}>
+            {data.topTrigger && (
+              <div className="pa-sheet" style={{ borderRadius: 16, padding: "20px 22px" }}>
+                <div style={eyebrow}>{th ? "สิ่งที่ส่งผลมากสุด" : "Top influence"}</div>
+                <div style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>&ldquo;{data.topTrigger.tag}&rdquo;</div>
+                <div style={{ fontSize: 14, color: "var(--w-ink-3)" }}>{data.topTrigger.count} {th ? "ครั้งตลอดปี" : "times this year"}</div>
+              </div>
             )}
-            <div className="ys-strip" style={{ display: "flex", gap: 3, marginTop: 40, overflow: "hidden" }}>
-              {pixelStrip.map((c, i) => (
-                <span key={i} style={{ width: 14, height: 20, borderRadius: 3, background: c, flexShrink: 0 }} />
-              ))}
-            </div>
-          </section>
-        </Reveal>
-
-        {/* ═══ KEY STATS ═══ */}
-        <Reveal>
-          <section style={{ paddingBottom: "clamp(60px, 10vh, 100px)" }}>
-            <div style={{ height: 1, background: "var(--hairline)", marginBottom: "clamp(40px, 6vh, 60px)" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(24px, 4vw, 48px)" }} className="ys-2col">
-              <div>
-                <div style={{ fontSize: "clamp(64px, 12vw, 96px)", fontWeight: 800, lineHeight: .9, letterSpacing: "-.03em", color: "var(--ink)" }}>
-                  {data.totalDays}
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginTop: 8, textTransform: "uppercase", letterSpacing: .5 }}>
-                  {th ? "วันที่บันทึก" : "Days logged"}
-                </div>
-                <div style={{ fontSize: 15, color: "var(--ink-3)", marginTop: 4 }}>
-                  {th ? `จาก ${data.daysInYear} วัน · ${pct}%` : `of ${data.daysInYear} · ${pct}%`}
-                </div>
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "20px 22px" }}>
+              <div style={eyebrow}>{th ? "ช่วงท้ายปี" : "End of year"}</div>
+              <div style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, color: "var(--w-ink)", marginBottom: 4 }}>
+                {data.trendQ4.pct > 0 ? (th ? "ดีขึ้นเรื่อย ๆ" : "Improving") : data.trendQ4.pct < 0 ? (th ? "ท้าทาย" : "Challenging") : (th ? "คงที่" : "Steady")}
               </div>
-              <div>
-                <div style={{ fontSize: "clamp(64px, 12vw, 96px)", fontWeight: 800, lineHeight: .9, letterSpacing: "-.03em", color: "var(--ink)" }}>
-                  {data.streak.days}
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", marginTop: 8, textTransform: "uppercase", letterSpacing: .5 }}>
-                  {th ? "วันติดต่อกัน" : "Day streak"}
-                </div>
-                <div style={{ fontSize: 15, color: "var(--ink-3)", marginTop: 4 }}>
-                  {th ? "สถิติสูงสุด" : "personal best"}{data.streak.month > 0 ? ` · ${mf[data.streak.month - 1]}` : ""}
-                </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: data.trendQ4.pct >= 0 ? "#1A8A4A" : "#C53030" }}>
+                {data.trendQ4.pct >= 0 ? "+" : ""}{data.trendQ4.pct}%
               </div>
             </div>
-          </section>
-        </Reveal>
-      </div>
-
-      {/* ═══ DOMINANT MOOD — tinted full-bleed ═══ */}
-      {mood && (
-        <div style={{ background: `${moodColor(data.dominantMood)}0C` }}>
-          <div className="ys-w">
-            <Reveal>
-              <section style={{ padding: "clamp(60px, 10vh, 100px) 0" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink-3)", marginBottom: 20 }}>
-                  {th ? "อารมณ์ที่ครองปีนี้" : "Dominant mood"}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "clamp(16px, 3vw, 24px)", marginBottom: 36 }}>
-                  <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={64} height={64} style={{ flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: "clamp(36px, 7vw, 56px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--ink)" }}>
-                      {moodLabel(data.dominantMood, locale) ?? "—"}
-                    </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: moodColor(data.dominantMood), marginTop: 2 }}>
-                      {data.dominantPct}%
-                    </div>
-                  </div>
-                </div>
-
-                {moodDist.length > 0 && (
-                  <>
-                    <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", marginBottom: 14 }}>
-                      {moodDist.map((m) => (
-                        <div key={m.id} style={{ width: `${m.pct}%`, background: m.color, minWidth: m.pct > 0 ? 4 : 0 }} />
-                      ))}
-                    </div>
-                    <div style={{ display: "flex", gap: "clamp(12px, 2vw, 24px)", flexWrap: "wrap" }}>
-                      {moodDist.slice(0, 5).map((m) => (
-                        <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color, flexShrink: 0 }} />
-                          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-2)" }}>
-                            {th ? m.labelTh : m.label} {m.pct}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </section>
-            </Reveal>
           </div>
-        </div>
-      )}
+        </Reveal>
 
-      <div className="ys-w">
-        {/* ═══ BEST MONTH ═══ */}
-        {data.bestMonth && (
+        {/* ═══ AI NARRATIVE — plum folder ═══ */}
+        {ai && (
           <Reveal>
-            <section style={{ paddingTop: "clamp(40px, 6vh, 72px)", paddingBottom: "clamp(32px, 4vh, 48px)" }}>
-              <div className="ys-month-card" style={{ borderLeft: "4px solid #E8923E", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "#C77B3F", marginBottom: 12 }}>
-                  {th ? "เดือนที่ดีที่สุด" : "Best month"}
+            <div style={{ position: "relative", marginBottom: 30 }}>
+              <span className="pa-tab ink">✦ AI · {th ? "สรุปปีของคุณ" : "Year Summary"}</span>
+              <div className="pa-sheet" style={{ borderRadius: "4px 18px 18px 18px", background: "linear-gradient(155deg,#2A1F33,#1A1320)", color: "#fff", padding: "clamp(28px, 5vw, 48px)", position: "relative", overflow: "hidden" }}>
+                <div aria-hidden style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, var(--peach), transparent 70%)", opacity: 0.3 }} />
+                <div
+                  style={{ position: "relative", fontSize: "clamp(19px, 2.6vw, 26px)", lineHeight: 1.7, color: "rgba(255,255,255,.6)", fontWeight: 600 }}
+                  dangerouslySetInnerHTML={{ __html: ai.summary.replace(/\*\*(.*?)\*\*/g, "<b style='color:rgba(255,255,255,.92);font-weight:800'>$1</b>") }}
+                />
+                <div style={{ position: "relative", marginTop: 24 }}>
+                  <AiDisclaimer variant="story" style={{ color: "rgba(255,255,255,.4)" }} />
                 </div>
-                <div style={{ fontSize: "clamp(32px, 6vw, 52px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--ink)", marginBottom: 4 }}>
-                  {mf[data.bestMonth.month - 1]}
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "#E8923E", marginBottom: ai?.bestQuarter ? 16 : 0 }}>
-                  {data.bestMonth.avg} / 5
-                </div>
-                {ai?.bestQuarter && (
-                  <p style={{ fontSize: 17, lineHeight: 1.7, color: "var(--ink-2)", maxWidth: 540, margin: 0 }}>{ai.bestQuarter}</p>
-                )}
               </div>
-            </section>
+            </div>
           </Reveal>
         )}
 
-        {/* ═══ HARDEST MONTH ═══ */}
-        {data.hardMonth && (
-          <Reveal>
-            <section style={{ paddingBottom: "clamp(40px, 6vh, 72px)" }}>
-              <div className="ys-month-card" style={{ borderLeft: "4px solid var(--purple)", paddingLeft: "clamp(20px, 3vw, 32px)" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--purple)", marginBottom: 12 }}>
-                  {th ? "เดือนที่ท้าทาย" : "Toughest month"}
-                </div>
-                <div style={{ fontSize: "clamp(32px, 6vw, 52px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-.02em", color: "var(--ink)", marginBottom: 4 }}>
-                  {mf[data.hardMonth.month - 1]}
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--purple)", marginBottom: ai?.hardestPeriod ? 16 : 0 }}>
-                  {data.hardMonth.avg} / 5
-                </div>
-                {ai?.hardestPeriod && (
-                  <p style={{ fontSize: 17, lineHeight: 1.7, color: "var(--ink-2)", maxWidth: 540, margin: 0 }}>{ai.hardestPeriod}</p>
-                )}
-              </div>
-            </section>
-          </Reveal>
-        )}
-
-        {/* ═══ PATTERNS ═══ */}
+        {/* ═══ PIXEL GRID folder ═══ */}
         <Reveal>
-          <section style={{ paddingBottom: "clamp(48px, 8vh, 80px)" }}>
-            <div style={{ height: 1, background: "var(--hairline)", marginBottom: "clamp(40px, 6vh, 60px)" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(24px, 4vw, 48px)" }} className="ys-2col">
-              {data.topTrigger && (
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink-3)", marginBottom: 12 }}>
-                    {th ? "สิ่งที่ส่งผลมากสุด" : "Top influence"}
-                  </div>
-                  <div style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
-                    &ldquo;{data.topTrigger.tag}&rdquo;
-                  </div>
-                  <div style={{ fontSize: 15, color: "var(--ink-3)" }}>
-                    {data.topTrigger.count} {th ? "ครั้งตลอดปี" : "times this year"}
-                  </div>
-                </div>
-              )}
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink-3)", marginBottom: 12 }}>
-                  {th ? "ช่วงท้ายปี" : "End of year"}
-                </div>
-                <div style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
-                  {data.trendQ4.pct > 0 ? (th ? "ดีขึ้นเรื่อย ๆ" : "Improving") : data.trendQ4.pct < 0 ? (th ? "ท้าทาย" : "Challenging") : (th ? "คงที่" : "Steady")}
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: data.trendQ4.pct >= 0 ? "#1A8A4A" : "#C53030" }}>
-                  {data.trendQ4.pct >= 0 ? "+" : ""}{data.trendQ4.pct}%
-                </div>
-              </div>
-            </div>
-          </section>
-        </Reveal>
-      </div>
-
-      {/* ═══ AI NARRATIVE — dark contrast ═══ */}
-      {ai && (
-        <div style={{ background: "#1A1320" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto", padding: "clamp(80px, 12vh, 140px) 24px" }}>
-            <Reveal>
-              <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(166,115,241,.45)", marginBottom: 28, display: "flex", alignItems: "center", gap: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="rgba(166,115,241,.6)" /></svg>
-                AI {th ? "สรุปปีของคุณ" : "Year Summary"}
-              </div>
-              <div
-                style={{ fontSize: "clamp(20px, 3vw, 28px)", lineHeight: 1.7, color: "rgba(255,255,255,.5)", fontWeight: 600 }}
-                dangerouslySetInnerHTML={{ __html: ai.summary.replace(/\*\*(.*?)\*\*/g, "<b style='color:rgba(255,255,255,.82);font-weight:800'>$1</b>") }}
-              />
-              <div style={{ marginTop: 28 }}>
-                <AiDisclaimer variant="story" style={{ color: "rgba(255,255,255,.4)" }} />
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ PIXEL GRID ═══ */}
-      <div className="ys-w">
-        <section style={{ padding: "clamp(60px, 10vh, 100px) 0" }}>
-          <Reveal>
-            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--ink-3)", marginBottom: 20 }}>
-              {th ? "ทุกวันของปี" : "Every day of the year"}
-            </div>
-            <div className="ys-pixel-card" style={{ background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 16, padding: "clamp(16px, 3vw, 28px)", overflowX: "auto" }}>
+          <div style={{ position: "relative", marginBottom: 30 }}>
+            <span className="pa-tab mint">{th ? "ทุกวันของปี" : "Every day of the year"}</span>
+            <div className="pa-sheet" style={{ borderRadius: "4px 18px 18px 18px", padding: "clamp(16px, 3vw, 28px)", overflowX: "auto" }}>
               <div style={{ minWidth: 580, display: "grid", gridTemplateColumns: "40px repeat(31, 1fr)", gap: 2 }}>
                 {Array.from({ length: 12 }, (_, mi) => {
                   const m = mi + 1;
                   const d = daysInMonth(year, m);
                   return [
-                    <div key={`l${mi}`} style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", display: "flex", alignItems: "center" }}>{MTH[mi]}</div>,
+                    <div key={`l${mi}`} style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink-3)", display: "flex", alignItems: "center" }}>{MTH[mi]}</div>,
                     ...Array.from({ length: 31 }, (_, di) => {
                       if (di >= d) return <div key={`e${mi}-${di}`} />;
                       const ds = `${year}-${String(m).padStart(2, "0")}-${String(di + 1).padStart(2, "0")}`;
                       const mid = data.dayMap[ds];
-                      return <div key={ds} style={{ aspectRatio: "1", borderRadius: 3, background: mid ? moodColor(mid) : "var(--surface-2)" }} />;
+                      return <div key={ds} style={{ aspectRatio: "1", borderRadius: 3, background: mid ? moodColor(mid) : "var(--w-tint)" }} />;
                     }),
                   ];
                 })}
               </div>
-              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--w-rule)" }}>
                 {DEFAULT_MOODS.map((m) => (
                   <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
-                    <span style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600 }}>{th ? m.labelTh : m.label}</span>
+                    <span style={{ fontSize: 14, color: "var(--w-ink-3)", fontWeight: 600 }}>{th ? m.labelTh : m.label}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </Reveal>
-        </section>
+          </div>
+        </Reveal>
 
         {/* ═══ OUTRO ═══ */}
         <Reveal>
-          <section style={{ paddingBottom: "clamp(80px, 12vh, 140px)", textAlign: "center" }}>
-            <p style={{ fontSize: "clamp(24px, 5vw, 40px)", fontWeight: 800, color: "var(--ink)", lineHeight: 1.2, maxWidth: 480, margin: "0 auto 12px" }}>
+          <div className="pa-sheet" style={{ borderRadius: 18, padding: "clamp(36px, 6vw, 56px) 28px", textAlign: "center", position: "relative", marginBottom: 8 }}>
+            <PASticker moodId="amazing" color="var(--peach)" size={52} pack={pack} iconFormat={iconFormat} style={{ margin: "0 auto 18px", transform: "rotate(-8deg)" }} />
+            <p style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 800, color: "var(--w-ink)", lineHeight: 1.2, maxWidth: 480, margin: "0 auto 12px" }}>
               {th ? `ขอบคุณสำหรับปี ${year}` : `Thank you for ${year}`}
             </p>
-            <p style={{ fontSize: 16, color: "var(--ink-3)", maxWidth: 400, margin: "0 auto 32px", lineHeight: 1.6 }}>
+            <p style={{ fontSize: 16, color: "var(--w-ink-3)", maxWidth: 400, margin: "0 auto 24px", lineHeight: 1.6 }}>
               {th ? "ทุกอารมณ์ที่คุณบันทึกคือก้าวหนึ่งของการเข้าใจตัวเอง" : "Every mood you logged is a step toward understanding yourself"}
             </p>
-            <Link
-              href={"/year-in-pixels" as "/"}
-              style={{ fontSize: 15, fontWeight: 700, color: "var(--purple)", textDecoration: "none" }}
-            >
+            <Link href={"/year-in-pixels" as "/"} className="pa-btn" style={{ height: 44, padding: "0 24px", textDecoration: "none" }}>
               ← {th ? "กลับ Year in Pixels" : "Back to Pixels"}
             </Link>
-          </section>
+          </div>
         </Reveal>
       </div>
-    </>
+    </div>
   );
 }
 

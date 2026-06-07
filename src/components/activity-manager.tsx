@@ -212,7 +212,7 @@ export function ActivityManager({ isPremium }: { isPremium: boolean }) {
           >
             <div style={{
               width: 40, height: 40, borderRadius: 12,
-              background: "#E0F2FE",
+              background: "var(--w-tint-info)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 20, flexShrink: 0,
             }}>

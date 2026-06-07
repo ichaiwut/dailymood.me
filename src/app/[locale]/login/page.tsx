@@ -7,15 +7,7 @@ import { eq, desc, sql } from "drizzle-orm";
 import { getSignedReadUrl } from "@/lib/r2";
 import { LoginForm } from "@/components/login-form";
 import { MobileLoginFeed } from "@/components/mobile-login-feed";
-
-const TONE_MAP: Record<string, { hue: string; bgHue: string }> = {
-  peach:    { hue: "var(--peach)",    bgHue: "rgba(252,164,91,.14)" },
-  lavender: { hue: "#A673F1",        bgHue: "rgba(166,115,241,.14)" },
-  mint:     { hue: "#2EA67D",        bgHue: "rgba(133,236,203,.22)" },
-  yellow:   { hue: "var(--yellow)",  bgHue: "rgba(253,203,86,.22)" },
-  blue:     { hue: "#5C9DBE",        bgHue: "rgba(154,205,226,.28)" },
-  purple:   { hue: "#9747FF",        bgHue: "rgba(151,71,255,.14)" },
-};
+import { PAClip, PAMark, ArticleArt, toneHue, toneBg } from "@/components/paper";
 
 export default async function LoginPage() {
   const session = await auth();
@@ -62,7 +54,6 @@ export default async function LoginPage() {
       ...r,
       coverUrl: r.coverImageKey ? await getSignedReadUrl(r.coverImageKey) : null,
       category: r.categoryId ? catMap.get(r.categoryId) : null,
-      tone: TONE_MAP[r.tone] ?? TONE_MAP.peach,
     }))
   );
 
@@ -72,14 +63,16 @@ export default async function LoginPage() {
 
   const l = (th: string, en: string) => (locale === "th" ? th : en) || th;
 
+  const TILT = [-0.7, 0.6, -0.5];
+
   return (
     <>
-    <div className="auth-split">
-      <div className="auth-brand">
+    <div className="auth-split pa-wrap">
+      <div className="auth-brand" style={{ background: "var(--bg)" }}>
         {/* 1. Top bar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 30 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg width={28} height={28} viewBox="0 0 32 32">
+            <svg width={30} height={30} viewBox="0 0 32 32">
               <defs>
                 <linearGradient id="dmlg" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
@@ -90,139 +83,133 @@ export default async function LoginPage() {
               <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
               <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
             </svg>
-            <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.01em" }}>DailyMood</span>
+            <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.01em", color: "var(--ink)" }}>DailyMood</span>
           </div>
           <span style={{
-            fontSize: 11, fontWeight: 700, letterSpacing: ".02em",
-            color: "#9747FF", background: "rgba(151,71,255,.10)",
-            padding: "5px 10px", borderRadius: 999,
+            fontSize: 14, fontWeight: 800, letterSpacing: "-.01em",
+            color: "var(--purple-strong)", background: "var(--w-surface)",
+            padding: "7px 14px", borderRadius: 999,
+            boxShadow: "0 6px 16px -8px rgba(60,40,20,.3)",
           }}>
             {locale === "th" ? "อ่านฟรี · ไม่ต้องสมัคร" : "Read free · No signup"}
           </span>
         </div>
 
-        {/* 2. Section heading */}
-        <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: "#C56A1F", marginBottom: 8 }}>
-            {locale === "th" ? "บทความล่าสุด · Mental health blog" : "Latest · Mental health blog"}
+        {/* 2. Section heading — loose on the desk (theme ink, dark-safe) */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: "var(--ink-3)", marginBottom: 10 }}>
+            {locale === "th" ? "บทความล่าสุด · บล็อกสุขภาพใจ" : "Latest · Mental health blog"}
           </div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0, letterSpacing: "-0.02em", lineHeight: 1.15 }}>
-            {locale === "th" ? (<>ลองอ่านก่อน — แล้วค่อย<br />ตัดสินใจสมัคร</>) : (<>Read first — then decide<br />to sign up</>)}
+          <h1 style={{ fontSize: "clamp(28px, 3vw, 34px)", fontWeight: 800, margin: 0, letterSpacing: "-0.02em", lineHeight: 1.18, color: "var(--ink)" }}>
+            {locale === "th"
+              ? (<>ลองอ่านก่อน — แล้วค่อย<br /><PAMark color="var(--peach)">ตัดสินใจสมัคร</PAMark></>)
+              : (<>Read first — then <PAMark color="var(--peach)">decide</PAMark><br />to sign up</>)}
           </h1>
-          <p style={{ fontSize: 14, color: "#4A3F55", margin: "10px 0 0", lineHeight: 1.55, maxWidth: 540 }}>
+          <p style={{ fontSize: 15, color: "var(--ink-2)", margin: "12px 0 0", lineHeight: 1.55, maxWidth: 540 }}>
             {locale === "th"
               ? "บทความดูแลสุขภาพใจ · อัปเดตทุกสัปดาห์"
               : "Mental health articles · Updated weekly"}
           </p>
         </div>
 
-        {/* 3. Article list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+        {/* 3. Article clippings */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, flex: 1 }}>
           {featured.map((a, i) => {
             const catLabel = a.category ? l(a.category.labelTh, a.category.labelEn) : "";
             const pubDate = a.publishedAt
               ? new Date(a.publishedAt).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" })
               : "";
+            const hue = toneHue(a.tone);
+            const bg = toneBg(a.tone);
             return (
-              <a
-                key={a.slug}
-                href={`/articles/${a.slug}`}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "170px 1fr",
-                  gap: 18,
-                  padding: 14,
-                  borderRadius: 16,
-                  background: i === 0 ? "#fff" : "transparent",
-                  border: `1px solid ${i === 0 ? "rgba(26,19,32,0.08)" : "transparent"}`,
-                  boxShadow: i === 0 ? "0 6px 20px -14px rgba(26,19,32,.25)" : "none",
-                  textDecoration: "none",
-                  color: "inherit",
-                  alignItems: "center",
-                }}
-              >
-                {/* Artwork thumbnail */}
-                <div style={{
-                  width: 170, height: 108, borderRadius: 12, overflow: "hidden",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: a.coverUrl ? `url(${a.coverUrl}) center/cover` : a.tone.bgHue,
-                  flexShrink: 0,
-                }} />
+              <a key={a.slug} href={`/articles/${a.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                <article
+                  className="pa-sheet pa-card-lift"
+                  style={{ padding: 14, display: "flex", gap: 16, alignItems: "flex-start", transform: `rotate(${TILT[i] ?? 0}deg)`, overflow: "visible" }}
+                >
+                  <PAClip style={{ top: -15, left: 28, zIndex: 4 }} />
 
-                {/* Text */}
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase" as const, color: a.tone.hue, marginBottom: 6 }}>
-                    {catLabel} · {a.readingTimeMinutes} {locale === "th" ? "นาที" : "min"}
-                  </div>
-                  <h3 style={{
-                    fontSize: i === 0 ? 19 : 16, fontWeight: 800, margin: 0,
-                    letterSpacing: "-0.01em", lineHeight: 1.3,
-                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+                  {/* framed cover */}
+                  <div style={{
+                    width: 150, height: 100, borderRadius: 12, flexShrink: 0,
+                    overflow: "hidden", background: bg,
+                    border: "3px solid #fff", boxShadow: "0 8px 18px -10px rgba(60,40,20,.5)",
                   }}>
-                    {l(a.titleTh, a.titleEn)}
-                  </h3>
-                  {i === 0 && (
-                    <p style={{
-                      fontSize: 13, color: "#4A3F55", margin: "6px 0 0", lineHeight: 1.5,
+                    {a.coverUrl
+                      ? <div style={{ width: "100%", height: "100%", background: `url(${a.coverUrl}) center/cover` }} />
+                      : <ArticleArt tone={a.tone} />}
+                  </div>
+
+                  {/* text */}
+                  <div style={{ minWidth: 0, flex: 1, paddingTop: 2 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: ".03em", textTransform: "uppercase" as const, color: hue, marginBottom: 6 }}>
+                      {catLabel}{catLabel && " · "}{a.readingTimeMinutes} {locale === "th" ? "นาที" : "min"}
+                    </div>
+                    <h3 style={{
+                      fontSize: i === 0 ? 18 : 16, fontWeight: 800, margin: 0, color: "var(--w-ink)",
+                      letterSpacing: "-0.01em", lineHeight: 1.3,
                       display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
                     }}>
-                      {l(a.excerptTh, a.excerptEn)}
-                    </p>
-                  )}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#8C8497", marginTop: 8, fontWeight: 600 }}>
-                    <span>{locale === "th" ? "ทีม DailyMood" : "DailyMood Team"}</span>
-                    <span style={{ width: 3, height: 3, borderRadius: 99, background: "#8C8497" }} />
-                    <span>{pubDate}</span>
+                      {l(a.titleTh, a.titleEn)}
+                    </h3>
+                    {i === 0 && (
+                      <p style={{
+                        fontSize: 14, color: "var(--w-ink-2)", margin: "6px 0 0", lineHeight: 1.5,
+                        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+                      }}>
+                        {l(a.excerptTh, a.excerptEn)}
+                      </p>
+                    )}
+                    <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 8, fontWeight: 600 }}>
+                      {pubDate}
+                    </div>
                   </div>
-                </div>
+                </article>
               </a>
             );
           })}
         </div>
 
-        {/* 4. Footer link */}
-        <a
-          href={"/articles"}
-          style={{
+        {/* 4. See-all folder */}
+        <a href={"/articles"} style={{ textDecoration: "none", color: "inherit", marginTop: 20, display: "block" }}>
+          <div className="pa-sheet pa-card-lift" style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            marginTop: 18, padding: "14px 18px",
-            background: "#fff", border: "1px solid rgba(26,19,32,0.08)",
-            borderRadius: 12, textDecoration: "none", color: "#1A1320",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: "linear-gradient(135deg, var(--peach), var(--purple))",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: 18,
-            }}>
-              📚
-            </div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "-0.01em" }}>
-                {locale === "th" ? "ดูบทความทั้งหมด" : "See all articles"}
+            padding: "14px 18px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 11,
+                background: "linear-gradient(135deg, var(--peach), var(--purple))",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", fontSize: 19, flexShrink: 0,
+              }}>
+                📚
               </div>
-              <div style={{ fontSize: 12, color: "#8C8497", marginTop: 2, display: "flex", gap: 6, alignItems: "center" }}>
-                <span>{totalCount} {locale === "th" ? "บทความ" : "articles"}</span>
-                {moreCats.length > 0 && (
-                  <>
-                    <span style={{ width: 3, height: 3, borderRadius: 99, background: "#8C8497" }} />
-                    {moreCats.map((c, i) => (
-                      <span key={i}>
-                        {i > 0 && " · "}{c ? l(c.labelTh, c.labelEn) : ""}
-                      </span>
-                    ))}
-                  </>
-                )}
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: "-0.01em", color: "var(--w-ink)" }}>
+                  {locale === "th" ? "ดูบทความทั้งหมด" : "See all articles"}
+                </div>
+                <div style={{ fontSize: 14, color: "var(--w-ink-3)", marginTop: 2, display: "flex", gap: 6, alignItems: "center", fontWeight: 600 }}>
+                  <span>{totalCount} {locale === "th" ? "บทความ" : "articles"}</span>
+                  {moreCats.length > 0 && (
+                    <>
+                      <span style={{ width: 3, height: 3, borderRadius: 99, background: "var(--w-ink-3)" }} />
+                      {moreCats.map((c, i) => (
+                        <span key={i}>
+                          {i > 0 && " · "}{c ? l(c.labelTh, c.labelEn) : ""}
+                        </span>
+                      ))}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
+            <span style={{ fontSize: 18, color: "var(--purple-strong)", fontWeight: 800 }}>→</span>
           </div>
-          <span style={{ fontSize: 18, color: "#9747FF", fontWeight: 700 }}>→</span>
         </a>
       </div>
 
-      <main className="auth-form">
+      <main className="auth-form" style={{ background: "var(--bg)" }}>
         <LoginForm />
       </main>
     </div>
@@ -234,13 +221,14 @@ export default async function LoginPage() {
         title: l(a.titleTh, a.titleEn),
         excerpt: l(a.excerptTh, a.excerptEn),
         coverUrl: a.coverUrl,
+        tone: a.tone,
         categoryLabel: a.category ? l(a.category.labelTh, a.category.labelEn) : "",
         readingMinutes: a.readingTimeMinutes,
         publishedDate: a.publishedAt
           ? new Date(a.publishedAt).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" })
           : "",
-        toneHue: a.tone.hue,
-        toneBg: a.tone.bgHue,
+        toneHue: toneHue(a.tone),
+        toneBg: toneBg(a.tone),
       }))}
       totalCount={totalCount}
     />

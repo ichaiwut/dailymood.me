@@ -90,8 +90,8 @@ export function ActivityChip({ activityId, activities }: { activityId: string; a
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
       padding: "4px 10px", borderRadius: 100,
-      background: "#E0F2FE", fontSize: 14, fontWeight: 600,
-      color: "#0369A1",
+      background: "var(--w-tint-info)", fontSize: 14, fontWeight: 600,
+      color: "var(--w-tint-info-fg)",
     }}>
       {act.emoji} {locale === "th" ? (act.labelTh ?? act.label) : act.label}
     </span>

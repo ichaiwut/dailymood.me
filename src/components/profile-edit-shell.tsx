@@ -366,7 +366,7 @@ export function ProfileEditShell() {
       {/* Danger Zone */}
       <div
         style={{
-          background: "#FFFAF8", border: "1.5px solid #F5E0D8", borderRadius: 24,
+          background: "var(--w-surface)", border: "1.5px solid var(--w-rule)", borderRadius: 24,
           padding: "20px", display: "flex", alignItems: "center", justifyContent: "space-between",
         }}
       >
@@ -419,7 +419,7 @@ const LABEL_STYLE: React.CSSProperties = {
 
 const INPUT_STYLE: React.CSSProperties = {
   width: "100%", padding: "14px 16px", borderRadius: 16,
-  border: "1.5px solid var(--hairline-2)", background: "#FAFAFA",
+  border: "1.5px solid var(--hairline-2)", background: "var(--w-surface)",
   fontSize: 16, fontWeight: 500, color: "var(--ink)",
   outline: "none", fontFamily: "inherit",
 };

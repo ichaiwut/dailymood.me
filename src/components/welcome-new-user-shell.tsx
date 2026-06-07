@@ -60,7 +60,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
   };
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--bg, #FBF6EE)" }}>
+    <div className="pa-wrap" style={{ minHeight: "100dvh", background: "var(--bg, #FBF6EE)" }}>
       {/* Top bar */}
       <header style={{
         height: 64, padding: "0 40px",
@@ -149,11 +149,8 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
             <button
               type="button"
               onClick={() => handleExit("/")}
-              style={{
-                height: 52, padding: "0 28px", borderRadius: 16,
-                border: "none", background: "var(--ink, #1A1320)", color: "#fff",
-                fontSize: 16, fontWeight: 700, cursor: "pointer",
-              }}
+              className="pa-btn ink"
+              style={{ height: 52, padding: "0 28px", fontSize: 16 }}
             >
               {isTh ? "เริ่มบันทึกอารมณ์แรก →" : "Log your first mood →"}
             </button>
@@ -161,9 +158,10 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               type="button"
               onClick={() => handleExit("/")}
               style={{
-                height: 52, padding: "0 28px", borderRadius: 16,
-                border: "1.5px solid rgba(26,19,32,0.12)", background: "transparent",
-                color: "var(--ink)", fontSize: 16, fontWeight: 600, cursor: "pointer",
+                height: 52, padding: "0 28px", borderRadius: 14,
+                border: "none", background: "var(--w-surface)", color: "var(--w-ink)",
+                fontSize: 16, fontWeight: 700, cursor: "pointer",
+                boxShadow: "0 10px 26px -16px rgba(60,40,20,.45)",
               }}
             >
               {isTh ? "ไปที่หน้าหลัก" : "Go to home"}
@@ -172,10 +170,9 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
 
           {/* Pro trial banner */}
           {!hasUsedTrial && (
-            <div style={{
+            <div className="pa-sheet" style={{
               padding: "16px 18px", borderRadius: 16, maxWidth: 540, position: "relative", overflow: "hidden",
-              background: "linear-gradient(135deg, rgba(252,164,91,0.12), rgba(166,115,241,0.16))",
-              border: "1px solid rgba(166,115,241,0.20)",
+              background: "var(--w-ai-grad)",
             }}>
               {/* Decorative 🎁 */}
               <div style={{ position: "absolute", top: -10, right: -10, fontSize: 86, opacity: 0.06, transform: "rotate(-12deg)", pointerEvents: "none" }}>🎁</div>
@@ -201,7 +198,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
                       {isTh ? "ไม่ต้องใช้บัตร" : "No card needed"}
                     </span>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--w-ink)", lineHeight: 1.4 }}>
                     {isTh
                       ? "ลอง Pro ฟรี 14 วัน — ปลดล็อก AI Insights, Patterns, Ask AI"
                       : "Try Pro free 14 days — unlock AI Insights, Patterns, Ask AI"}
@@ -215,7 +212,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
                     aria-label={isTh ? "รับสิทธิ์ทดลอง Pro ฟรี 14 วัน" : "Claim 14-day free Pro trial"}
                     style={{
                       height: 40, padding: "0 18px", borderRadius: 12, flexShrink: 0,
-                      border: "none", background: "var(--ink, #1A1320)", color: "#fff",
+                      border: "none", background: "var(--ink, #1A1320)", color: "var(--bg)",
                       fontSize: 14, fontWeight: 700, cursor: trialLoading ? "wait" : "pointer",
                       opacity: trialLoading ? 0.7 : 1,
                     }}
@@ -238,7 +235,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
 
               {/* Error toast */}
               {trialError && (
-                <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "#FEE2E2", fontSize: 14, fontWeight: 600, color: "#D94444" }}>
+                <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "var(--w-tint-danger)", fontSize: 14, fontWeight: 600, color: "var(--w-tint-danger-fg)" }}>
                   {isTh ? "ขอลองอีกครั้ง — มีปัญหาเปิด trial" : "Please try again — something went wrong"}
                 </div>
               )}
@@ -261,10 +258,9 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
           {features.map((f, i) => (
             <div
               key={i}
+              className="pa-sheet"
               style={{
                 padding: 22, borderRadius: 18,
-                background: "var(--surface)", border: "1px solid rgba(26,19,32,0.08)",
-                boxShadow: "0 14px 30px -22px rgba(26,19,32,0.30)",
                 position: "relative", overflow: "hidden",
                 transform: i % 2 === 1 ? "translateY(20px)" : undefined,
               }}
@@ -279,7 +275,7 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               {/* Icon tile */}
               <div style={{
                 width: 40, height: 40, borderRadius: 11, marginBottom: 12,
-                background: "var(--surface)", border: "1px solid rgba(26,19,32,0.08)",
+                background: "var(--w-surface)", border: "1px solid var(--w-rule)",
                 boxShadow: "0 2px 8px rgba(26,19,32,0.06)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 20, position: "relative",
@@ -288,17 +284,17 @@ export function WelcomeNewUserShell({ firstName, hasUsedTrial }: { firstName: st
               </div>
 
               {/* Eyebrow */}
-              <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.03em", color: f.hue, marginBottom: 4, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.03em", color: f.hue, marginBottom: 4, textTransform: "uppercase", position: "relative" }}>
                 {f.eyebrow}
               </div>
 
               {/* Title */}
-              <h3 style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.015em", lineHeight: 1.25, color: "var(--ink)", margin: "0 0 8px" }}>
+              <h3 style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.015em", lineHeight: 1.25, color: "var(--w-ink)", margin: "0 0 8px", position: "relative" }}>
                 {f.title}
               </h3>
 
               {/* Desc */}
-              <p style={{ fontSize: 14, color: "var(--ink-2, #4A3F55)", lineHeight: 1.55, margin: 0 }}>
+              <p style={{ fontSize: 14, color: "var(--w-ink-2)", lineHeight: 1.55, margin: 0, position: "relative" }}>
                 {f.desc}
               </p>
             </div>

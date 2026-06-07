@@ -65,6 +65,16 @@ export function IconAi({ size = 18, ...props }: IconProps) {
   );
 }
 
+export function IconDoc({ size = 18, ...props }: IconProps) {
+  return (
+    <svg {...defaults(size)} {...props}>
+      <path d="M6 3H14L19 8V21H6Z" />
+      <path d="M14 3V8H19" />
+      <path d="M9 13H15M9 16.5H13" />
+    </svg>
+  );
+}
+
 export function IconBolt({ size = 18, ...props }: IconProps) {
   return (
     <svg {...defaults(size)} {...props}>

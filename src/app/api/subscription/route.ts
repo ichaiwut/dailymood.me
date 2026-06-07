@@ -41,8 +41,11 @@ export async function GET() {
 
   const now = new Date();
   const inAppTrialActive = !!user.trialEndsAt && user.trialEndsAt.getTime() > now.getTime();
-  const stripeActive = user.isPremium && !!user.stripeSubscriptionId;
-  const effectivePremium = stripeActive || inAppTrialActive;
+  // Premium definition must match getSessionInfo() in lib/tier.ts: premium if the
+  // isPremium flag is set (paid OR admin-granted/comped — no Stripe subscription
+  // required) OR an active in-app trial. hasStripeCustomer gates billing UI separately.
+  const isPremiumFlag = user.isPremium === true;
+  const effectivePremium = isPremiumFlag || inAppTrialActive;
 
   let trialDaysLeft: number | null = null;
   if (inAppTrialActive) {
@@ -60,6 +63,6 @@ export async function GET() {
     trialActivatedAt: user.trialActivatedAt?.toISOString() ?? null,
     trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
     trialDaysLeft,
-    isTrialing: inAppTrialActive && !stripeActive,
+    isTrialing: inAppTrialActive && !isPremiumFlag,
   });
 }

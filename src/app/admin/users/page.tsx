@@ -40,9 +40,12 @@ export default async function AdminUsersPage({
         image: users.image,
         isPremium: users.isPremium,
         planInterval: users.planInterval,
+        trialEndsAt: users.trialEndsAt,
         createdAt: users.createdAt,
-        entryCount: sql<number>`(SELECT count(*) FROM mood_entries WHERE user_id = ${users.id})`,
-        lastEntryDate: sql<string | null>`(SELECT max(date) FROM mood_entries WHERE user_id = ${users.id})`,
+        // NB: `${users.id}` renders unqualified as "id" and collides with
+        // mood_entries.id inside the subquery. Qualify the outer column.
+        entryCount: sql<number>`(SELECT count(*) FROM mood_entries me WHERE me.user_id = "users"."id")`,
+        lastEntryDate: sql<string | null>`(SELECT max(me.date) FROM mood_entries me WHERE me.user_id = "users"."id")`,
       })
       .from(users)
       .where(where)
@@ -61,12 +64,18 @@ export default async function AdminUsersPage({
       .where(gte(moodEntries.date, d30)),
   ]);
 
+  const now = Date.now();
   const data = rows.map((r) => ({
     id: r.id,
     name: r.name,
     email: r.email,
     image: r.image,
     isPremium: r.isPremium,
+    plan: (r.isPremium
+      ? "premium"
+      : r.trialEndsAt && r.trialEndsAt.getTime() > now
+        ? "trial"
+        : "free") as "free" | "premium" | "trial",
     planInterval: r.planInterval,
     createdAt: r.createdAt.toISOString(),
     entryCount: Number(r.entryCount),

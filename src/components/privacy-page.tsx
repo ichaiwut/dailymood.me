@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { PAClip } from "./paper";
 
 const SUMMARY_ITEMS = [
   { icon: "🔒", bg: "#EDE5FB", key: "sum1" },
@@ -24,14 +25,10 @@ export function PrivacyPage() {
   const router = useRouter();
 
   return (
-    <div className="fade-in">
+    <div className="pa-wrap fade-in">
       {/* header */}
       <div className="flex items-center justify-between py-4">
-        <button
-          onClick={() => router.back()}
-          className="icon-btn"
-          style={{ width: 40, height: 40, borderRadius: 12 }}
-        >
+        <button onClick={() => router.back()} className="pa-icon-btn" aria-label={t("title")}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -39,22 +36,22 @@ export function PrivacyPage() {
         <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
           {t("title")}
         </span>
-        <div style={{ width: 40 }} />
+        <div style={{ width: 42 }} />
       </div>
 
-      {/* hero card */}
+      {/* hero card (clipped folder) */}
       <div
-        className="card"
         style={{
           background: "linear-gradient(135deg, #7B4FD3 0%, #A673F1 50%, #C89BF5 100%)",
-          border: "none",
+          borderRadius: 18,
           padding: "28px 24px",
           color: "#fff",
           position: "relative",
-          overflow: "hidden",
           marginBottom: 28,
+          boxShadow: "0 18px 40px -20px rgba(123,79,211,.55)",
         }}
       >
+        <PAClip style={{ top: -22, right: 26, transform: "rotate(8deg)" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ fontSize: "var(--fs-sm)", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", opacity: 0.85, marginBottom: 8 }}>
             {t("heroLabel")}
@@ -88,8 +85,8 @@ export function PrivacyPage() {
         <div
           style={{
             position: "absolute",
-            top: 16,
-            right: 16,
+            bottom: 12,
+            right: 18,
             fontSize: 56,
             opacity: 0.3,
             transform: "rotate(12deg)",
@@ -104,10 +101,11 @@ export function PrivacyPage() {
         {t("tldr")}
       </div>
 
-      <div className="card" style={{ padding: 0, marginBottom: 32 }}>
+      <div className="pa-sheet" style={{ padding: 0, marginBottom: 32, borderRadius: 18, position: "relative" }}>
+        <span className="pa-washi lav" aria-hidden style={{ width: 84 }} />
         {SUMMARY_ITEMS.map((item, i) => (
           <div key={item.key}>
-            {i > 0 && <div style={{ height: 1, background: "var(--hairline)", marginLeft: 68 }} />}
+            {i > 0 && <div style={{ height: 1, background: "var(--w-rule)", marginLeft: 68 }} />}
             <div style={{ display: "flex", gap: 14, padding: "16px 18px", alignItems: "flex-start" }}>
               <div
                 style={{
@@ -124,10 +122,10 @@ export function PrivacyPage() {
                 {item.icon}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "var(--fs-md)", fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
+                <div style={{ fontSize: "var(--fs-md)", fontWeight: 700, color: "var(--w-ink)", marginBottom: 2 }}>
                   {t(`${item.key}title`)}
                 </div>
-                <div style={{ fontSize: "var(--fs-sm)", color: "var(--ink-2)", lineHeight: 1.5 }}>
+                <div style={{ fontSize: "var(--fs-sm)", color: "var(--w-ink-2)", lineHeight: 1.5 }}>
                   {t(`${item.key}body`)}
                 </div>
               </div>

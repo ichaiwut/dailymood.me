@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { signOut } from "next-auth/react";
 import { Link } from "@/i18n/navigation";
 import { SmartLogModal } from "./smart-log-modal";
+import { BrandMark } from "./brand-mark";
 import { DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { useTheme } from "./theme-provider";
 
@@ -28,16 +29,20 @@ export function TopBarClient({
   name,
   image,
   email,
+  tier = "free",
 }: {
   name: string | null;
   image: string | null;
   email: string | null;
+  tier?: "free" | "premium";
 }) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
   const initials = getInitials(name);
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark" || (theme === "auto" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSmart, setShowSmart] = useState(false);
@@ -93,6 +98,7 @@ export function TopBarClient({
             >
               + {t("navLog") || "บันทึก"}
             </button>
+            <ThemeToggle isDark={isDark} onToggle={() => setTheme(isDark ? "light" : "dark")} />
             <LanguageToggle locale={locale} />
             <div ref={desktopMenuRef} style={{ position: "relative" }}>
               <button
@@ -145,7 +151,7 @@ export function TopBarClient({
 
       {showSmart && (
         <SmartLogModal
-          tier="free"
+          tier={tier}
           pack={DEFAULT_MOOD_PACK}
           onClose={() => setShowSmart(false)}
           onSaved={() => {
@@ -313,21 +319,8 @@ function ThemeToggle({ isDark, onToggle }: { isDark: boolean; onToggle: () => vo
   );
 }
 
-function DMLogo({ size = 26 }: { size?: number }) {
-  const gid = useId().replace(/:/g, "");
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="28" height="28" rx="9" fill={`url(#${gid})`} />
-      <circle cx="12" cy="14" r="1.6" fill="#1A1320" />
-      <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
-      <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
-  );
+function DMLogo({ size = 28 }: { size?: number }) {
+  return <BrandMark size={size} />;
 }
 
 function UserMenu({
@@ -390,13 +383,15 @@ function LanguageToggle({ locale }: { locale: string }) {
 
   function switchLocale() {
     document.cookie = `NEXT_LOCALE=${next};path=/;max-age=31536000;SameSite=Lax`;
+    // Persist to the profile too, but never let a failed PATCH block the switch —
+    // the cookie above is what drives the locale, so always reload.
     fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: next }),
-    }).then(() => {
-      globalThis.location.assign("/");
-    });
+    })
+      .catch(() => {})
+      .finally(() => globalThis.location.assign("/"));
   }
 
   return (

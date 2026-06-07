@@ -37,10 +37,11 @@ interface EntryRow {
 }
 
 const CARD: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1.5px solid var(--hairline)",
-  borderRadius: 16,
+  background: "var(--w-surface)",
+  border: "1px solid var(--w-rule)",
+  borderRadius: "4px 18px 18px 18px",
   padding: 24,
+  boxShadow: "0 18px 40px -20px rgba(60, 40, 20, .45)",
 };
 
 const LABEL: React.CSSProperties = {
@@ -67,7 +68,7 @@ export function UserDetailShell({
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
         <Link
           href="/admin/users"
-          style={{ fontSize: 13, color: "var(--purple)", textDecoration: "none" }}
+          style={{ fontSize: 13, fontWeight: 700, color: "var(--purple-strong)", textDecoration: "none" }}
         >
           ← ผู้ใช้ทั้งหมด
         </Link>
@@ -87,17 +88,22 @@ export function UserDetailShell({
                 startTransition(() => togglePremium(user.id, !user.isPremium))
               }
               style={{
-                padding: "6px 16px",
-                borderRadius: 8,
-                border: "1px solid var(--hairline)",
-                background: user.isPremium ? "var(--purple)" : "var(--surface)",
-                color: user.isPremium ? "#fff" : "var(--ink-2)",
-                fontWeight: 600,
+                padding: "8px 16px",
+                borderRadius: 10,
+                border: user.isPremium ? "none" : "1px solid var(--w-rule-strong)",
+                background: user.isPremium
+                  ? "linear-gradient(135deg, var(--peach), var(--purple))"
+                  : "var(--w-surface)",
+                color: user.isPremium ? "#fff" : "var(--w-ink-2)",
+                fontWeight: 800,
                 fontSize: 13,
                 cursor: "pointer",
+                boxShadow: user.isPremium
+                  ? "0 10px 22px -10px rgba(166,115,241,.7)"
+                  : "0 6px 16px -8px rgba(60,40,20,.35)",
               }}
             >
-              {user.isPremium ? "ปิด Premium" : "เปิด Premium"}
+              {user.isPremium ? "✨ ปิด Premium" : "เปิด Premium"}
             </button>
             <button
               onClick={() => {
@@ -109,12 +115,12 @@ export function UserDetailShell({
                 }
               }}
               style={{
-                padding: "6px 16px",
-                borderRadius: 8,
-                border: "1px solid #FCC",
-                background: "#FFF5F5",
-                color: "#D44",
-                fontWeight: 600,
+                padding: "8px 16px",
+                borderRadius: 10,
+                border: "none",
+                background: "var(--w-tint-danger)",
+                color: "var(--w-tint-danger-fg)",
+                fontWeight: 800,
                 fontSize: 13,
                 cursor: "pointer",
               }}
@@ -168,9 +174,9 @@ export function UserDetailShell({
           marginBottom: 24,
         }}
       >
-        <StatCard label="บันทึกทั้งหมด" value={user.totalEntries} />
-        <StatCard label="NLP Calls" value={user.totalNlp} color="var(--purple)" />
-        <StatCard label="Vision Calls" value={user.totalVision} color="var(--peach)" />
+        <StatCard label="บันทึกทั้งหมด" value={user.totalEntries} tab="peach" />
+        <StatCard label="NLP Calls" value={user.totalNlp} tab="purple" />
+        <StatCard label="Vision Calls" value={user.totalVision} tab="mint" />
       </div>
 
       <div style={CARD}>
@@ -191,10 +197,10 @@ export function UserDetailShell({
                       fontWeight: 700,
                       letterSpacing: 0.5,
                       textTransform: "uppercase",
-                      color: "var(--ink-3)",
+                      color: "var(--w-ink-3)",
                       padding: "8px 10px",
                       textAlign: "left",
-                      borderBottom: "1.5px solid var(--hairline)",
+                      borderBottom: "1.5px solid var(--w-rule)",
                     }}
                   >
                     {h}

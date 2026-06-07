@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
 import { TopBarClient } from "./topbar-client";
+import { BrandMark } from "./brand-mark";
 import { TrialBanner } from "./trial-banner";
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
@@ -11,9 +12,10 @@ export async function TopBar() {
   const session = await auth();
 
   let avatarUrl: string | null = session?.user?.image ?? null;
-  let trialBannerMode: "activate" | "countdown" | "none" = "none";
+  let trialBannerMode: "countdown" | "none" = "none";
   let trialDaysLeft = 0;
   let trialWarning = false;
+  let tier: "free" | "premium" = "free";
 
   if (session?.user?.id) {
     try {
@@ -29,16 +31,19 @@ export async function TopBar() {
         avatarUrl = row.image;
       }
 
+      // Canonical tier (matches getSessionInfo): premium if stripe-active OR in active trial.
+      const inAppTrialActive = !!row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now();
+      if (row?.isPremium === true || inAppTrialActive) tier = "premium";
+
       const stripeActive = row?.isPremium === true && !!row?.stripeSubscriptionId;
-      if (!stripeActive) {
-        if (row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now()) {
-          const msLeft = row.trialEndsAt.getTime() - Date.now();
-          trialBannerMode = "countdown";
-          trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
-          trialWarning = trialDaysLeft <= 3;
-        } else if (!row?.trialActivatedAt && !row?.isPremium) {
-          trialBannerMode = "activate";
-        }
+      // Only the countdown (active-trial) banner lives here now. The trial OFFER
+      // is the dismissible TrialPromoBar in the layout (with one-click activate),
+      // so we no longer render an "activate" banner here — it double-stacked.
+      if (!stripeActive && row?.trialEndsAt && row.trialEndsAt.getTime() > Date.now()) {
+        const msLeft = row.trialEndsAt.getTime() - Date.now();
+        trialBannerMode = "countdown";
+        trialDaysLeft = Math.max(1, Math.ceil(msLeft / 86_400_000));
+        trialWarning = trialDaysLeft <= 3;
       }
     } catch {
       // fall back to session image
@@ -49,9 +54,6 @@ export async function TopBar() {
     <>
       {session?.user ? (
         <>
-          {trialBannerMode === "activate" && (
-            <TrialBanner mode="activate" />
-          )}
           {trialBannerMode === "countdown" && (
             <TrialBanner mode="countdown" daysLeft={trialDaysLeft} isWarning={trialWarning} />
           )}
@@ -59,6 +61,7 @@ export async function TopBar() {
             name={session.user.name ?? null}
             image={avatarUrl}
             email={session.user.email ?? null}
+            tier={tier}
           />
         </>
       ) : (
@@ -82,17 +85,7 @@ export async function TopBar() {
 function DMLogo() {
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: "var(--ink)" }}>
-      <svg width={26} height={26} viewBox="0 0 32 32">
-        <defs>
-          <linearGradient id="dmlg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#FCA45B" /><stop offset=".5" stopColor="#FBA0A0" /><stop offset="1" stopColor="#A673F1" />
-          </linearGradient>
-        </defs>
-        <rect x="2" y="2" width="28" height="28" rx="9" fill="url(#dmlg)" />
-        <circle cx="12" cy="14" r="1.6" fill="#1A1320" />
-        <circle cx="20" cy="14" r="1.6" fill="#1A1320" />
-        <path d="M 11 20 Q 16 24 21 20" stroke="#1A1320" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </svg>
+      <BrandMark size={28} />
       <span style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em" }}>DailyMood</span>
     </span>
   );

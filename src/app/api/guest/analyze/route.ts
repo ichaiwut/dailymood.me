@@ -5,7 +5,8 @@ import { analyzeText } from "@/lib/gemini";
 import { getDb } from "@/lib/cf";
 import { guestEntries } from "@/db/schema";
 import { ulid } from "@/lib/ulid";
-import { buildGuestResponse } from "@/lib/guest-mood";
+import { buildGuestResponse, isGuestMoodId } from "@/lib/guest-mood";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 // Public, unauthenticated endpoint powering the landing-page "try the AI" widget.
 // Called cross-origin from dailymood.me, so it carries explicit CORS headers and
@@ -63,8 +64,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403, headers: cors });
   }
 
-  const body = (await req.json().catch(() => null)) as { text?: string } | null;
+  const body = (await req.json().catch(() => null)) as
+    | { text?: string; mood?: string; turnstileToken?: string }
+    | null;
   const text = body?.text?.trim() ?? "";
+  // Optional: the user tapped a mood in the landing widget. When valid, it
+  // overrides the AI's guess and is fed to the AI as a hint; otherwise the AI
+  // picks the mood as before, so old clients keep working unchanged.
+  const mood = body?.mood && isGuestMoodId(body.mood) ? body.mood : undefined;
 
   if (text.length < MIN_LEN) {
     return NextResponse.json({ error: "too_short" }, { status: 400, headers: cors });
@@ -91,11 +98,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Bot check, after the per-IP limit so a single IP can only trigger a bounded
+  // number of Turnstile verifications. When TURNSTILE_SECRET_KEY is unset this is
+  // a no-op (fail-open), so old clients / local dev keep working.
+  if (!(await verifyTurnstile(body?.turnstileToken))) {
+    return NextResponse.json({ error: "captcha" }, { status: 403, headers: cors });
+  }
+
+  // Global circuit breaker: a hard daily ceiling on analyses across ALL IPs. The
+  // per-IP limits don't bound a distributed (many-IP) attack, so this caps the
+  // worst-case Gemini spend. Tunable via env; tripping it returns a neutral "busy"
+  // (not the user's fault) rather than the per-IP "rate_limited".
+  const dailyCap = Number(process.env.GUEST_ANALYZE_DAILY_CAP) || 1000;
+  const global = await rateLimit({ key: "guest_analyze_global_d", limit: dailyCap, windowSec: 86400 });
+  if (!global.ok) {
+    return NextResponse.json(
+      { error: "busy", retryAfterSec: global.retryAfterSec },
+      { status: 503, headers: { ...cors, "retry-after": String(global.retryAfterSec) } },
+    );
+  }
+
   let result;
   try {
-    const ai = await analyzeText(text);
+    const ai = await analyzeText(text, undefined, mood);
     result = buildGuestResponse({
-      moodId: ai.suggestedMoodId,
+      moodId: mood ?? ai.suggestedMoodId,
       summary: ai.summary,
       tags: ai.tags,
     });

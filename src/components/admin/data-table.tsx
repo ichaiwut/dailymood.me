@@ -77,7 +77,7 @@ export function DataTable<T extends object>({
                 style={{
                   cursor: onRowClick ? "pointer" : undefined,
                   background:
-                    i % 2 === 1 ? "var(--surface-2)" : "var(--surface)",
+                    i % 2 === 1 ? "var(--w-tint)" : "var(--w-surface)",
                   transition: "background 100ms",
                 }}
                 onMouseEnter={(e) => {
@@ -86,7 +86,7 @@ export function DataTable<T extends object>({
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background =
-                    i % 2 === 1 ? "var(--surface-2)" : "var(--surface)";
+                    i % 2 === 1 ? "var(--w-tint)" : "var(--w-surface)";
                 }}
               >
                 {columns.map((col) => (
@@ -110,8 +110,8 @@ export function DataTable<T extends object>({
             alignItems: "center",
             padding: "12px 14px",
             fontSize: 13,
-            color: "var(--ink-2)",
-            borderTop: "1px solid var(--hairline)",
+            color: "var(--w-ink-2)",
+            borderTop: "1px solid var(--w-rule)",
           }}
         >
           <span>
@@ -122,11 +122,7 @@ export function DataTable<T extends object>({
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page === 0}
-              style={{
-                ...A.btnSmall,
-                opacity: page === 0 ? 0.4 : 1,
-                background: "var(--surface)",
-              }}
+              style={{ ...A.btnSmall, opacity: page === 0 ? 0.4 : 1 }}
             >
               ←
             </button>
@@ -139,8 +135,8 @@ export function DataTable<T extends object>({
                   onClick={() => onPageChange(p)}
                   style={{
                     ...A.btnSmall,
-                    background: p === page ? "var(--ink)" : "var(--surface)",
-                    color: p === page ? "#fff" : "var(--ink-2)",
+                    background: p === page ? "var(--w-ink)" : "var(--w-surface)",
+                    color: p === page ? "var(--bg)" : "var(--w-ink-2)",
                   }}
                 >
                   {p + 1}
@@ -150,11 +146,7 @@ export function DataTable<T extends object>({
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page + 1 >= totalPages}
-              style={{
-                ...A.btnSmall,
-                opacity: page + 1 >= totalPages ? 0.4 : 1,
-                background: "var(--surface)",
-              }}
+              style={{ ...A.btnSmall, opacity: page + 1 >= totalPages ? 0.4 : 1 }}
             >
               →
             </button>

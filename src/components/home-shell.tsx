@@ -9,11 +9,18 @@ import { AiDisclaimer } from "./ai-disclaimer";
 import { optimizeImage } from "@/lib/client-image";
 import { VoiceButton } from "./voice-button";
 import { LocationSearch } from "./location-picker";
-import { Link } from "@/i18n/navigation";
 import { trackMoodLog } from "@/lib/analytics";
-import { SpecialDayBanner } from "./special-day-banner";
 import { ActivityPicker } from "./activity-picker";
 import { InstallAppPrompt } from "./install-app-prompt";
+import { Link, useRouter } from "@/i18n/navigation";
+import { PaperIconButton } from "./paper/paper-icon-button";
+import { GreetingFolder } from "./paper/today/greeting-folder";
+import { TodayTimeline } from "./paper/today/today-timeline";
+import { EntryFolderCard } from "./paper/today/entry-folder-card";
+import { AiWeeklyFolder } from "./paper/today/ai-weekly-folder";
+import { StreakCard } from "./paper/today/streak-card";
+import { MiniCalendarFolder } from "./paper/today/mini-calendar-folder";
+import { EmptyToday } from "./paper/today/empty-today";
 import type { SpecialDay } from "@/db/schema";
 
 type Tier = "guest" | "free" | "premium";
@@ -55,14 +62,20 @@ export function HomeShell({
 }) {
   const t = useTranslations("home");
   const locale = useLocale();
-  const icon = (moodId: string) => moodIconUrl(moodId, pack, iconFormat);
+  const router = useRouter();
   const customIcon = (m: { id: string; iconKey: string | null }) =>
-    m.iconKey ? `${R2_PUBLIC_URL}/${m.iconKey}` : icon(m.id);
+    m.iconKey ? `${R2_PUBLIC_URL}/${m.iconKey}` : moodIconUrl(m.id, pack, iconFormat);
 
   const [logMoodId, setLogMoodId] = useState<string | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const focusComposer = () => {
+    composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    composerRef.current?.focus({ preventScroll: true });
+  };
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [customMoods, setCustomMoods] = useState<CustomMoodItem[]>(initialCustomMoods);
+  const [insightData, setInsightData] = useState<{ headline: string; summary: string } | null>(null);
 
   // Inline AI composer state
   const [composerText, setComposerText] = useState("");
@@ -241,522 +254,294 @@ export function HomeShell({
     };
   }, [refreshKey]);
 
+  // Weekly AI insight (premium only, cache-only — lifted from the old sidebar card)
+  useEffect(() => {
+    if (tier !== "premium") return;
+    fetch(`/api/insights?locale=${locale}&cacheOnly=1`)
+      .then((r) => (r.ok ? (r.json() as Promise<Record<string, unknown>>) : null))
+      .then((json) => {
+        if (!json || json.empty || json.tooFewEntries) return;
+        setInsightData({ headline: json.headline as string, summary: json.summary as string });
+      })
+      .catch(() => {});
+  }, [locale, tier]);
+
   const streak = stats?.streak ?? 0;
   const _hour = new Date().getHours();
   const greetTime = locale === "th"
     ? (_hour < 12 ? "สวัสดีตอนเช้า" : _hour < 17 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น")
     : (_hour < 12 ? "Good morning" : _hour < 17 ? "Good afternoon" : "Good evening");
+  const dateTabLabel = new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" });
   const todayStr = new Date().toDateString();
-  const todayEntries = entries?.filter(e => new Date(e.createdAt).toDateString() === todayStr) ?? [];
+  const todayEntries = entries?.filter((e) => new Date(e.createdAt).toDateString() === todayStr) ?? [];
 
+  const pickerMoods = [
+    ...DEFAULT_MOODS.map((m) => ({ id: m.id, label: m.label, labelTh: m.labelTh, color: m.color, iconKey: null as string | null })),
+    ...customMoods.map((m) => ({ id: m.id, label: m.label, labelTh: m.labelTh, color: m.color, iconKey: m.iconKey })),
+  ];
+  const allMoodsForCards = [
+    ...DEFAULT_MOODS.map((m) => ({ id: m.id, color: m.color, label: m.label, labelTh: m.labelTh, iconKey: null as string | null })),
+    ...customMoods.map((m) => ({ id: m.id, color: m.color, label: m.label, labelTh: m.labelTh, iconKey: m.iconKey })),
+  ];
+
+  function entryTab(createdAt: string | number): { label: string; variant: "" | "mint" | "lav" } {
+    const h = new Date(createdAt).getHours();
+    if (h < 12) return { label: locale === "th" ? "เช้า" : "Morning", variant: "" };
+    if (h < 17) return { label: locale === "th" ? "บ่าย" : "Afternoon", variant: "mint" };
+    return { label: locale === "th" ? "เย็น" : "Evening", variant: "lav" };
+  }
+
+  const composerShowSave = (composerSuggestion || composerAiBlocked) && !composerAnalyzing;
 
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 24 }} className="home-grid">
-      {/* ── LEFT COLUMN ── */}
-      <div>
-
-      {/* ── GREETING HERO + MOOD PICKER ─── */}
-      <section className="mb-6 fade-in" style={{ animationDelay: "40ms" }}>
-        <div
-          className="hero-card"
-          style={{
-            borderRadius: 18,
-            padding: "32px 36px",
-            background: "var(--hero-grad)",
-            position: "relative",
-            overflow: "hidden",
-            marginBottom: 24,
-          }}
-        >
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", marginBottom: 6 }}>
-            {greetTime} · {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { weekday: "long", day: "numeric", month: "short" })}
-          </div>
-          <SpecialDayBanner days={todaySpecialDays} locale={locale} />
-          <h1 style={{ fontSize: 30, fontWeight: 800, margin: "4px 0 18px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>
-            {locale === "th" ? "วันนี้คุณรู้สึกยังไง?" : "How are you feeling?"}
-          </h1>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto" }} className="mood-picker no-scrollbar">
-            {[...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods].map((m, i) => (
-              <button
-                key={m.id}
-                onClick={() => setLogMoodId(m.id)}
-                style={{
-                  minWidth: 72,
-                  flex: "0 0 auto",
-                  padding: "14px 8px 10px",
-                  borderRadius: 14,
-                  background: "var(--surface)",
-                  border: i === 0 ? "2px solid var(--peach)" : "1.5px solid rgba(0,0,0,.06)",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                  fontFamily: "inherit",
-                  boxShadow: i === 0 ? "0 6px 16px -6px rgba(252,164,91,.5)" : "0 1px 3px rgba(0,0,0,.04)",
-                }}
-              >
-                <img src={customIcon(m)} alt="" width={36} height={36} style={{ pointerEvents: "none" }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-2)", whiteSpace: "nowrap" }}>
-                  {(locale === "th" ? m.labelTh : m.label) ?? m.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── AI COMPOSER CARD ─── */}
-      <section className="mb-6 fade-in" style={{ animationDelay: "60ms" }}>
-        <div
-          className="card"
-          style={{
-            padding: "20px 18px",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: -20,
-              right: -20,
-              width: 120,
-              height: 120,
-              background: "radial-gradient(circle, rgba(166,115,241,0.18), transparent 70%)",
-            }}
-          />
-          <div className="flex items-center gap-2 mb-3" style={{ position: "relative" }}>
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
-                background: "#A673F1",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#A673F1", letterSpacing: "0.3px" }}>
-              AI MOOD ASSISTANT
-            </span>
-          </div>
-
-          {/* Textarea */}
-          <textarea
-            value={composerText}
-            onChange={(e) => {
-              setComposerText(e.target.value);
-              if (composerSuggestion) {
-                setComposerSuggestion(null);
-                setComposerTags([]);
-              }
-            }}
-            placeholder={t("smartLogHint")}
-            rows={3}
-            className="w-full resize-none"
-            style={{
-              background: "var(--surface-2)",
-              color: "var(--ink)",
-              borderRadius: 16,
-              border: "1.5px solid var(--hairline-2)",
-              padding: "12px 14px",
-              fontSize: 15,
-              lineHeight: 1.5,
-              outline: "none",
-            }}
-          />
-
-          {/* Image preview */}
-          {composerImagePreview && (
-            <div style={{ display: "inline-flex", position: "relative", marginTop: 10 }}>
-              <img src={composerImagePreview} alt="" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 12 }} />
-              <button
-                onClick={() => { setComposerImage(null); setComposerImagePreview(null); }}
-                style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--ink)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14 }}
-              >
-                ×
-              </button>
-            </div>
-          )}
-
-          {/* Location tag */}
-          {composerLocation && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "var(--primary-bg)" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" /></svg>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{composerLocation}</span>
-              <button type="button" onClick={() => setComposerLocation("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="var(--ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
-              </button>
-            </div>
-          )}
-
-          {/* Error / Info */}
-          {composerError && (
-            <div className="mt-2.5" style={{ padding: "10px 14px", borderRadius: 12, background: "var(--primary-bg)", border: "1px solid var(--hairline)" }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)" }}>
-                {composerError}
-              </p>
-            </div>
-          )}
-
-          {/* AI analyzing state */}
-          {composerAnalyzing && (
-            <div className="mt-3 fade-in" style={{ padding: "14px", borderRadius: 18, background: "var(--hero-grad)" }}>
-              <div className="flex items-center gap-2">
-                <div className="pulse" style={{ width: 24, height: 24, borderRadius: 7, background: "#A673F1", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple)", letterSpacing: "0.4px" }}>
-                  {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI IS READING YOUR DAY..."}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Mood pills (after AI result OR AI blocked) */}
-          {(composerSuggestion || composerAiBlocked) && !composerAnalyzing && (
-            <div className="flex flex-wrap gap-1.5 mt-3 fade-in">
-              {[...DEFAULT_MOODS.map((m) => ({ ...m, iconKey: null as string | null })), ...customMoods].map((m) => {
-                const active = m.id === composerMoodId;
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => setComposerMoodId(m.id)}
-                    className="flex items-center gap-1 transition active:scale-95"
-                    style={{
-                      background: active ? m.color : "#fff",
-                      color: active ? "#fff" : "var(--ink-2)",
-                      padding: "5px 10px",
-                      borderRadius: 100,
-                      fontSize: 14,
-                      fontWeight: 700,
-                      border: active ? "none" : "1.5px solid var(--hairline-2)",
-                    }}
-                  >
-                    <img src={customIcon(m)} alt="" width={16} height={16} />
-                    {(locale === "th" ? m.labelTh : m.label) ?? m.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Tag pills (after AI result) */}
-          {composerSuggestion && !composerAnalyzing && composerTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2 fade-in">
-              {composerTags.map((tag, i) => (
-                <span key={i} className="flex items-center gap-1" style={{ background: "var(--surface)", border: "1.5px solid var(--hairline-2)", padding: "5px 10px", borderRadius: 100, fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
-                  {tag}
-                  <button onClick={() => setComposerTags((p) => p.filter((_, j) => j !== i))} style={{ color: "var(--ink-3)", display: "flex" }}>
-                    <svg width="8" height="8" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Activity picker */}
-          {!composerAnalyzing && (
-            <div style={{ marginTop: 10 }}>
-              <ActivityPicker value={composerActivityId} onChange={setComposerActivityId} compact />
-            </div>
-          )}
-
-          {/* Bottom bar: voice + camera + action button */}
-          <div className="flex items-center gap-2 mt-3">
-            <VoiceButton onTranscript={(s) => setComposerText((p) => (p ? p + " " : "") + s)} />
-            <label
-              className="icon-btn"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                cursor: tier === "premium" ? "pointer" : "default",
-                opacity: tier === "premium" ? 1 : 0.45,
-                position: "relative",
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {tier !== "premium" && (
-                <span style={{
-                  position: "absolute",
-                  top: -4,
-                  right: -6,
-                  background: "#0A0A0A",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 800,
-                  padding: "1px 4px",
-                  borderRadius: 4,
-                  letterSpacing: "0.3px",
-                  lineHeight: 1.3,
-                }}>
-                  PRO
-                </span>
-              )}
-              {tier === "premium" && (
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) handleComposerImage(f);
-                  }}
-                />
-              )}
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowComposerLocationSearch(!showComposerLocationSearch)}
-              className="icon-btn"
-              style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: showComposerLocationSearch ? "var(--ink)" : undefined,
-                color: showComposerLocationSearch ? "var(--bg)" : undefined,
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor" />
-              </svg>
-            </button>
-            <div style={{ flex: 1 }} />
-            {(composerSuggestion || composerAiBlocked) && !composerAnalyzing ? (
-              <button
-                onClick={handleComposerSave}
-                disabled={!composerHasInput || composerBusy}
-                className="flex items-center justify-center gap-2 transition active:scale-[0.97]"
-                style={{
-                  height: 42,
-                  padding: "0 20px",
-                  background: "#0A0A0A",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 100,
-                  fontWeight: 700,
-                  fontSize: 14,
-                  opacity: !composerHasInput || composerBusy ? 0.4 : 1,
-                }}
-              >
-                {composerBusy
-                  ? (locale === "th" ? "กำลังบันทึก..." : "Saving...")
-                  : (locale === "th" ? "บันทึก" : "Save mood")}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            ) : !composerAnalyzing ? (
-              <button
-                onClick={handleComposerAnalyze}
-                disabled={!composerHasInput || composerAnalyzing}
-                className="flex items-center justify-center gap-2 transition active:scale-[0.97]"
-                style={{
-                  height: 42,
-                  padding: "0 20px",
-                  background: "#0A0A0A",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 100,
-                  fontWeight: 700,
-                  fontSize: 14,
-                  opacity: !composerHasInput ? 0.4 : 1,
-                }}
-              >
-                {locale === "th" ? "วิเคราะห์" : "Analyze"}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            ) : null}
-          </div>
-
-          {/* Location search */}
-          {showComposerLocationSearch && (
-            <LocationSearch
+      <div className="pa-wrap pa-desk">
+        <div className="pa-today-grid">
+          {/* ── LEFT COLUMN ── */}
+          <div>
+            <GreetingFolder
               locale={locale}
-              onSelect={(v, lat, lng) => { setComposerLocation(v); setComposerLocationLat(lat); setComposerLocationLng(lng); setShowComposerLocationSearch(false); }}
-              onClose={() => setShowComposerLocationSearch(false)}
+              greetTime={greetTime}
+              dateTabLabel={dateTabLabel}
+              moods={pickerMoods}
+              pack={pack}
+              iconFormat={iconFormat}
+              specialDays={todaySpecialDays}
+              onMoodSelect={setLogMoodId}
             />
-          )}
 
-          <div className="mt-3">
-            <AiDisclaimer variant="analysis" />
-          </div>
+            {/* ── AI MOOD ASSISTANT composer ── */}
+            <div className="pa-sheet" style={{ borderRadius: 16, padding: "22px 24px", position: "relative", overflow: "hidden", marginBottom: 30 }}>
+              <div aria-hidden style={{ position: "absolute", top: -44, right: -30, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle, var(--lavender), transparent 70%)", opacity: 0.55 }} />
+              <div style={{ position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, var(--purple), #C9A6F5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "var(--purple-strong)", textTransform: "uppercase", letterSpacing: ".08em" }}>AI MOOD ASSISTANT</span>
+                </div>
 
-          {/* Upgrade nudge for free users */}
-          {tier !== "premium" && (
-            <a
-              href="/pricing"
-              className="flex items-center gap-2.5 mt-3"
-              style={{
-                padding: "10px 14px",
-                borderRadius: 12,
-                background: "var(--hero-grad)",
-                textDecoration: "none",
-              }}
-            >
-              <div style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
-                background: "#0A0A0A",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 800,
-                flexShrink: 0,
-                letterSpacing: "0.3px",
-              }}>
-                PRO
+                <textarea
+                  ref={composerRef}
+                  value={composerText}
+                  onChange={(e) => {
+                    setComposerText(e.target.value);
+                    if (composerSuggestion) { setComposerSuggestion(null); setComposerTags([]); }
+                  }}
+                  placeholder={t("smartLogHint")}
+                  rows={3}
+                  style={{ width: "100%", resize: "none", minHeight: 96, background: "var(--w-surface-2)", color: "var(--w-ink)", borderRadius: 12, border: "1.5px solid var(--w-rule)", padding: "14px 16px", fontSize: 15, lineHeight: 1.6, outline: "none", fontFamily: "inherit" }}
+                />
+
+                {composerImagePreview && (
+                  <div style={{ display: "inline-flex", position: "relative", marginTop: 10 }}>
+                    <img src={composerImagePreview} alt="" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 12 }} />
+                    <button onClick={() => { setComposerImage(null); setComposerImagePreview(null); }} aria-label={locale === "th" ? "ลบรูป" : "Remove image"} style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "var(--w-ink)", color: "var(--bg)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14 }}>×</button>
+                  </div>
+                )}
+
+                {composerLocation && (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, padding: "6px 12px", borderRadius: 100, background: "var(--w-tint)" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }} aria-hidden><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#A673F1" /></svg>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--w-ink)" }}>{composerLocation}</span>
+                    <button type="button" onClick={() => setComposerLocation("")} aria-label={locale === "th" ? "ลบสถานที่" : "Remove location"} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }}>
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M3 3l6 6M9 3l-6 6" stroke="var(--w-ink-3)" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    </button>
+                  </div>
+                )}
+
+                {composerError && (
+                  <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 12, background: "var(--w-surface-2)", border: "1px solid var(--w-rule)" }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple-strong)", margin: 0 }}>{composerError}</p>
+                  </div>
+                )}
+
+                {composerAnalyzing && (
+                  <div className="fade-in" style={{ marginTop: 12, padding: 14, borderRadius: 12, background: "var(--w-ai-grad)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div className="pulse" style={{ width: 24, height: 24, borderRadius: 7, background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      </div>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: "var(--purple-strong)" }}>
+                        {locale === "th" ? "AI กำลังอ่านวันของคุณ..." : "AI is reading your day..."}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mood pills (after AI result OR blocked) */}
+                {(composerSuggestion || composerAiBlocked) && !composerAnalyzing && (
+                  <div className="fade-in" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14 }}>
+                    {pickerMoods.map((m) => {
+                      const active = m.id === composerMoodId;
+                      const label = (locale === "th" ? m.labelTh : m.label) ?? m.label;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setComposerMoodId(m.id)}
+                          aria-pressed={active}
+                          className="transition active:scale-95"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: active ? m.color : "var(--w-surface)", color: active ? "#fff" : "var(--w-ink-2)", padding: "6px 12px", borderRadius: 100, fontSize: 14, fontWeight: 700, border: active ? "none" : "1px solid var(--w-rule)", cursor: "pointer", fontFamily: "inherit" }}
+                        >
+                          <img src={customIcon(m)} alt="" width={16} height={16} />
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Tag pills */}
+                {composerSuggestion && !composerAnalyzing && composerTags.length > 0 && (
+                  <div className="fade-in" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {composerTags.map((tag, i) => (
+                      <span key={i} className="pa-chip" style={{ fontSize: 12, padding: "6px 11px" }}>
+                        #{tag}
+                        <button onClick={() => setComposerTags((p) => p.filter((_, j) => j !== i))} aria-label={locale === "th" ? `ลบแท็ก ${tag}` : `Remove tag ${tag}`} style={{ color: "var(--w-ink-3)", display: "flex", background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                          <svg width="8" height="8" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* AI summary */}
+                {composerSuggestion && !composerAnalyzing && composerSuggestion.aiSummary && (
+                  <div className="fade-in" style={{ marginTop: 10, padding: "12px 14px", borderRadius: 14, background: "var(--w-chip)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "var(--w-ink-3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>
+                      {locale === "th" ? "สรุป" : "Summary"}
+                    </div>
+                    <div style={{ fontSize: 14, lineHeight: 1.6, color: "var(--w-ink)" }} dangerouslySetInnerHTML={{ __html: composerSuggestion.aiSummary.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") }} />
+                  </div>
+                )}
+
+                {/* Activity picker */}
+                {!composerAnalyzing && (
+                  <div style={{ marginTop: 12 }}>
+                    <ActivityPicker value={composerActivityId} onChange={setComposerActivityId} compact />
+                  </div>
+                )}
+
+                {/* Controls */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14 }}>
+                  <VoiceButton onTranscript={(s) => setComposerText((p) => (p ? p + " " : "") + s)} />
+                  {tier === "premium" ? (
+                    <PaperIconButton asLabel title={locale === "th" ? "แนบรูป" : "Attach photo"} ariaLabel={locale === "th" ? "แนบรูป" : "Attach photo"}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleComposerImage(f); }} />
+                    </PaperIconButton>
+                  ) : (
+                    <PaperIconButton
+                      badge="PRO"
+                      onClick={() => router.push("/pricing" as "/")}
+                      title={locale === "th" ? "แนบรูป (Pro)" : "Attach photo (Pro)"}
+                      ariaLabel={locale === "th" ? "แนบรูป — อัปเกรดเป็น Pro" : "Attach photo — upgrade to Pro"}
+                      style={{ opacity: 0.55 }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M3 7h4l2-3h6l2 3h4v13H3V7zM12 17a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </PaperIconButton>
+                  )}
+                  <PaperIconButton
+                    active={showComposerLocationSearch}
+                    onClick={() => setShowComposerLocationSearch(!showComposerLocationSearch)}
+                    title={locale === "th" ? "สถานที่" : "Location"}
+                    ariaLabel={locale === "th" ? "เพิ่มสถานที่" : "Add location"}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.8" /></svg>
+                  </PaperIconButton>
+                  <div style={{ flex: 1 }} />
+                  {composerShowSave ? (
+                    <button
+                      onClick={handleComposerSave}
+                      disabled={!composerHasInput || composerBusy}
+                      className="pa-btn ink transition active:scale-[0.97]"
+                      style={{ opacity: !composerHasInput || composerBusy ? 0.5 : 1 }}
+                    >
+                      {composerBusy ? (locale === "th" ? "กำลังบันทึก..." : "Saving...") : (locale === "th" ? "บันทึก" : "Save mood")}
+                    </button>
+                  ) : !composerAnalyzing ? (
+                    <button
+                      onClick={handleComposerAnalyze}
+                      disabled={!composerHasInput}
+                      className="pa-btn purple transition active:scale-[0.97]"
+                      style={{ opacity: !composerHasInput ? 0.5 : 1 }}
+                    >
+                      {locale === "th" ? "วิเคราะห์" : "Analyze"}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </button>
+                  ) : null}
+                </div>
+
+                {showComposerLocationSearch && (
+                  <LocationSearch
+                    locale={locale}
+                    onSelect={(v, lat, lng) => { setComposerLocation(v); setComposerLocationLat(lat); setComposerLocationLng(lng); setShowComposerLocationSearch(false); }}
+                    onClose={() => setShowComposerLocationSearch(false)}
+                  />
+                )}
+
+                <div style={{ marginTop: 14 }}>
+                  <AiDisclaimer variant="analysis" />
+                </div>
+
+                {/* Upgrade nudge (free) */}
+                {tier !== "premium" && (
+                  <Link href={"/pricing" as "/"} style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "var(--w-ai-grad)", textDecoration: "none" }}>
+                    <span style={{ background: "var(--w-ink)", color: "var(--bg)", fontSize: 11, fontWeight: 800, padding: "2px 7px", borderRadius: 100, letterSpacing: ".04em", flexShrink: 0 }}>PRO</span>
+                    <span style={{ fontSize: 14, lineHeight: 1.4, color: "var(--w-ink-2)", fontWeight: 600 }}>
+                      {locale === "th" ? <>ใช้ AI ได้ <b>3 ครั้ง/วัน</b> — <span style={{ color: "var(--purple-strong)", fontWeight: 800 }}>อัปเกรด Pro</span> เพื่อใช้ได้ไม่จำกัด</> : <>3 free AI analyses per day — <span style={{ color: "var(--purple-strong)", fontWeight: 800 }}>upgrade to Pro</span> for unlimited</>}
+                    </span>
+                  </Link>
+                )}
               </div>
-              <p style={{ fontSize: 14, lineHeight: 1.4, color: "var(--purple)", fontWeight: 600 }}>
-                {locale === "th"
-                  ? "ใช้ AI ได้ 3 ครั้ง/วัน — อัปเกรด Pro เพื่อใช้ได้ไม่จำกัด"
-                  : "3 free AI analyses per day — upgrade to Pro for unlimited"}
-              </p>
-            </a>
-          )}
+            </div>
+
+            {/* ── TODAY TIMELINE ── */}
+            <TodayTimeline locale={locale} todayEntries={todayEntries} entryCount={todayEntries.length} moodColors={allMoodsForCards} />
+
+            {/* ── ENTRY CARDS ── */}
+            {entries === null ? (
+              <div className="pa-entries-grid">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="pa-sheet" style={{ height: 150, opacity: 0.5 }} />
+                ))}
+              </div>
+            ) : todayEntries.length > 0 ? (
+              <div className="pa-entries-grid">
+                {todayEntries.map((entry, i) => {
+                  const tab = entryTab(entry.createdAt);
+                  const mood = allMoodsForCards.find((m) => m.id === entry.moodTypeId);
+                  return (
+                    <EntryFolderCard
+                      key={entry.id}
+                      entry={entry}
+                      mood={mood}
+                      locale={locale}
+                      blur={hidePreview}
+                      pack={pack}
+                      iconFormat={iconFormat}
+                      tabLabel={tab.label}
+                      tabVariant={tab.variant}
+                      rotation={i % 2 ? 0.6 : -0.6}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyToday locale={locale} pack={pack} iconFormat={iconFormat} onWriteFreely={focusComposer} />
+            )}
+          </div>
+
+          {/* ── RIGHT RAIL ── */}
+          <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            <AiWeeklyFolder tier={tier} locale={locale} insight={insightData} />
+            <StreakCard streak={streak} locale={locale} />
+            <MiniCalendarFolder locale={locale} />
+          </aside>
         </div>
-      </section>
+      </div>
 
-      {/* ── TODAY'S ENTRIES (as cards grid on desktop) ─── */}
-      <section className="mb-6 fade-in" style={{ animationDelay: "100ms" }}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", margin: 0 }}>
-            {t("todayEntries")}
-          </h2>
-          <span style={{ fontSize: 14, color: "var(--ink-3)" }}>
-            {todayEntries.length} entry{todayEntries.length !== 1 ? "s" : ""} {locale === "th" ? "· กิจกรรม" : ""}
-          </span>
-        </div>
-
-        {/* Day axis */}
-        <div className="card" style={{ padding: "16px 20px", marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "var(--ink-3)", fontWeight: 700, marginBottom: 8 }}>
-            {["6:00","9:00","12:00","15:00","18:00","21:00"].map(tt => <span key={tt}>{tt}</span>)}
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)" }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "var(--purple)", padding: "1px 8px", borderRadius: 100 }}>
-                {locale === "th" ? "ตอนนี้" : "Now"}
-              </span>
-            </span>
-          </div>
-          <div style={{ height: 4, background: "var(--surface-2)", borderRadius: 100, position: "relative" }}>
-            {todayEntries.slice(0, 5).map((e, i) => {
-              const h = new Date(e.createdAt).getHours();
-              const p = Math.min(92, Math.max(3, ((h - 6) / 15) * 100));
-              const mood = DEFAULT_MOODS.find(m => m.id === e.moodTypeId);
-              return (
-                <div key={i} style={{ position: "absolute", left: `${p}%`, top: -6, width: 16, height: 16, borderRadius: "50%", background: mood?.color ?? "var(--ink-3)", border: "2px solid #fff", boxShadow: "0 2px 6px rgba(0,0,0,.15)", transform: "translateX(-50%)" }} />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Entries grid (3-col desktop, scroll mobile) */}
-        {entries === null ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }} className="entries-feed">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="card" style={{ height: 140, opacity: 0.5 }} />
-            ))}
-          </div>
-        ) : todayEntries.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }} className="entries-feed">
-            {todayEntries.map((entry) => (
-              <EntryCard key={entry.id} entry={entry} locale={locale} blur={hidePreview} pack={pack} iconFormat={iconFormat} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-10" style={{ color: "var(--ink-3)", fontSize: 15 }}>
-            {t("emptyTitle")}
-          </div>
-        )}
-      </section>
-
-      </div>{/* end left column */}
-
-      {/* ── RIGHT COLUMN (sidebar) ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-        {/* AI weekly summary (dark card) */}
-        <AiSidebarCard tier={tier} locale={locale} />
-
-        {/* Streak */}
-        <div className="card" style={{ padding: 20 }}>
-          <div className="w-eyebrow" style={{ marginBottom: 10 }}>STREAK</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 14 }}>
-            <span style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-0.03em" }}>{streak}</span>
-            <span style={{ color: "var(--ink-3)", fontSize: 14 }}>{locale === "th" ? "วันติดต่อกัน" : "consecutive days"}</span>
-            <span style={{ marginLeft: "auto", fontSize: 28 }}>🔥</span>
-          </div>
-          <div style={{ display: "flex", gap: 4 }}>
-            {Array.from({ length: 14 }).map((_, i) => (
-              <div key={i} style={{ flex: 1, height: 24, borderRadius: 4, background: i < streak ? "var(--peach)" : "var(--surface-2)" }} />
-            ))}
-          </div>
-        </div>
-
-        {/* Mini calendar */}
-        <div className="card" style={{ padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 800 }}>
-              {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { month: "long", year: "numeric" })}
-            </span>
-            <Link href={"/calendar" as "/"} style={{ fontSize: 14, color: "var(--purple-strong)", textDecoration: "none", fontWeight: 700 }}>
-              {locale === "th" ? "ดูทั้งหมด →" : "View all →"}
-            </Link>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 8 }}>
-            {(locale === "th" ? ["อา","จ","อ","พ","พฤ","ศ","ส"] : ["Su","Mo","Tu","We","Th","Fr","Sa"]).map(d => (
-              <div key={d} style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-3)", textAlign: "center" }}>{d}</div>
-            ))}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
-            {Array.from({ length: 35 }).map((_, i) => {
-              const today = new Date().getDate();
-              const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay();
-              const d = i - firstDay + 1;
-              const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-              if (d < 1 || d > daysInMonth) return <div key={i} />;
-              const filled = d <= today;
-              const palette = ["var(--peach)", "var(--yellow)", "var(--mint)", "var(--lavender)", "var(--blue)", "var(--purple)"];
-              const c = filled ? palette[(d * 3) % palette.length] : "transparent";
-              return (
-                <div key={i} style={{
-                  aspectRatio: "1",
-                  borderRadius: 6,
-                  background: filled ? c : "var(--surface-2)",
-                  border: d === today ? "2px solid var(--ink)" : "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: filled ? "#fff" : "var(--ink-3)",
-                }}>{d}</div>
-              );
-            })}
-          </div>
-        </div>
-      </div>{/* end right column */}
-
-      </div>{/* end home-grid */}
-
-      {/* ── SMART LOG MODAL ─── */}
+      {/* ── SMART LOG MODAL ── */}
       {logMoodId && (
         <SmartLogModal
           tier={tier}
@@ -771,24 +556,13 @@ export function HomeShell({
           }}
         />
       )}
-      {/* ── INSTALL APP PROMPT ─── */}
+
       <InstallAppPrompt />
-      {/* ── TOAST ─── */}
+
       {toast && (
         <div
           className="fixed left-1/2 pop"
-          style={{
-            top: 24,
-            transform: "translateX(-50%)",
-            background: "#0A0A0A",
-            color: "#fff",
-            padding: "10px 20px",
-            borderRadius: 100,
-            fontSize: 14,
-            fontWeight: 700,
-            zIndex: 60,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-          }}
+          style={{ top: 24, transform: "translateX(-50%)", background: "#0A0A0A", color: "#fff", padding: "10px 20px", borderRadius: 100, fontSize: 14, fontWeight: 700, zIndex: 60, boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}
         >
           {toast}
         </div>
@@ -796,131 +570,3 @@ export function HomeShell({
     </>
   );
 }
-
-function AiSidebarCard({ tier, locale }: { tier: Tier; locale: string }) {
-  const [insight, setInsight] = useState<{ headline: string; summary: string } | null>(null);
-
-  useEffect(() => {
-    if (tier !== "premium") return;
-    fetch(`/api/insights?locale=${locale}&cacheOnly=1`)
-      .then((r) => r.ok ? r.json() as Promise<Record<string, unknown>> : null)
-      .then((json) => {
-        if (!json || json.empty || json.tooFewEntries) return;
-        setInsight({ headline: json.headline as string, summary: json.summary as string });
-      })
-      .catch(() => {});
-  }, [locale, tier]);
-
-  return (
-    <div className="card" style={{ padding: 20, background: "linear-gradient(155deg, #1A1320 0%, #2A1F33 100%)", color: "#fff", border: "none" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#FFC899" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "#FFC899", letterSpacing: ".05em" }}>AI · {locale === "th" ? "สัปดาห์นี้" : "This week"}</span>
-        {tier !== "premium" && (
-          <span style={{ marginLeft: "auto", fontSize: 14, fontWeight: 800, background: "rgba(255,255,255,.2)", color: "#FFC899", padding: "2px 8px", borderRadius: 50 }}>PRO</span>
-        )}
-      </div>
-      <div style={{ fontSize: 14, lineHeight: 1.55, color: "rgba(255,255,255,.92)" }}>
-        {insight && tier === "premium" ? (
-          <span style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{insight.summary}</span>
-        ) : insight ? (
-          <span>{insight.headline}</span>
-        ) : (
-          locale === "th"
-            ? "AI สรุปอารมณ์ประจำสัปดาห์ วิเคราะห์ pattern และแนะนำสิ่งที่ช่วยให้ดีขึ้น"
-            : "Weekly mood summary, pattern analysis, and personalized suggestions"
-        )}
-      </div>
-      <Link
-        href={(tier === "premium" ? "/insights" : "/pricing") as "/"}
-        style={{ marginTop: 14, display: "inline-block", background: "rgba(255,255,255,.1)", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 100, fontWeight: 700, fontSize: 14, textDecoration: "none" }}
-      >
-        {tier === "premium"
-          ? (locale === "th" ? "เปิด AI Insights →" : "Open AI Insights →")
-          : (locale === "th" ? "อัปเกรด Pro →" : "Upgrade to Pro →")}
-      </Link>
-    </div>
-  );
-}
-
-function EntryCard({ entry, locale, blur, pack = DEFAULT_MOOD_PACK, iconFormat = "svg" }: { entry: Entry; locale: string; blur?: boolean; pack?: string; iconFormat?: string }) {
-  const mood = DEFAULT_MOODS.find((m) => m.id === entry.moodTypeId);
-  const date = new Date(entry.createdAt);
-  const time = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
-
-  return (
-    <Link
-      href={`/entry/${entry.id}` as "/"}
-      className="block transition active:scale-[0.97] card"
-      style={{
-        padding: 16,
-        textDecoration: "none",
-        color: "inherit",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            background: mood?.color ?? "#F4F2F7",
-            display: "grid",
-            placeItems: "center",
-            flexShrink: 0,
-          }}
-        >
-          {mood ? <img src={moodIconUrl(mood.id, pack, iconFormat)} alt="" width={24} height={24} /> : null}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
-            {locale === "th" ? mood?.labelTh : mood?.label}
-          </div>
-          <div style={{ fontSize: 14, color: "var(--ink-3)" }}>{time}</div>
-        </div>
-        <span style={{ fontSize: 18, color: "var(--ink-3)", letterSpacing: 1, flexShrink: 0, lineHeight: 1 }}>⋯</span>
-      </div>
-      {entry.note && (
-        <p className="line-clamp-2" style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.5, margin: 0, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
-          {entry.note}
-        </p>
-      )}
-      {entry.imageUrl && (
-        <img src={entry.imageUrl} alt="" style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 10 }} />
-      )}
-      {entry.tags && entry.tags.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, filter: blur ? "blur(6px)" : "none", userSelect: blur ? "none" : "auto" }}>
-          {entry.tags.slice(0, 3).map((tag, j) => (
-            <span
-              key={j}
-              style={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: "var(--ink-2)",
-                background: "var(--surface-2)",
-                borderRadius: 8,
-                padding: "2px 10px",
-              }}
-            >
-              # {tag}
-            </span>
-          ))}
-        </div>
-      )}
-      {entry.location && (
-        <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--ink-3)" />
-          </svg>
-          <span style={{ fontSize: 14, color: "var(--ink-3)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {entry.location}
-          </span>
-        </div>
-      )}
-    </Link>
-  );
-}
-

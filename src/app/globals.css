@@ -39,6 +39,30 @@
   --surface-3: #F2F0F5;
   --hero-grad: linear-gradient(135deg, #F8EDEB 0%, #E9DEF6 100%);
 
+  /* Paper Desk surface tokens — alias the themed palette so paper surfaces flip
+     with the app theme. var() re-resolves per element, so a single definition
+     here picks up the .dark overrides of --ink/--surface/etc. automatically. */
+  --w-ink: var(--ink);
+  --w-ink-2: var(--ink-2);
+  --w-ink-3: var(--ink-3);
+  --w-rule: var(--hairline);
+  --w-rule-strong: var(--hairline-2);
+  --w-tint: var(--surface-2);
+  --w-surface: var(--surface);       /* card sheet bg — was inline #fff */
+  --w-surface-2: var(--surface-3);   /* soft/empty bg — was inline #FBF7F0 */
+  --w-ai-grad: var(--hero-grad);     /* AI / premium cards — was #F1E7FA→#F8EDEB */
+  --w-chip: rgba(255, 255, 255, .72);/* translucent chip on tinted cards */
+  --w-card-warm: linear-gradient(135deg, #FFF6EA, #FDEFE0); /* warm "suggestion" sheet */
+  /* semantic callout tints (danger/info/success) — bg + readable text per theme */
+  --w-tint-danger:    #FDECEC;
+  --w-tint-danger-fg: #C0392B;
+  --w-tint-info:      #EFF6FF;
+  --w-tint-info-fg:   #2563EB;
+  --w-tint-success:   #E8F5E9;
+  --w-tint-success-fg:#2E7D32;
+  --w-tint-warning:   #FDF3E2;
+  --w-tint-warning-fg:#9A6B1E;
+
   --shadow-card: 4px 4px 16px rgba(66,66,66,0.08);
   --shadow-lift: 0 14px 40px rgba(0,0,0,0.10), 0 0 0 1px rgba(26,19,32,0.08);
 
@@ -81,10 +105,22 @@
 
   --shadow-card: 4px 4px 16px rgba(0,0,0,0.25);
   --shadow-lift: 0 14px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+
+  --w-chip: rgba(255, 255, 255, .08);
+  --w-card-warm: linear-gradient(135deg, #2A2333 0%, #221C2E 100%);
+  --w-tint-danger:    rgba(229, 90, 90, .16);
+  --w-tint-danger-fg: #F1A8A8;
+  --w-tint-info:      rgba(96, 165, 250, .16);
+  --w-tint-info-fg:   #A6C8F5;
+  --w-tint-success:   rgba(74, 201, 150, .16);
+  --w-tint-success-fg:#8FE3BD;
+  --w-tint-warning:   rgba(229, 176, 90, .18);
+  --w-tint-warning-fg:#E8C07A;
 }
 
 html, body {
-  background: var(--bg-grad);
+  background: radial-gradient(#785a3212 1px, #0000 1.4px), var(--bg-grad);
+  background-size: 7px 7px, auto;
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans), var(--font-thai), ui-sans-serif, system-ui, sans-serif;
@@ -233,6 +269,8 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 @keyframes ai-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
 .ai-spin { animation: ai-spin 1.6s linear infinite; }
+@keyframes pa-float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+.pa-float { animation: pa-float 3.2s ease-in-out infinite; }
 
 .fade-in { animation: fade-up 320ms cubic-bezier(0.16,1,0.3,1) backwards; }
 .pop     { animation: pop 360ms cubic-bezier(0.34,1.56,0.64,1) both; }
@@ -251,7 +289,7 @@ button { font-family: inherit; cursor: pointer; }
 .scrim-close { animation: scrim-out  280ms ease both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .fade-in, .pop, .pulse, .shimmer, .ai-spin, .sheet-open, .sheet-close, .scrim-open, .scrim-close { animation: none; }
+  .fade-in, .pop, .pulse, .shimmer, .ai-spin, .pa-float, .sheet-open, .sheet-close, .scrim-open, .scrim-close { animation: none; }
 }
 
 /* ─── action card ─── */
@@ -529,15 +567,11 @@ button { font-family: inherit; cursor: pointer; }
 @media (max-width: 767px) {
   .entries-feed { grid-template-columns: 1fr !important; }
   /* Achievements mobile */
-  .achievements-layout { display: grid !important; grid-template-columns: 1fr !important; gap: 20px !important; }
-  .achievements-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-  .achievements-ring { width: 120px !important; height: 120px !important; }
-  .achievements-ring svg { width: 120px !important; height: 120px !important; }
-  .achievements-ring-pct { font-size: 28px !important; }
-  .achievements-ring-wrap { margin-bottom: 16px !important; }
-  .achievements-filters { display: flex !important; gap: 6px !important; overflow-x: auto; margin-bottom: 4px !important; }
-  .achievements-filters > button { width: auto !important; border-bottom: none !important; border-radius: 10px !important; padding: 8px 14px !important; font-size: 14px !important; white-space: nowrap; background: var(--surface-2) !important; }
-  .achievements-filters > button[data-active="true"] { background: var(--ink) !important; color: #fff !important; }
+  .ach-layout { grid-template-columns: 1fr !important; gap: 24px !important; }
+  .ach-rail { position: static !important; }
+  .ach-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 18px 12px !important; }
+  .ach-ring { width: 144px !important; height: 144px !important; }
+  .ach-filters { flex-wrap: nowrap !important; overflow-x: auto; padding-bottom: 4px; }
   /* Insights mobile */
   .ins-hero-2col { grid-template-columns: 1fr !important; }
   .ins-4col { grid-template-columns: repeat(2, 1fr) !important; }
@@ -587,9 +621,13 @@ button { font-family: inherit; cursor: pointer; }
 .ins-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .ins-free-gate { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 
-/* Achievements layout */
-.achievements-layout { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
-.achievements-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-content: start; }
+/* Achievements — Paper Desk "sticker album" */
+.ach-layout { display: grid; grid-template-columns: 300px 1fr; gap: 36px; align-items: start; }
+.ach-rail { position: sticky; top: 32px; }
+.ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px 18px; align-content: start; }
+.ach-ring { position: relative; width: 176px; height: 176px; margin: 0 auto; }
+.ach-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 380px) { .ach-grid { grid-template-columns: 1fr; } }
 
 /* Footer: desktop only (hidden on mobile where bottom nav covers it) */
 .desktop-footer { display: none; }
@@ -671,7 +709,262 @@ gmp-place-autocomplete::part(predictions) {
 .article-prose hr { border: none; border-top: 1px solid var(--hairline); margin: 2rem 0; }
 
 /* ─── article detail grid ─── */
+.article-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 34px;
+  align-items: flex-start;
+}
 @media (max-width: 767px) {
-  .article-grid { grid-template-columns: 1fr !important; }
+  .article-grid { grid-template-columns: 1fr; }
   .article-grid > aside { position: static !important; }
+}
+
+/* ═══ Paper Desk · paper surfaces ═══
+   Paper surface tokens (--w-*) are defined in :root / .dark above and flip with
+   the app theme, so paper cards no longer glare as light islands on a dark page. */
+.pa-wrap {
+  color: var(--ink);
+  position: relative;
+}
+
+/* folder tab */
+.pa-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px 11px;
+  border-radius: 14px 14px 0 0;
+  background: var(--peach);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -.01em;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  margin-bottom: -8px;
+}
+.pa-tab::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -12px;
+  width: 14px;
+  height: 100%;
+  background: inherit;
+  border-radius: 0 14px 0 0;
+  transform: skewX(20deg);
+  transform-origin: bottom left;
+  z-index: -1;
+}
+.pa-tab.ink { background: var(--w-ink); color: var(--bg); }
+.pa-tab.mint { background: var(--mint); color: var(--w-ink); }
+.pa-tab.lav { background: var(--lavender); color: var(--w-ink); }
+.pa-tab.yellow { background: var(--yellow); color: var(--w-ink); }
+.pa-tab.purple { background: var(--purple); color: #fff; }
+
+/* paper sheet */
+.pa-sheet {
+  background: var(--w-surface);
+  border-radius: 4px 18px 18px 18px;
+  box-shadow: 0 18px 40px -20px rgba(60, 40, 20, .45);
+  position: relative;
+}
+/* On dark, the warm shadow is invisible; a hairline gives cards definition. */
+.dark .pa-sheet { box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .6); border: 1px solid var(--hairline); }
+
+/* chunky buttons */
+.pa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  background: var(--peach);
+  color: #fff;
+  box-shadow: 0 7px 0 -2px #d97f3b, 0 16px 24px -12px rgba(217, 127, 59, .7);
+}
+.pa-btn.ink { background: var(--w-ink); color: var(--bg); box-shadow: 0 7px 0 -2px #000, 0 16px 24px -14px rgba(0, 0, 0, .5); }
+.pa-btn.purple { background: var(--purple); color: #fff; box-shadow: 0 7px 0 -2px var(--purple-strong), 0 16px 24px -12px rgba(166, 115, 241, .6); }
+
+/* washi tape */
+.pa-washi {
+  position: absolute;
+  z-index: 6;
+  height: 26px;
+  width: 104px;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  background: rgba(252, 164, 91, .5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .10);
+  -webkit-mask:
+    repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 7px) left/100% 4px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 7px) bottom/100% 4px no-repeat,
+    linear-gradient(#000, #000);
+  mask:
+    repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 7px) left/100% 4px no-repeat,
+    repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 7px) bottom/100% 4px no-repeat,
+    linear-gradient(#000, #000);
+}
+.pa-washi.mint { background: rgba(133, 236, 203, .65); }
+.pa-washi.lav { background: rgba(212, 190, 228, .75); }
+.pa-washi.yellow { background: rgba(253, 203, 86, .65); }
+.pa-washi.purple { background: rgba(166, 115, 241, .5); }
+
+/* chip */
+.pa-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--w-surface);
+  color: var(--w-ink);
+  box-shadow: 0 6px 16px -8px rgba(60, 40, 20, .3);
+}
+
+/* filter pills */
+.pa-filter {
+  padding: 8px 15px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  border: none;
+  background: var(--w-surface);
+  color: var(--w-ink-2);
+  box-shadow: 0 5px 14px -8px rgba(60, 40, 20, .4);
+}
+.pa-filter.active { background: var(--w-ink); color: var(--bg); box-shadow: 0 6px 0 -2px #000; }
+
+/* grids */
+.pa-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 26px; align-items: start; }
+.pa-rest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
+
+/* hover lift (straighten + raise) */
+.pa-card-lift { transition: transform .2s ease, box-shadow .2s ease; }
+.pa-card-lift:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+  box-shadow: 0 26px 50px -20px rgba(60, 40, 20, .5);
+}
+
+@media (max-width: 640px) {
+  .pa-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pa-card-lift { transition: none; }
+  .pa-card-lift:hover { transform: none !important; }
+}
+
+/* ═══ Paper Desk · Today dashboard + Smart Log modal ═══
+   Added for the Today/SmartLog reskin. `.pa-wrap` (tokens, used by /articles)
+   stays untouched; the warm cream desk surface + dot grain live on the opt-in
+   `.pa-desk` modifier so the articles page is not affected. */
+
+/* --w-tint is defined on .pa-wrap above (aliases --surface-2). */
+
+/* cream "desk" surface with a subtle paper grain — Today page only */
+.pa-desk {
+  padding: 28px 28px 40px;
+}
+
+/* Today two-column desk grid */
+.pa-today-grid { display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: flex-start; }
+.pa-entries-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px 18px; }
+
+/* paper icon button (mic / photo / location) */
+.pa-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--w-rule);
+  background: var(--w-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--w-ink-2);
+  position: relative;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.pa-icon-btn:disabled { cursor: default; }
+.pa-icon-btn.active { background: var(--w-ink); color: var(--bg); border-color: var(--w-ink); }
+
+/* Smart Log modal — backdrop + paper sheet */
+.sl-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(26, 19, 32, .46);
+  backdrop-filter: blur(6px);
+}
+.sl-sheet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  background: var(--w-surface);
+  border-radius: 8px 26px 26px 26px;
+  box-shadow: 0 44px 100px -24px rgba(40, 20, 10, .6);
+}
+.dark .sl-sheet { box-shadow: 0 44px 100px -24px rgba(0, 0, 0, .75); border: 1px solid var(--hairline); }
+/* inner scroller — keeps the sheet itself overflow-visible so the washi tape
+   can overhang the top edge without being clipped */
+.sl-scroll {
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: inherit;
+}
+.sl-drag-handle { display: none; }
+
+/* analyzing spinner */
+@keyframes sl-spin { to { transform: rotate(360deg); } }
+.sl-spinner { animation: sl-spin 1.2s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .sl-spinner { animation: none; }
+}
+
+/* responsive: single column + modal becomes a bottom sheet */
+@media (max-width: 767px) {
+  .pa-today-grid { grid-template-columns: 1fr; gap: 38px; }
+  .pa-entries-grid { grid-template-columns: 1fr; gap: 34px; }
+  .pa-desk { padding: 0; }
+}
+@media (max-width: 640px) {
+  .sl-sheet {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100% !important;
+    border-radius: 22px 22px 0 0;
+    padding-top: 6px;
+  }
+  .sl-scroll { max-height: 92vh; }
+  .sl-drag-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 100px;
+    background: var(--w-ink-3);
+    opacity: .35;
+    margin: 6px auto 2px;
+  }
 }

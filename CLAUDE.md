@@ -78,6 +78,13 @@ The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tra
 - API key อยู่ใน `.env` (`RESEND_API_KEY`)
 - `from` = `Dailymood <hello@dailymood.me>` (ต้อง verify domain `dailymood.me` ใน Resend)
 - Auth emails (verify / reset) ใช้ template ใน `src/lib/auth-email.ts` (TH + EN)
+- **Email images ใช้ JPEG/PNG ไม่ใช่ WebP** — ต่างจาก app uploads (กฎ "always WebP" ใน Important Rules) เพราะ **Outlook/Windows desktop mail client ไม่ render WebP**. รูปใน email ต้องเป็น JPEG/PNG เสมอ
+
+## Marketing emails
+
+- **Segment** — campaign promotional ยิงไปที่ user ตาม Drizzle query ตรงๆ (ไม่มี marketing opt-in column แยก) แต่ **ต้อง** filter `marketing_opt_out = false` เสมอ. ตัวอย่าง trial-promo: `is_premium = false AND trial_activated_at IS NULL AND marketing_opt_out = false AND trial_promo_sent_at IS NULL AND email_verified IS NOT NULL`.
+- **Unsubscribe (บังคับสำหรับ marketing email)** — `src/lib/email-unsub.ts` sign userId เป็น HMAC token (stateless, env `UNSUBSCRIBE_SECRET`, fallback `AUTH_SECRET`/`NEXTAUTH_SECRET`). Route `/api/unsubscribe` (GET = confirm page, POST = one-click) ตั้ง `marketing_opt_out = true`. ทุก send ต้องแนบ header `List-Unsubscribe: <url>` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058 — Gmail/Yahoo bulk requirement).
+- **Trial promo campaign** — template `src/lib/promo-email.ts` (localize TH/EN, image Thai-only ที่ R2 `promo/trial-14d.jpg`). ส่งด้วย one-off script `scripts/send-trial-promo.ts` (self-contained: raw `pg` + Resend, import เฉพาะ pure modules ผ่าน relative path — ไม่ใช้ `@/` alias). Mode: `DRY_RUN=1` (นับ + sample), `TEST_TO=<email>` (ส่งทดสอบ 1 ฉบับ), default = blast จริง. Idempotent ผ่านคอลัมน์ `trial_promo_sent_at`. รูปอัปโหลดก่อนด้วย `scripts/upload-promo-image.ts`. ยิง prod ให้ export prod `DATABASE_URL` ก่อนรัน.
 
 ## Auth
 
@@ -86,7 +93,7 @@ The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tra
 - **Verify-before-login:** บังคับ — Credentials provider โยน `email_not_verified` ถ้ายังไม่ verify
 - **Email collision:** ถ้า email นั้นสมัครด้วย Google แล้ว → register เพิ่มไม่ได้ (HTTP 409 `use_google`); ห้าม auto-link
 - **Tokens:** `verification_tokens` table; verify TTL 24h, reset TTL 1h, single-use (delete on consume)
-- **Rate limiting:** `src/lib/rate-limit.ts` (PostgreSQL fixed window) — register 5/hr/IP, forgot 5/hr/IP, resend-verify 3/hr/IP. ใช้ `clientIp(req)` (อ่าน `cf-connecting-ip` ก่อน fallback `x-forwarded-for`)
+- **Rate limiting:** `src/lib/rate-limit.ts` (PostgreSQL fixed window) — register 5/hr/IP, forgot 5/hr/IP, resend-verify 3/hr/IP. ใช้ `clientIp(req)` (อ่าน `cf-connecting-ip` ก่อน fallback `x-forwarded-for`; IPv6 ยุบเป็น `/64` prefix เพื่อกันการหมุน address หนี limit)
 - **Login UI:** email-first single page (`src/components/login-form.tsx`) — email → branch ไป password / register / google_only / verify_sent
 
 ## AI — Google Gemini
@@ -109,7 +116,12 @@ The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tra
 
 ## Guest landing handoff (`/api/guest/*`)
 
-- **`/api/guest/analyze`** — public, unauthenticated, cross-origin (CORS allowlist = `dailymood.me`). เรียก Gemini + เขียน `guest_entries` แถวนึงต่อ request → **rate limit คือ defense เดียว** (3/ชม. + 10/วัน ต่อ IP).
-- **IP rate-limit bypass guard** — `clientIp()` เชื่อ `cf-connecting-ip`/`x-forwarded-for` ซึ่งปลอมได้ถ้ายิงตรงเข้า origin (ข้าม Cloudflare). ตั้ง env **`CF_ORIGIN_SECRET`** (Railway prod) แล้วเพิ่ม Cloudflare Transform Rule ให้ inject header `x-cf-origin-secret: <ค่าเดียวกัน>` ทุก request → origin reject request ที่ไม่มี header (403). ถ้าไม่ตั้ง env (local dev) → check ถูก skip.
+- **`/api/guest/analyze`** — public, unauthenticated, cross-origin (CORS allowlist = `dailymood.me`). เรียก Gemini + เขียน `guest_entries` แถวนึงต่อ request. รับ body `{ text, mood?, turnstileToken? }` — `mood` (optional) เป็น 1 ใน 7 system moods, ถ้าส่งมา (และ valid) จะ **override** mood ที่ AI เดา และถูกส่งเป็น hint เข้า `analyzeText()`.
+- **Anti-abuse (เรียงตามลำดับการ check):** origin guard → length → per-IP rate limit → Turnstile → global cap → Gemini. แต่ละชั้น:
+  - **Per-IP rate limit** — 3/ชม. + 10/วัน ต่อ IP (`src/lib/rate-limit.ts`).
+  - **IPv6 /64 bucketing** — `clientIp()` ยุบ IPv6 เป็น prefix `/64` (ISP แจกลูกค้า 1 รายทั้ง /64 → ถ้า key ด้วย address เต็มจะหมุนหนี limit ได้ฟรี). IPv4 + IPv4-mapped ผ่านตามเดิม. มีผลกับ **ทุก** limiter ที่ใช้ `clientIp()`.
+  - **IP rate-limit bypass guard** — `clientIp()` เชื่อ `cf-connecting-ip`/`x-forwarded-for` ซึ่งปลอมได้ถ้ายิงตรงเข้า origin (ข้าม Cloudflare). ตั้ง env **`CF_ORIGIN_SECRET`** (Railway prod) แล้วเพิ่ม Cloudflare Transform Rule ให้ inject header `x-cf-origin-secret: <ค่าเดียวกัน>` ทุก request → origin reject request ที่ไม่มี header (403). ถ้าไม่ตั้ง env (local dev) → check ถูก skip.
+  - **Cloudflare Turnstile** — `src/lib/turnstile.ts` verify token ฝั่ง server. ตั้ง env **`TURNSTILE_SECRET_KEY`** (Railway prod) + sitekey ฝั่ง landing (`PUBLIC_TURNSTILE_SITE_KEY`). ไม่มี token / verify ไม่ผ่าน → 403 `captcha`. **Fail-open**: ถ้าไม่ตั้ง secret (local dev / ยังไม่ provision) → skip; ถ้า network error คุยกับ CF ไม่ได้ → ปล่อยผ่าน (มี rate limit + global cap กันอยู่แล้ว).
+  - **Global circuit breaker** — เพดานรวมต่อวัน (key `guest_analyze_global_d`) คุม Gemini cost กรณีโดนยิงแบบกระจายหลาย IP. ปรับด้วย env **`GUEST_ANALYZE_DAILY_CAP`** (default 1000). เกิน → 503 `busy` (เป็นกลาง ไม่ใช่ความผิด user).
 - **Cleanup** — ไม่มี cron; `/api/guest/analyze` ลบแถวที่ `expires_at` หมดอายุแบบ opportunistic ทุกครั้งที่ถูกเรียก.
 - **`/api/guest/claim`** — same-origin, ต้อง login. Redeem token เป็น mood entry **แรก** ของ user เท่านั้น (ถ้ามี entry อยู่แล้ว → consume token เฉยๆ ไม่ insert ซ้ำ).

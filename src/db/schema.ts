@@ -20,6 +20,8 @@ export const users = pgTable("users", {
   trialActivatedAt: timestamp("trial_activated_at"),
   trialEndsAt: timestamp("trial_ends_at"),
   welcomeShownAt: timestamp("welcome_shown_at"),
+  marketingOptOut: boolean("marketing_opt_out").notNull().default(false),
+  trialPromoSentAt: timestamp("trial_promo_sent_at"),
   bio: text("bio"),
   accentColor: text("accent_color"),
   hidePreview: boolean("hide_preview").notNull().default(false),
@@ -62,6 +64,24 @@ export const sessions = pgTable("sessions", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires").notNull(),
 });
+
+// Long-lived refresh tokens for the native mobile app (Bearer auth). The web uses
+// NextAuth session cookies; mobile clients can't, so they hold an access JWT
+// (short-lived, stateless) + a refresh token stored here. We keep only the SHA-256
+// hash of the raw token. Rotation: each refresh revokes the old row and issues a
+// new one; replaying a revoked row signals theft, so we revoke the whole user's set.
+export const mobileRefreshTokens = pgTable("mobile_refresh_tokens", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  device: text("device"),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  expiresAt: timestamp("expires_at").notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+  revokedAt: timestamp("revoked_at"),
+}, (t) => ({
+  userIdx: index("mobile_refresh_tokens_user_idx").on(t.userId),
+}));
 
 export const moodTypes = pgTable("mood_types", {
   id: text("id").primaryKey(),
@@ -338,6 +358,19 @@ export const articleBookmarks = pgTable("article_bookmarks", {
   pk: primaryKey({ columns: [t.userId, t.articleId] }),
 }));
 
+// Post-read mood reaction — one row per user per article (their latest pick).
+// Powers the "AI learns which content helps you" signal on article detail.
+export const articleReactions = pgTable("article_reactions", {
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  moodTypeId: text("mood_type_id").notNull(),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.articleId] }),
+  articleIdx: index("article_reactions_article_idx").on(t.articleId),
+}));
+
 export const journalPromptCache = pgTable("journal_prompt_cache", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moodId: text("mood_id").notNull(),
@@ -433,6 +466,7 @@ export type PersonalEvent = typeof personalEvents.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;
+export type MobileRefreshToken = typeof mobileRefreshTokens.$inferSelect;
 export type AiUsage = typeof aiUsage.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type ArticleCategory = typeof articleCategories.$inferSelect;
