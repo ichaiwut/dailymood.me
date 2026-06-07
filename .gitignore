@@ -46,3 +46,6 @@ next-env.d.ts
 
 # claude code — local machine settings (may contain secrets in permission rules)
 .claude/settings.local.json
+
+# mobile app handoff — local only, never committed/pushed
+docs/mobile-handoff/
