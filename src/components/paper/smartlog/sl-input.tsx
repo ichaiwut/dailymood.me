@@ -212,7 +212,7 @@ export function SLInput({
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3 L13.5 9 L20 12 L13.5 15 L12 21 L10.5 15 L4 12 L10.5 9 Z" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {quotaReached ? (locale === "th" ? "หมดโควต้า" : "Quota reached") : (locale === "th" ? "วิเคราะห์" : "Analyze")}
         </button>
-        <button onClick={onSave} disabled={busy || !hasInput} className="pa-btn" style={{ height: 44, padding: "0 24px", opacity: busy || !hasInput ? 0.5 : 1 }}>
+        <button onClick={onSave} disabled={busy || !moodId} className="pa-btn" style={{ height: 44, padding: "0 24px", opacity: busy || !moodId ? 0.5 : 1 }}>
           {busy ? (locale === "th" ? "กำลังบันทึก..." : "Saving...") : (locale === "th" ? "บันทึก" : "Save")}
         </button>
       </div>
