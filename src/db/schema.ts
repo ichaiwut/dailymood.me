@@ -65,6 +65,24 @@ export const sessions = pgTable("sessions", {
   expires: timestamp("expires").notNull(),
 });
 
+// Long-lived refresh tokens for the native mobile app (Bearer auth). The web uses
+// NextAuth session cookies; mobile clients can't, so they hold an access JWT
+// (short-lived, stateless) + a refresh token stored here. We keep only the SHA-256
+// hash of the raw token. Rotation: each refresh revokes the old row and issues a
+// new one; replaying a revoked row signals theft, so we revoke the whole user's set.
+export const mobileRefreshTokens = pgTable("mobile_refresh_tokens", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  device: text("device"),
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  expiresAt: timestamp("expires_at").notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+  revokedAt: timestamp("revoked_at"),
+}, (t) => ({
+  userIdx: index("mobile_refresh_tokens_user_idx").on(t.userId),
+}));
+
 export const moodTypes = pgTable("mood_types", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
@@ -448,6 +466,7 @@ export type PersonalEvent = typeof personalEvents.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type MoodType = typeof moodTypes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;
+export type MobileRefreshToken = typeof mobileRefreshTokens.$inferSelect;
 export type AiUsage = typeof aiUsage.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type ArticleCategory = typeof articleCategories.$inferSelect;

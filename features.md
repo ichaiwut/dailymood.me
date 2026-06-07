@@ -173,6 +173,11 @@
 | POST | `/api/auth/resend-verify` | — | Re-issue verify token (rate-limited 3/hr/IP, silent on unknown email) |
 | POST | `/api/auth/forgot` | — | Send reset link (rate-limited 5/hr/IP, silent on unknown email) |
 | POST | `/api/auth/reset` | — | Set new password via reset token, auto-verifies email |
+| POST | `/api/auth/mobile/login` | — | **Mobile (Bearer)**: email/password → `{accessToken, refreshToken, expiresIn, user}`. Mirrors web Credentials flow (rate-limit 10/15min/IP, verify password, require verified email) |
+| POST | `/api/auth/mobile/google` | — | **Mobile (Bearer)**: verify native Google ID token vs Google JWKS → upsert user by email → token pair. Requires `GOOGLE_IOS_CLIENT_ID`/`GOOGLE_ANDROID_CLIENT_ID` env |
+| POST | `/api/auth/mobile/apple` | — | **Mobile (Bearer)**: verify Apple identity token vs Apple JWKS → upsert by email → token pair. Name forwarded in body on first sign-in. Required by App Store §4.8 when Google offered. Requires `APPLE_CLIENT_ID` env |
+| POST | `/api/auth/mobile/refresh` | — | **Mobile (Bearer)**: rotate refresh token → fresh pair. Reuse of a revoked token revokes the user's whole set (theft detection) |
+| POST | `/api/auth/mobile/logout` | — | **Mobile (Bearer)**: revoke the presented refresh token (idempotent) |
 | GET/POST | `/api/unsubscribe` | — | One-click marketing opt-out (HMAC token `?u=&sig=`) → `marketing_opt_out = true`. GET shows TH/EN confirm page; POST is RFC 8058 one-click |
 | POST | `/api/log/smart` | auth | Multipart text/image → Gemini → suggestion (no DB write) |
 | POST | `/api/log/confirm` | auth | Save final entry to D1 |
@@ -213,6 +218,7 @@
 
 - `users` — id, email, image, **imageKey** (R2 avatar key, Pro upload), **passwordHash** (null for OAuth-only), emailVerified, isPremium, stripeCustomerId, **stripeSubscriptionId**, **currentPeriodEnd**, **cancelAtPeriodEnd**, **planInterval**, **trialActivatedAt** (one-time guard), **trialEndsAt** (expiry timestamp), locale, **bio**, **accentColor**, createdAt
 - `accounts`, `sessions` — NextAuth
+- `mobile_refresh_tokens` — id PK, userId (FK cascade), tokenHash (SHA-256 of raw, unique), device, createdAt, expiresAt (60d), lastUsedAt, revokedAt — refresh tokens for native mobile app Bearer auth; rotating + theft detection. Access token is a stateless 1h HS256 JWT (`AUTH_SECRET`), verified in `getSessionInfo()` |
 - `verification_tokens` — (identifier, token) PK; type = `email_verify` | `password_reset`; expires
 - `mood_types` — system defaults (userId NULL) + custom (userId set, premium only)
 - `mood_entries` — id, userId, moodTypeId, note, imageKey, tags JSON, sentiment, aiSummary, aiSource, **activityId** (nullable FK→activities), **location** (nullable text, max 200 chars), date, createdAt
