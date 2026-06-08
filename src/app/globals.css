@@ -711,12 +711,17 @@ gmp-place-autocomplete::part(predictions) {
 /* ─── article detail grid ─── */
 .article-grid {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  /* minmax(0,1fr) (not 1fr) so the content column can shrink below the
+     min-content of a long unbreakable Thai heading — otherwise the track
+     blows out wider than the viewport and clips on mobile. */
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 34px;
   align-items: flex-start;
 }
+/* Let long Thai words (no spaces) wrap instead of forcing horizontal overflow. */
+.article-grid > article { overflow-wrap: anywhere; word-break: break-word; }
 @media (max-width: 767px) {
-  .article-grid { grid-template-columns: 1fr; }
+  .article-grid { grid-template-columns: minmax(0, 1fr); }
   .article-grid > aside { position: static !important; }
 }
 
