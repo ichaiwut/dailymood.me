@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useLocale } from "next-intl";
 import { PAClip, PAMark, ArticleArt } from "@/components/paper";
+import { LoginForm } from "@/components/login-form";
 
 interface ArticleCard {
   slug: string;
@@ -28,6 +30,7 @@ export function MobileLoginFeed({
   const th = locale === "th";
   const featured = articles[0];
   const rest = articles.slice(1, 4);
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <div className="auth-mobile pa-wrap">
@@ -173,7 +176,7 @@ export function MobileLoginFeed({
             Google
           </button>
           <button
-            onClick={() => { window.location.href = "/login"; }}
+            onClick={() => setShowForm(true)}
             style={{
               flex: 1, height: 48, borderRadius: 12,
               background: "var(--w-ink)", color: "var(--bg)", border: "none",
@@ -187,6 +190,29 @@ export function MobileLoginFeed({
           </button>
         </div>
       </div>
+
+      {/* Email login — full-screen overlay (email-first LoginForm) */}
+      {showForm && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 50, background: "var(--bg)",
+            overflowY: "auto", padding: "16px 22px calc(40px + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <button
+            onClick={() => setShowForm(false)}
+            aria-label={th ? "กลับ" : "Back"}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+              fontWeight: 800, fontSize: 14, color: "var(--ink-2)", padding: "8px 0", marginBottom: 8,
+            }}
+          >
+            ← {th ? "กลับไปอ่านบทความ" : "Back to articles"}
+          </button>
+          <LoginForm />
+        </div>
+      )}
     </div>
   );
 }
