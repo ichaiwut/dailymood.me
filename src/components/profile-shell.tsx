@@ -513,6 +513,15 @@ export function ProfileShell() {
               <PremiumTeaser text={t("premiumPrivacy")} />
             </div>
           )}
+          <Divider />
+          <a href="/profile/password" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <NavRow
+              icon="🔑"
+              iconBg="#A673F1"
+              title={locale === "th" ? "รหัสผ่าน" : "Password"}
+              value={locale === "th" ? "เปลี่ยนหรือตั้งรหัสผ่าน" : "Change or set your password"}
+            />
+          </a>
         </SettingCard>
       </Section>
 
