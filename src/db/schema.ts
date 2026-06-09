@@ -91,6 +91,21 @@ export const mobileRefreshTokens = pgTable("mobile_refresh_tokens", {
   userIdx: index("mobile_refresh_tokens_user_idx").on(t.userId),
 }));
 
+// Expo push notification tokens — one row per device install. `token` is unique:
+// re-registering the same device (e.g. after logging in as a different user) moves
+// the row to the new user. Deleted on logout (DELETE /api/notifications/register)
+// or pruned when Expo reports DeviceNotRegistered.
+export const deviceTokens = pgTable("device_tokens", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  platform: text("platform"), // "ios" | "android"
+  createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
+  lastUsedAt: timestamp("last_used_at").notNull().$defaultFn(() => new Date()),
+}, (t) => ({
+  userIdx: index("device_tokens_user_idx").on(t.userId),
+}));
+
 export const moodTypes = pgTable("mood_types", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),

@@ -4,6 +4,7 @@ import { getDb } from "@/lib/cf";
 import { users, moodEntries } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { resend } from "@/lib/resend";
+import { pushToUser } from "@/lib/push";
 
 
 const FROM = "Dailymood <hello@dailymood.me>";
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
     .where(eq(users.reminderEnabled, true));
 
   let sent = 0;
+  let pushedCount = 0;
   for (const user of eligibleUsers) {
     if (user.reminderTime !== currentTime) continue;
     const days = user.reminderDays.split(",");
@@ -56,8 +58,17 @@ export async function POST(req: NextRequest) {
     if (alreadyLogged) continue;
 
     const locale = (user.locale as "en" | "th") || "en";
-    const { subject, html } = reminderEmail(locale, user.name);
 
+    // Mobile users get a push; web-only users (no device token) get the email.
+    // pushToUser is best-effort and never throws — 0 means "no device" → email.
+    const pushed = await pushToUser(user.id, reminderPush(locale));
+    if (pushed > 0) {
+      sent++;
+      pushedCount++;
+      continue;
+    }
+
+    const { subject, html } = reminderEmail(locale, user.name);
     try {
       await resend.emails.send({ from: FROM, to: user.email, subject, html });
       sent++;
@@ -66,12 +77,27 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, checked: eligibleUsers.length });
+  return NextResponse.json({ ok: true, sent, pushed: pushedCount, checked: eligibleUsers.length });
 }
 
 function toYmd(d: Date): string {
   const utc7 = new Date(d.getTime() + 7 * 3600000);
   return `${utc7.getUTCFullYear()}-${String(utc7.getUTCMonth() + 1).padStart(2, "0")}-${String(utc7.getUTCDate()).padStart(2, "0")}`;
+}
+
+function reminderPush(locale: "en" | "th") {
+  if (locale === "th") {
+    return {
+      title: "วันนี้รู้สึกยังไงบ้าง?",
+      body: "ยังไม่ได้บันทึกอารมณ์วันนี้เลย แวะมาบันทึกสักนิดไหม?",
+      data: { type: "daily_reminder", url: "/" },
+    };
+  }
+  return {
+    title: "How are you feeling today?",
+    body: "You haven't logged your mood today — take a moment to check in?",
+    data: { type: "daily_reminder", url: "/" },
+  };
 }
 
 function reminderEmail(locale: "en" | "th", name: string | null) {
