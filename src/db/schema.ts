@@ -17,6 +17,14 @@ export const users = pgTable("users", {
   cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
   planInterval: text("plan_interval"),
   subscriptionStatus: text("subscription_status"),
+  // Which channel granted the active premium: "stripe" (web), "iap" (App Store /
+  // Play via RevenueCat), or null (legacy/comped/admin-granted). The IAP reconcile +
+  // webhook only ever downgrade users whose source is "iap" — so a RevenueCat call
+  // that finds no entitlement can never strip premium from a Stripe or comped user.
+  premiumSource: text("premium_source"),
+  // For IAP-granted premium only: which store the subscription lives in, so the app
+  // can deep-link "manage/cancel" to the right place ("apple" | "google" | null).
+  iapStore: text("iap_store"),
   trialActivatedAt: timestamp("trial_activated_at"),
   trialEndsAt: timestamp("trial_ends_at"),
   welcomeShownAt: timestamp("welcome_shown_at"),

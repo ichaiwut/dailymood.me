@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
           : (session.customer?.id ?? null);
         await db.update(users).set({
           isPremium: true,
+          premiumSource: "stripe",
           stripeCustomerId: customerId,
           stripeSubscriptionId: subId,
           currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
         const periodEnd = item?.current_period_end;
         await db.update(users).set({
           isPremium: active,
+          premiumSource: active ? "stripe" : null,
           stripeSubscriptionId: sub.id,
           currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
           cancelAtPeriodEnd: sub.cancel_at_period_end,
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
       if (userId) {
         await db.update(users).set({
           isPremium: false,
+          premiumSource: null,
           stripeSubscriptionId: null,
           currentPeriodEnd: null,
           cancelAtPeriodEnd: false,

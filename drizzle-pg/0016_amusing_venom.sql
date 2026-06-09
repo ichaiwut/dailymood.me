@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "iap_store" text;
