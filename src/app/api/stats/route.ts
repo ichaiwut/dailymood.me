@@ -21,7 +21,13 @@ export async function GET(req: NextRequest) {
   const locale = url.searchParams.get("locale") ?? "th";
 
   if (period === "year" && tier !== "premium") {
-    return NextResponse.json({ premiumRequired: true });
+    // Include empty collections so clients that miss the premiumRequired flag
+    // never .map()/.length on undefined.
+    return NextResponse.json({
+      premiumRequired: true,
+      last7: [], moodTrend: [], distribution: {},
+      activityImpact: [], activityInsight: [], annotations: [],
+    });
   }
 
   const db = getDb();
@@ -179,9 +185,10 @@ export async function GET(req: NextRequest) {
 
   const streak = computeStreak(new Set(perDay.keys()));
 
-  let annotations: ChartAnnotation[] | null = null;
+  // Mobile contract: collection fields are non-null — always [] when empty/free tier.
+  let annotations: ChartAnnotation[] = [];
   if (tier === "premium") {
-    annotations = await getOrGenerateAnnotations(db, userId, period, moodTrend, tagsByDate, activityByDate, currentRows.length, locale);
+    annotations = (await getOrGenerateAnnotations(db, userId, period, moodTrend, tagsByDate, activityByDate, currentRows.length, locale)) ?? [];
   }
 
   return NextResponse.json({

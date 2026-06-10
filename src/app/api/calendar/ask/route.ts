@@ -77,7 +77,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await generateAskAi(payload);
-    return NextResponse.json(result);
+    // Never trust AI output shape at the boundary — mobile contract says
+    // matchingDates is string[] non-null.
+    return NextResponse.json({
+      answer: result.answer ?? "",
+      matchingDates: Array.isArray(result.matchingDates) ? result.matchingDates : [],
+    });
   } catch {
     return NextResponse.json({ error: "ai_failed" }, { status: 500 });
   }

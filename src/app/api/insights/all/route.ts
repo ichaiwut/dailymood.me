@@ -156,6 +156,9 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Build response ──
+  // AI results are replayed verbatim from JSONB cache — never trust their shape
+  // at the boundary. Mobile contract: collection fields are non-null arrays.
+  const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
   const response: Record<string, unknown> = { status, weekKey, stats, streak };
 
   if (weeklyResult) {
@@ -166,14 +169,24 @@ export async function GET(req: NextRequest) {
     } else {
       response.headline = weeklyResult.headline;
       response.summary = weeklyResult.summary;
-      response.patterns = weeklyResult.patterns;
+      response.patterns = asArray<InsightsAiResult["patterns"][number]>(weeklyResult.patterns).map((p) => ({
+        ...p,
+        // optional in contract: omit (undefined) rather than null
+        miniVizData: Array.isArray(p.miniVizData) ? p.miniVizData : undefined,
+      }));
       response.suggestion = weeklyResult.suggestion;
     }
   }
 
-  if (forecast) response.forecast = forecast;
+  if (forecast) {
+    const f = forecast as Record<string, unknown>;
+    response.forecast = { ...f, factors: asArray(f.factors), miniTrend: asArray(f.miniTrend) };
+  }
   if (energy) response.energy = energy;
-  if (themes) response.themes = themes;
+  if (themes) {
+    const t = themes as Record<string, unknown>;
+    response.themes = { ...t, themes: asArray(t.themes) };
+  }
   if (dna) response.dna = dna;
 
   return NextResponse.json(response);

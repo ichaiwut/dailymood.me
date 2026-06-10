@@ -134,7 +134,10 @@ export async function GET(
   }
 
   return NextResponse.json({
-    ...row, imageUrl, isPremium: tier === "premium", entryNumber,
+    ...row,
+    // jsonb column can be NULL in DB — mobile contract says tags is string[].
+    tags: (row.tags as string[] | null) ?? [],
+    imageUrl, isPremium: tier === "premium", entryNumber,
     nearby,
     lastYear: lastYearRow ?? null,
     streak,
