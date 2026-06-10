@@ -91,7 +91,7 @@ The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tra
 - **Providers:** Google OAuth + Credentials (email/password)
 - **Password hashing:** PBKDF2-SHA256, 600k iter, Web Crypto only — ห้ามเพิ่ม dep crypto อื่น (`src/lib/password.ts`)
 - **Verify-before-login:** บังคับ — Credentials provider โยน `email_not_verified` ถ้ายังไม่ verify
-- **Email collision:** ถ้า email นั้นสมัครด้วย Google แล้ว → register เพิ่มไม่ได้ (HTTP 409 `use_google`); ห้าม auto-link
+- **Email collision:** ถ้า email นั้นสมัครด้วย Google แล้ว → register เพิ่มไม่ได้ (HTTP 409 `use_google`); ห้าม auto-link — แต่ **forgot/reset ใช้ตั้งรหัสผ่านให้ Google-only account ได้** (พิสูจน์ inbox ผ่านลิงก์ = ADD credential อย่างปลอดภัย ไม่ detach Google) จำเป็นเพราะ mobile app เป็น email+password เท่านั้น
 - **Tokens:** `verification_tokens` table; verify TTL 24h, reset TTL 1h, single-use (delete on consume)
 - **Rate limiting:** `src/lib/rate-limit.ts` (PostgreSQL fixed window) — register 5/hr/IP, forgot 5/hr/IP, resend-verify 3/hr/IP. ใช้ `clientIp(req)` (อ่าน `cf-connecting-ip` ก่อน fallback `x-forwarded-for`; IPv6 ยุบเป็น `/64` prefix เพื่อกันการหมุน address หนี limit)
 - **Login UI:** email-first single page (`src/components/login-form.tsx`) — email → branch ไป password / register / google_only / verify_sent

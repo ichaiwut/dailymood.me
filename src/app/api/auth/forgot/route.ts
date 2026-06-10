@@ -38,8 +38,13 @@ export async function POST(req: NextRequest) {
     .where(eq(users.email, email))
     .limit(1);
 
-  // Only send for users that have a password set (Google-only users skip).
-  if (u?.passwordHash) {
+  // Send for every existing account — including Google/Apple-only ones with no
+  // password yet. For those, "reset" acts as "set": proving inbox access via the
+  // emailed link is the safe way to ADD a password credential (it never detaches
+  // the social login). Mobile is email+password only, so this is the only door
+  // into the app for users who originally signed up with Google on the web.
+  // Unknown emails still get the same silent ok (anti-enumeration).
+  if (u) {
     await db
       .delete(verificationTokens)
       .where(
