@@ -251,11 +251,20 @@ export async function getMobileUser(userId: string): Promise<MobileUser | null> 
 export async function upsertUserByEmail(identity: ProviderIdentity, providerLabel: string): Promise<string> {
   const db = getDb();
   const [existing] = await db
-    .select({ id: users.id })
+    .select({ id: users.id, emailVerified: users.emailVerified })
     .from(users)
     .where(eq(users.email, identity.email))
     .limit(1);
-  if (existing) return existing.id;
+  if (existing) {
+    // The provider just vouched for this email — back-stamp verification on an
+    // existing email+password account that never verified, so it isn't locked
+    // into a state where social login works but password login still 403s
+    // email_not_verified.
+    if (!existing.emailVerified) {
+      await db.update(users).set({ emailVerified: new Date() }).where(eq(users.id, existing.id));
+    }
+    return existing.id;
+  }
 
   // Race-safe create: two concurrent first sign-ins for the same email can both pass
   // the read above, so lean on the unique(email) constraint instead. onConflictDoNothing
