@@ -497,7 +497,7 @@
     "deleteAccount": "Delete account",
     "deleteAccountDesc": "Permanently delete your account and all data",
     "deleteConfirmTitle": "Confirm account deletion?",
-    "deleteConfirmBody": "All your data will be permanently deleted and cannot be recovered.",
+    "deleteConfirmBody": "All your data will be permanently deleted and cannot be recovered. If you subscribed through the App Store or Google Play, remember to cancel it in your store settings too.",
     "deleteConfirm": "Yes, delete everything",
     "deleteCancel": "Keep my account",
     "settingsTitle": "Settings",
@@ -579,7 +579,9 @@
     "badge_zen_30": "Zen 30",
     "badge_zen_30_desc": "Log a good mood (Calm or Happy) for 30 days in a row",
     "badge_photo_journal": "Photo journal",
-    "badge_photo_journal_desc": "Attach a photo to your mood entry 25 times"
+    "badge_photo_journal_desc": "Attach a photo to your mood entry 25 times",
+    "deleteError": "Couldn't delete the account. Please try again.",
+    "deleting": "Deleting..."
   },
   "pricing": {
     "title": "Upgrade to Pro",

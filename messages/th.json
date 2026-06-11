@@ -497,7 +497,7 @@
     "deleteAccount": "ลบบัญชี",
     "deleteAccountDesc": "ลบบัญชีและข้อมูลทั้งหมดอย่างถาวร — ไม่สามารถย้อนกลับได้",
     "deleteConfirmTitle": "ยืนยันการลบบัญชี?",
-    "deleteConfirmBody": "ข้อมูลทั้งหมดจะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้",
+    "deleteConfirmBody": "ข้อมูลทั้งหมดจะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้ ถ้าสมัคร Pro ผ่าน App Store หรือ Google Play อย่าลืมไปยกเลิกในตั้งค่าของสโตร์ด้วย",
     "deleteConfirm": "ลบทั้งหมด",
     "deleteCancel": "เก็บบัญชีไว้",
     "settingsTitle": "ตั้งค่า",
@@ -579,7 +579,9 @@
     "badge_zen_30": "Zen 30",
     "badge_zen_30_desc": "บันทึกอารมณ์ดี (ดี หรือ มีความสุข) ติดต่อกัน 30 วัน",
     "badge_photo_journal": "Photo journal",
-    "badge_photo_journal_desc": "แนบรูปพร้อมบันทึกอารมณ์ครบ 25 ครั้ง"
+    "badge_photo_journal_desc": "แนบรูปพร้อมบันทึกอารมณ์ครบ 25 ครั้ง",
+    "deleteError": "ลบบัญชีไม่สำเร็จ ลองใหม่อีกครั้ง",
+    "deleting": "กำลังลบ..."
   },
   "pricing": {
     "title": "อัปเกรดเป็น Pro",

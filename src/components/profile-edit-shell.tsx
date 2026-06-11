@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useRouter as useNextRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { optimizeImage } from "@/lib/client-image";
 
 const ACCENT_COLORS = [
@@ -41,6 +42,10 @@ export function ProfileEditShell() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState("");
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const blobUrlRef = useRef<string | null>(null);
 
@@ -89,6 +94,21 @@ export function ProfileEditShell() {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deletingAccount) return;
+    setDeletingAccount(true);
+    setDeleteError("");
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      if (!res.ok) throw new Error("delete_failed");
+      // The user row is gone — drop the session and land on /login.
+      await signOut({ callbackUrl: "/login" });
+    } catch {
+      setDeleteError(t("deleteError"));
+      setDeletingAccount(false);
     }
   };
 
@@ -378,6 +398,7 @@ export function ProfileEditShell() {
         </div>
         <button
           type="button"
+          onClick={() => { setDeleteError(""); setShowDeleteConfirm(true); }}
           style={{
             padding: "10px 20px", borderRadius: 14,
             border: "1.5px solid #F5DADA", background: "var(--surface)",
@@ -388,6 +409,76 @@ export function ProfileEditShell() {
           {t("deleteAccount")}
         </button>
       </div>
+
+      {/* Delete Account Confirmation */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 100,
+            background: "rgba(10,10,10,0.32)",
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+          }}
+          onClick={() => !deletingAccount && setShowDeleteConfirm(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 480,
+              background: "var(--surface)", borderRadius: "24px 24px 0 0",
+              padding: "28px 24px 36px", textAlign: "center",
+            }}
+          >
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--hairline-2)", margin: "0 auto 20px" }} />
+            <div style={{ fontSize: 17, fontWeight: 700, color: "#D94444", marginBottom: 10 }}>
+              {t("deleteConfirmTitle")}
+            </div>
+            <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 20 }}>
+              {t("deleteConfirmBody")}
+            </div>
+            {deleteError && (
+              <div
+                style={{
+                  fontSize: 14, fontWeight: 600, color: "#D94444",
+                  background: "#FDE8E8", borderRadius: 12,
+                  padding: "10px 14px", marginBottom: 16,
+                }}
+              >
+                {deleteError}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deletingAccount}
+                style={{
+                  flex: 1, padding: "14px 0", borderRadius: 16,
+                  border: "1.5px solid var(--hairline-2)", background: "transparent",
+                  fontSize: 14, fontWeight: 600, color: "var(--ink-2)",
+                  cursor: deletingAccount ? "default" : "pointer",
+                  opacity: deletingAccount ? 0.5 : 1,
+                }}
+              >
+                {t("deleteCancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                style={{
+                  flex: 1, padding: "14px 0", borderRadius: 16,
+                  border: "none", background: "#D94444",
+                  fontSize: 14, fontWeight: 700, color: "#fff",
+                  cursor: deletingAccount ? "default" : "pointer",
+                  opacity: deletingAccount ? 0.7 : 1,
+                }}
+              >
+                {deletingAccount ? t("deleting") : t("deleteConfirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (
