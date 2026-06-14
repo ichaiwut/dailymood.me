@@ -13,13 +13,20 @@ export async function POST(req: NextRequest) {
 
   const db = getDb();
   const [user] = await db
-    .select({ stripeCustomerId: users.stripeCustomerId })
+    .select({ stripeCustomerId: users.stripeCustomerId, premiumSource: users.premiumSource })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
 
   if (!user?.stripeCustomerId) {
     return NextResponse.json({ error: "no_subscription" }, { status: 400 });
+  }
+
+  // Enforce: only a Stripe-billed subscription can be managed/cancelled here.
+  // An IAP subscriber may carry a leftover stripeCustomerId (old web trial, etc.)
+  // — they must cancel in the App Store / Google Play, never via the web portal.
+  if (user.premiumSource !== "stripe") {
+    return NextResponse.json({ error: "manage_in_store" }, { status: 400 });
   }
 
   const session = await stripe.billingPortal.sessions.create({

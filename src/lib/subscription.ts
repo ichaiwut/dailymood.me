@@ -11,6 +11,10 @@ export interface SubscriptionData {
   isPremium: boolean;
   hasStripeCustomer: boolean;
   hasIapSubscription: boolean;
+  // Which channel manages the active subscription. Drives where the user can
+  // cancel: "stripe" → web billing portal; "iap" → the store (see iapSource);
+  // null → comped/admin or trial (nothing to manage).
+  premiumSource: "stripe" | "iap" | null;
   iapSource: IapStore | null;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
@@ -76,6 +80,7 @@ export async function getSubscriptionData(userId: string): Promise<SubscriptionD
     isPremium: effectivePremium,
     hasStripeCustomer: !!user.stripeCustomerId,
     hasIapSubscription: isIap,
+    premiumSource: isPremiumFlag ? ((user.premiumSource as "stripe" | "iap" | null) ?? null) : null,
     iapSource: isIap ? (user.iapStore as IapStore | null) : null,
     currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
     cancelAtPeriodEnd: user.cancelAtPeriodEnd,

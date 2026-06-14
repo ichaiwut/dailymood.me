@@ -10,6 +10,8 @@ import { TrialConfirmSheet } from "./trial-confirm-sheet";
 interface SubData {
   isPremium: boolean;
   hasStripeCustomer: boolean;
+  premiumSource: "stripe" | "iap" | null;
+  iapSource: "apple" | "google" | null;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   planInterval: string | null;
@@ -114,8 +116,14 @@ export function SubscriptionShell() {
   const renewDate = data.currentPeriodEnd ? formatDate(data.currentPeriodEnd, locale) : null;
   const isYearly = data.planInterval === "year";
   const isCanceling = data.cancelAtPeriodEnd;
-  // Comped/admin-granted Pro has no Stripe customer → hide billing-management controls.
-  const hasBilling = data.hasStripeCustomer;
+  // Show the Stripe billing portal/cancel ONLY for a Stripe-billed subscription.
+  // IAP subs (App Store/Play) must be managed in the store — never via the web,
+  // even if the account carries a leftover stripeCustomerId. Comped/admin (null)
+  // has nothing to manage.
+  const isStripeSub = data.premiumSource === "stripe";
+  const isIapSub = data.premiumSource === "iap";
+  const hasBilling = isStripeSub;
+  const storeName = data.iapSource === "apple" ? "App Store" : data.iapSource === "google" ? "Google Play" : (locale === "th" ? "สโตร์" : "the store");
 
   return (
     <div className="pa-wrap fade-in center-880" style={{ paddingBottom: 40 }}>
@@ -165,11 +173,13 @@ export function SubscriptionShell() {
                       : `${locale === "th" ? "ต่ออายุอัตโนมัติ" : "Auto-renews"} · ${renewDate}`}
                   </div>
                   <div style={{ fontSize: 14, opacity: 0.7 }}>
-                    {!hasBilling
-                      ? (locale === "th" ? "ปลดล็อกทุกฟีเจอร์" : "All features unlocked")
-                      : isYearly
-                      ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
-                      : `฿99 / ${locale === "th" ? "เดือน" : "month"}`}
+                    {isStripeSub
+                      ? (isYearly
+                        ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
+                        : `฿99 / ${locale === "th" ? "เดือน" : "month"}`)
+                      : isIapSub
+                      ? (locale === "th" ? `จัดการหรือยกเลิกได้ที่ ${storeName}` : `Manage or cancel in ${storeName}`)
+                      : (locale === "th" ? "ปลดล็อกทุกฟีเจอร์" : "All features unlocked")}
                   </div>
                 </div>
                 {hasBilling && (
