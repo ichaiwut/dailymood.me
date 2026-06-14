@@ -232,7 +232,7 @@ export function ProfileSettingsShell({ isPremium }: { isPremium: boolean }) {
       {/* About */}
       <Section label={t("about")}>
         <SettingCard>
-          <NavRow icon="❓" iconBg="#F4F2F7" title={t("helpCenter")} />
+          <NavRow icon="❓" iconBg="#F4F2F7" title={t("helpCenter")} href="/support" />
           <Divider />
           <NavRow icon="💬" iconBg="#F4F2F7" title={t("sendFeedback")} />
           <Divider />

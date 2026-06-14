@@ -19,6 +19,9 @@ export async function SiteFooter() {
     }}>
       <div>© {year} DailyMood.me</div>
       <div style={{ display: "flex", gap: 24 }}>
+        <a href="/support" style={{ color: "inherit", textDecoration: "none" }}>
+          {isTh ? "ช่วยเหลือ" : "Support"}
+        </a>
         <a href="/privacy" style={{ color: "inherit", textDecoration: "none" }}>
           {isTh ? "นโยบายความเป็นส่วนตัว" : "Privacy"}
         </a>

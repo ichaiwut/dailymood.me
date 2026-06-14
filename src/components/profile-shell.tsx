@@ -726,6 +726,8 @@ export function ProfileShell() {
             <NavRow icon="💬" iconBg="#F4F2F7" title={t("sendFeedback")} />
           </div>
           <Divider />
+          <NavRow icon="❓" iconBg="#F4F2F7" title={t("helpCenter")} href="/support" />
+          <Divider />
           <NavRow icon="📄" iconBg="#F4F2F7" title={t("termsLink")} href="/terms" />
           <Divider />
           <NavRow icon="🔒" iconBg="#F4F2F7" title={t("privacyLink")} href="/privacy" />

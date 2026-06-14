@@ -753,5 +753,30 @@
     "story": "AI wrote this story — some parts may not be accurate.",
     "parse": "AI may get it wrong — double-check before saving.",
     "article": "Summarized by AI · Use your own judgment"
+  },
+  "support": {
+    "title": "Support",
+    "heroLabel": "WE'RE HERE",
+    "heroTitle": "Need a hand?",
+    "heroSub": "Answers to common questions, and a real person when you need one.",
+    "contactTitle": "Email us",
+    "email": "contact@dailymood.me",
+    "responseBody": "We reply within 24 hours. Tell us your account email and what's happening, and we'll help you sort it out.",
+    "faqLabel": "FREQUENTLY ASKED",
+    "q1title": "How do I cancel or manage my Pro subscription?",
+    "q1body": "If you subscribed inside the iOS or Android app, manage it in your **App Store** or **Google Play** account settings — the store handles that billing, so we can't cancel it for you. If you subscribed on the web, go to **Profile → Subscription** and manage it through Stripe. Either way, Pro stays active until the end of the period you've already paid for.",
+    "q2title": "I bought Pro but the app still shows Free",
+    "q2body": "In the mobile app, open **Profile → Subscription** and tap **Restore Purchases** — that re-checks your purchase with the store. If it still doesn't update, give it a moment and reopen the app so it can sync. Still stuck? Email us with your account email and we'll fix it.",
+    "q3title": "I forgot my password — or I signed up with Google and want one",
+    "q3body": "On the login screen tap **Forgot password**, enter your email, and open the link we send to set a new password. If you originally signed up with Google, the same steps let you add a password — then you can sign in with email + password in the mobile app while your Google login keeps working too.",
+    "q4title": "How do I delete my account?",
+    "q4body": "In the app, go to **Profile → Edit profile → Delete account**. Everything is removed permanently and right away — entries, photos, and all your data. If you subscribed to Pro through the App Store or Google Play, remember to cancel it in your store settings as well, since the store won't cancel it automatically when the account is deleted.",
+    "q5title": "Will the 14-day free trial charge me?",
+    "q5body": "No. The free trial needs no card and never charges you — when the 14 days end, your account simply returns to Free. The trial is available once per account.",
+    "q6title": "What's the difference between Free and Pro?",
+    "q6body": "Free lets you log your moods, browse the calendar, and see basic stats, with AI analysis up to 3 times a day. Pro unlocks unlimited AI, photo analysis, weekly insights, custom moods, year-in-pixels, and more — everything stays visible in the app so you can see what Pro adds.",
+    "moreInfo": "More info",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Service"
   }
 }
