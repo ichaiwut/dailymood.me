@@ -18,7 +18,7 @@ export function TermsPage() {
   const router = useRouter();
 
   return (
-    <div className="pa-wrap fade-in">
+    <div className="pa-wrap fade-in" style={{ maxWidth: 768, margin: "0 auto", padding: "0 20px 40px" }}>
       {/* header */}
       <div className="flex items-center justify-between py-4">
         <button onClick={() => router.back()} className="pa-icon-btn" aria-label={t("title")}>
