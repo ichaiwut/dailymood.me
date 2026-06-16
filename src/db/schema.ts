@@ -39,6 +39,11 @@ export const users = pgTable("users", {
   reminderDays: text("reminder_days").notNull().default("1,2,3,4,5"),
   aiCoachEnabled: boolean("ai_coach_enabled").notNull().default(false),
   weeklyDigestEnabled: boolean("weekly_digest_enabled").notNull().default(false),
+  // Idempotency guards for the daily/weekly email cron jobs — prevent duplicate
+  // sends if the scheduler fires a job more than once per period (double tick,
+  // retry, or a future second instance).
+  lastAiCoachSentAt: text("last_ai_coach_sent_at"), // ICT date "YYYY-MM-DD" of last AI-coach email
+  lastDigestWeekKey: text("last_digest_week_key"),  // isoWeekKey of last weekly digest sent
   createdAt: timestamp("created_at").notNull().$defaultFn(() => new Date()),
 });
 

@@ -22,11 +22,18 @@ export function startCronScheduler() {
       console.error("[cron] Reminders failed:", e);
     }
 
-    const utcHour = new Date().getUTCHours();
-    const utcDay = new Date().getUTCDay();
+    // The scheduler ticks every 30 min, so the 01:00 UTC hour contains TWO
+    // ticks. Daily/weekly jobs must fire once per occurrence, so restrict them
+    // to the first half-hour tick (of the two ticks in the hour, exactly one
+    // lands in [:00,:30)). Each handler also has a persistent guard as backstop.
+    const now = new Date();
+    const utcHour = now.getUTCHours();
+    const utcDay = now.getUTCDay();
+    const utcMinute = now.getUTCMinutes();
+    const dailyWindow = utcHour === 1 && utcMinute < 30;
 
     // AI Coach: once daily around 08:00 ICT (01:00 UTC)
-    if (utcHour === 1) {
+    if (dailyWindow) {
       try {
         const res = await fetch(`${APP_URL}/api/cron/ai-coach`, {
           headers: { "x-cron-secret": CRON_SECRET },
@@ -39,7 +46,7 @@ export function startCronScheduler() {
     }
 
     // Weekly Digest: Monday 08:00 ICT (01:00 UTC, day=1)
-    if (utcHour === 1 && utcDay === 1) {
+    if (dailyWindow && utcDay === 1) {
       try {
         const res = await fetch(`${APP_URL}/api/cron/weekly-digest`, {
           headers: { "x-cron-secret": CRON_SECRET },

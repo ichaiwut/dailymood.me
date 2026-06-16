@@ -127,6 +127,13 @@
       "when": 1781013859583,
       "tag": "0017_narrow_zarda",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1781652730380,
+      "tag": "0018_watery_kree",
+      "breakpoints": true
     }
   ]
 }

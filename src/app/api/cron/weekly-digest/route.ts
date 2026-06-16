@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       email: users.email,
       locale: users.locale,
       name: users.name,
+      lastDigestWeekKey: users.lastDigestWeekKey,
     })
     .from(users)
     .where(and(eq(users.weeklyDigestEnabled, true), eq(users.isPremium, true)))
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
 
   for (const user of enabledUsers) {
     try {
+      if (user.lastDigestWeekKey === lastWeekKey) continue; // already sent this week
       const locale = user.locale ?? "th";
       const start = ymd(addDays(new Date(), -13));
 
@@ -121,6 +123,7 @@ export async function GET(req: NextRequest) {
         subject: subject.slice(0, 120),
         html,
       });
+      await db.update(users).set({ lastDigestWeekKey: lastWeekKey }).where(eq(users.id, user.id));
 
       sent++;
     } catch {

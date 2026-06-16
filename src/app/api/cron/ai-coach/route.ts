@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   const db = getDb();
+  const today = ymd(new Date()); // ICT date — idempotency key for one send/day
 
   // Find users with AI Coach enabled + premium
   const enabledUsers = await db
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
       email: users.email,
       locale: users.locale,
       name: users.name,
+      lastAiCoachSentAt: users.lastAiCoachSentAt,
     })
     .from(users)
     .where(and(eq(users.aiCoachEnabled, true), eq(users.isPremium, true)))
@@ -36,6 +38,7 @@ export async function GET(req: NextRequest) {
 
   for (const user of enabledUsers) {
     try {
+      if (user.lastAiCoachSentAt === today) continue; // already sent today
       const locale = user.locale ?? "th";
       const start = ymd(addDays(new Date(), -14));
 
@@ -83,6 +86,7 @@ export async function GET(req: NextRequest) {
         subject: `${tip.emoji} ${tip.title}`,
         html,
       });
+      await db.update(users).set({ lastAiCoachSentAt: today }).where(eq(users.id, user.id));
 
       sent++;
     } catch {
