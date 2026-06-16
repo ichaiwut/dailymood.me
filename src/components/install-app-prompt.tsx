@@ -3,9 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import { BottomSheet } from "./bottom-sheet";
+import { trackAppDownloadClick, trackAppPromptShown } from "@/lib/analytics";
+import { R2_PUBLIC_URL as R2 } from "@/lib/moods";
 
 const LS_KEY = "pwa-install-dismissed";
-const R2 = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "";
+
+// The native iOS app is live; iOS users are pointed here instead of the
+// add-to-home-screen guide. Android has no native app yet, so it keeps the
+// install guide below.
+const APP_STORE_URL = "https://apps.apple.com/th/app/dailymood-mood-journal/id6778759803";
 
 interface Slide {
   id: string;
@@ -20,27 +26,11 @@ const ANDROID_SLIDES: Slide[] = [
   { id: "and-3", src: `${R2}/guide/step-3.webp`, th: "เปิดใช้งานได้เลย เหมือนแอปจริง!", en: "Open it anytime — just like a real app!" },
 ];
 
-const IOS_SLIDES: Slide[] = [
-  { id: "ios-1", src: `${R2}/guide/ios-step-1.webp`, th: "กดปุ่มแชร์ ด้านล่างของหน้าจอ", en: "Tap the Share button at the bottom" },
-  { id: "ios-2", src: `${R2}/guide/ios-step-2.webp`, th: "เลื่อนขึ้นในเมนูที่โผล่มา", en: "Scroll up in the menu that appears" },
-  { id: "ios-3", src: `${R2}/guide/ios-step-3.webp`, th: "กด \"เพิ่มไปยังหน้าจอโฮม\"", en: "Tap \"Add to Home Screen\"" },
-  { id: "ios-4", src: `${R2}/guide/ios-step-4.webp`, th: "กด \"เพิ่ม\" ตรงมุมขวาบน", en: "Tap \"Add\" in the top right" },
-  { id: "ios-5", src: `${R2}/guide/ios-step-5.webp`, th: "เปิดใช้งานได้เลย เหมือนแอปจริง!", en: "Open it anytime — just like a real app!" },
-];
-
 function isStandalone() {
   if (typeof window === "undefined") return false;
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
     (navigator as unknown as { standalone?: boolean }).standalone === true
-  );
-}
-
-function isMobile() {
-  if (typeof navigator === "undefined") return false;
-  return (
-    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
   );
 }
 
@@ -52,34 +42,47 @@ function detectIOS() {
   );
 }
 
+function isMobile() {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent) || detectIOS();
+}
+
 export function InstallAppPrompt() {
   const locale = useLocale();
   const isTh = locale === "th";
   const [show, setShow] = useState(false);
-  const [idx, setIdx] = useState(0);
   const [isIOS, setIsIOS] = useState(false);
-  const trackRef = useRef<HTMLDivElement>(null);
+  // Android carousel state only — the iOS branch returns before using these.
+  const [idx, setIdx] = useState(0);
   const startX = useRef(0);
 
   useEffect(() => {
     try {
       if (!isMobile()) return;
-      if (isStandalone()) return;
+      const ios = detectIOS();
+      // Android: skip the guide if it's already installed as a PWA.
+      // iOS: show even when installed as a PWA — we want to convert those
+      // users to the native app.
+      if (!ios && isStandalone()) return;
       if (localStorage.getItem(LS_KEY)) return;
-      setIsIOS(detectIOS());
+      setIsIOS(ios);
       setShow(true);
+      trackAppPromptShown(ios ? "ios" : "android");
     } catch {}
   }, []);
-
-  const SLIDES = isIOS ? IOS_SLIDES : ANDROID_SLIDES;
 
   function dismiss() {
     try { localStorage.setItem(LS_KEY, "1"); } catch {}
     setShow(false);
   }
 
+  function onDownload() {
+    trackAppDownloadClick("ios");
+    dismiss();
+  }
+
   function goTo(i: number) {
-    setIdx(Math.max(0, Math.min(SLIDES.length - 1, i)));
+    setIdx(Math.max(0, Math.min(ANDROID_SLIDES.length - 1, i)));
   }
 
   function onTouchStart(e: React.TouchEvent) {
@@ -90,6 +93,66 @@ export function InstallAppPrompt() {
     if (Math.abs(dx) > 40) goTo(idx + (dx < 0 ? 1 : -1));
   }
 
+  // ─── iOS: download the native app ───────────────────────────────────────
+  if (isIOS) {
+    return (
+      <BottomSheet open={show} onClose={dismiss} aria-label={isTh ? "ดาวน์โหลดแอป" : "Download app"}>
+        <div style={{ padding: "8px 24px 28px", textAlign: "center" }}>
+          <img
+            src="/icons/icon-512.png"
+            alt="Dailymood"
+            width={88}
+            height={88}
+            style={{ width: 88, height: 88, borderRadius: 20, margin: "4px auto 16px", display: "block" }}
+          />
+          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginBottom: 6 }}>
+            {isTh ? "Dailymood มีแอปบน iOS แล้ว" : "Dailymood is now on iOS"}
+          </div>
+          <div style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 24 }}>
+            {isTh
+              ? "ดาวน์โหลดแอปเพื่อใช้งานสะดวกและรวดเร็วกว่าเดิม"
+              : "Download the app for a faster, smoother experience"}
+          </div>
+
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onDownload}
+            style={{ display: "inline-block", lineHeight: 0 }}
+            aria-label={isTh ? "ดาวน์โหลดทาง App Store" : "Download on the App Store"}
+          >
+            <img
+              src={`${R2}/guide/app-store-badge-${isTh ? "th" : "en"}.svg`}
+              alt={isTh ? "ดาวน์โหลดทาง App Store" : "Download on the App Store"}
+              height={52}
+              style={{ height: 52, width: "auto", display: "block" }}
+            />
+          </a>
+
+          <div style={{ marginTop: 18 }}>
+            <button
+              type="button"
+              onClick={dismiss}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--ink-3)",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: 4,
+              }}
+            >
+              {isTh ? "ไว้ทีหลัง" : "Maybe later"}
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
+    );
+  }
+
+  // ─── Android: add-to-home-screen guide ──────────────────────────────────
   return (
     <BottomSheet open={show} onClose={dismiss} aria-label={isTh ? "ติดตั้งแอป" : "Install app"}>
       <div style={{ padding: "8px 0 28px", textAlign: "center" }}>
@@ -116,7 +179,7 @@ export function InstallAppPrompt() {
           color: "var(--purple)",
         }}>
           <span>{isTh ? `ขั้นตอนที่ ${idx + 1}` : `Step ${idx + 1}`}</span>
-          <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>/ {SLIDES.length}</span>
+          <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>/ {ANDROID_SLIDES.length}</span>
         </div>
 
         {/* Carousel */}
@@ -126,14 +189,13 @@ export function InstallAppPrompt() {
           onTouchEnd={onTouchEnd}
         >
           <div
-            ref={trackRef}
             style={{
               display: "flex",
               transition: "transform 300ms ease",
               transform: `translateX(-${idx * 100}%)`,
             }}
           >
-            {SLIDES.map((s) => (
+            {ANDROID_SLIDES.map((s) => (
               <div
                 key={s.id}
                 style={{
@@ -172,7 +234,7 @@ export function InstallAppPrompt() {
 
         {/* Dots */}
         <div style={{ display: "flex", justifyContent: "center", gap: 8, margin: "12px 0 20px" }}>
-          {SLIDES.map((s, i) => (
+          {ANDROID_SLIDES.map((s, i) => (
             <button
               key={s.id}
               onClick={() => goTo(i)}
@@ -197,7 +259,7 @@ export function InstallAppPrompt() {
         <div style={{ padding: "0 24px" }}>
           <button
             type="button"
-            onClick={idx < SLIDES.length - 1 ? () => goTo(idx + 1) : dismiss}
+            onClick={idx < ANDROID_SLIDES.length - 1 ? () => goTo(idx + 1) : dismiss}
             style={{
               width: "100%",
               padding: "14px 0",
@@ -210,7 +272,7 @@ export function InstallAppPrompt() {
               cursor: "pointer",
             }}
           >
-            {idx < SLIDES.length - 1
+            {idx < ANDROID_SLIDES.length - 1
               ? (isTh ? "ถัดไป →" : "Next →")
               : (isTh ? "เข้าใจแล้ว" : "Got it")}
           </button>

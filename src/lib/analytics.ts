@@ -160,3 +160,13 @@ export function trackArticleReadComplete(slug: string) {
 export function trackPremiumGate(feature: string) {
   trackEvent({ action: "premium_gate_hit", category: "conversion", label: feature });
 }
+
+// ── App install / download ──
+
+export function trackAppPromptShown(platform: "ios" | "android") {
+  trackEvent({ action: "app_prompt_shown", category: "engagement", label: platform });
+}
+
+export function trackAppDownloadClick(platform: "ios" | "android") {
+  trackEvent({ action: "app_download_click", category: "conversion", label: platform });
+}
