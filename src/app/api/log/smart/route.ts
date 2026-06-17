@@ -71,9 +71,14 @@ export async function POST(req: NextRequest) {
   if (hasImage && imageKey) {
     const file = image as File;
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const v = await analyzeImage(bytes, file.type || "image/webp");
-    visionTags = v.tags ?? [];
-    await incVisionUsage(userId);
+    try {
+      const v = await analyzeImage(bytes, file.type || "image/webp");
+      visionTags = v.tags ?? [];
+      await incVisionUsage(userId);
+    } catch {
+      // Gemini timed out / failed — respond instead of leaving the request hanging.
+      return NextResponse.json({ error: "ai_unavailable", imageKey }, { status: 503 });
+    }
   }
 
   let suggestedMoodId = "neutral";
@@ -88,13 +93,18 @@ export async function POST(req: NextRequest) {
       .select({ id: activities.id, label: activities.label })
       .from(activities)
       .where(or(isNull(activities.userId), eq(activities.userId, userId)));
-    const r = await analyzeText(text, userActivities);
-    suggestedMoodId = r.suggestedMoodId;
-    sentiment = r.sentiment;
-    nlpTags = r.tags ?? [];
-    if (tier === "premium") aiSummary = r.summary || null;
-    if (r.suggestedActivityId) suggestedActivityId = r.suggestedActivityId;
-    await incNlpUsage(userId);
+    try {
+      const r = await analyzeText(text, userActivities);
+      suggestedMoodId = r.suggestedMoodId;
+      sentiment = r.sentiment;
+      nlpTags = r.tags ?? [];
+      if (tier === "premium") aiSummary = r.summary || null;
+      if (r.suggestedActivityId) suggestedActivityId = r.suggestedActivityId;
+      await incNlpUsage(userId);
+    } catch {
+      // Gemini timed out / failed — respond instead of leaving the request hanging.
+      return NextResponse.json({ error: "ai_unavailable", imageKey }, { status: 503 });
+    }
   }
 
   const tags = Array.from(new Set([...nlpTags, ...visionTags])).slice(0, 12);

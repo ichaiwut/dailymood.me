@@ -5,7 +5,18 @@ function getGenAI() {
   if (!_genAI) _genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   return _genAI;
 }
-const genAI = { getGenerativeModel: (...args: Parameters<GoogleGenerativeAI["getGenerativeModel"]>) => getGenAI().getGenerativeModel(...args) };
+
+// Cap every Gemini request so a slow/hung upstream REJECTS instead of leaving an
+// API route's connection open forever (mobile saw /api/log/smart hang on
+// "กำลังอ่าน..."). The SDK aborts the underlying fetch at this timeout. Keep it
+// under the mobile client's 45s so the server always responds first.
+const AI_TIMEOUT_MS = 35_000;
+const genAI = {
+  getGenerativeModel: (
+    params: Parameters<GoogleGenerativeAI["getGenerativeModel"]>[0],
+    requestOptions?: Parameters<GoogleGenerativeAI["getGenerativeModel"]>[1],
+  ) => getGenAI().getGenerativeModel(params, { timeout: AI_TIMEOUT_MS, ...requestOptions }),
+};
 
 const MODEL = "gemini-2.5-flash";
 
