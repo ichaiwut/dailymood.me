@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { GuestEntryClaim } from "@/components/guest-entry-claim";
 import { TrialPromoBar } from "@/components/trial-promo-bar";
 import { getDb } from "@/lib/cf";
+import { getSessionInfo } from "@/lib/tier";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -16,7 +17,7 @@ export default async function LocaleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [messages, session, locale] = await Promise.all([getMessages(), auth(), getLocale()]);
+  const [messages, session, locale, sessionInfo] = await Promise.all([getMessages(), auth(), getLocale(), getSessionInfo()]);
   const isLoggedIn = !!session?.user;
 
   let showChrome = isLoggedIn;
@@ -50,7 +51,7 @@ export default async function LocaleLayout({
               {children}
             </main>
             <SiteFooter />
-            <BottomNav tier={tier} />
+            <BottomNav tier={tier} pack={sessionInfo.moodPack} iconFormat={sessionInfo.iconFormat} />
           </>
         ) : (
           <>{children}</>

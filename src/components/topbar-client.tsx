@@ -30,11 +30,15 @@ export function TopBarClient({
   image,
   email,
   tier = "free",
+  moodPack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
 }: {
   name: string | null;
   image: string | null;
   email: string | null;
   tier?: "free" | "premium";
+  moodPack?: string;
+  iconFormat?: string;
 }) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
@@ -152,7 +156,8 @@ export function TopBarClient({
       {showSmart && (
         <SmartLogModal
           tier={tier}
-          pack={DEFAULT_MOOD_PACK}
+          pack={moodPack}
+          iconFormat={iconFormat}
           onClose={() => setShowSmart(false)}
           onSaved={() => {
             setShowSmart(false);

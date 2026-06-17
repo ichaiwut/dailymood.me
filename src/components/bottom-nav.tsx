@@ -10,9 +10,11 @@ import { trackFeatureUse } from "@/lib/analytics";
 export function BottomNav({
   tier = "free",
   pack = DEFAULT_MOOD_PACK,
+  iconFormat = "svg",
 }: {
   tier?: "guest" | "free" | "premium";
   pack?: string;
+  iconFormat?: string;
 }) {
   const t = useTranslations("home");
   const pathname = usePathname();
@@ -62,6 +64,7 @@ export function BottomNav({
         <SmartLogModal
           tier={tier}
           pack={pack}
+          iconFormat={iconFormat}
           onClose={() => setShowSmart(false)}
           onSaved={() => {
             setShowSmart(false);

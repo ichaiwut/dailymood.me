@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { getSessionInfo } from "@/lib/tier";
 import { Link } from "@/i18n/navigation";
 import { TopBarClient } from "./topbar-client";
 import { BrandMark } from "./brand-mark";
@@ -10,6 +11,7 @@ import { getSignedReadUrl } from "@/lib/r2";
 
 export async function TopBar() {
   const session = await auth();
+  const { moodPack, iconFormat } = await getSessionInfo();
 
   let avatarUrl: string | null = session?.user?.image ?? null;
   let trialBannerMode: "countdown" | "none" = "none";
@@ -62,6 +64,8 @@ export async function TopBar() {
             image={avatarUrl}
             email={session.user.email ?? null}
             tier={tier}
+            moodPack={moodPack}
+            iconFormat={iconFormat}
           />
         </>
       ) : (
