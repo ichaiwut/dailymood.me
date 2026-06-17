@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/cf";
 import { users, moodEntries, insightsAiCache } from "@/db/schema";
-import { and, eq, gte, desc } from "drizzle-orm";
+import { and, eq, gte, desc, or } from "drizzle-orm";
 import { moodScore, ymd, addDays, computeStreak, isoWeekKey } from "@/lib/mood-scores";
 import { generateInsights } from "@/lib/gemini";
 import type { InsightsAiResult } from "@/db/schema";
 import { resend } from "@/lib/resend";
+import { pushToUser } from "@/lib/push";
 import { EMAIL_LOGO, emailUnsubFooter } from "@/lib/email-parts";
 
 const FROM = "Dailymood <hello@dailymood.me>";
@@ -25,10 +26,12 @@ export async function GET(req: NextRequest) {
       email: users.email,
       locale: users.locale,
       name: users.name,
+      weeklyDigestEmailEnabled: users.weeklyDigestEmailEnabled,
+      weeklyDigestPushEnabled: users.weeklyDigestPushEnabled,
       lastDigestWeekKey: users.lastDigestWeekKey,
     })
     .from(users)
-    .where(and(eq(users.weeklyDigestEnabled, true), eq(users.isPremium, true)))
+    .where(and(or(eq(users.weeklyDigestEmailEnabled, true), eq(users.weeklyDigestPushEnabled, true)), eq(users.isPremium, true)))
     .limit(100);
 
   const lastWeekKey = isoWeekKey(addDays(new Date(), -7));
@@ -117,15 +120,31 @@ export async function GET(req: NextRequest) {
         ? `📊 สรุปสัปดาห์ — ${weekly.headline}`
         : `📊 Weekly Digest — ${weekly.headline}`;
 
-      await resend.emails.send({
-        from: FROM,
-        to: user.email,
-        subject: subject.slice(0, 120),
-        html,
-      });
-      await db.update(users).set({ lastDigestWeekKey: lastWeekKey }).where(eq(users.id, user.id));
+      // Independent channels: push and/or email per the user's toggles.
+      let delivered = false;
+      if (user.weeklyDigestPushEnabled) {
+        const pushed = await pushToUser(user.id, {
+          title: locale === "th" ? "📊 สรุปสัปดาห์" : "📊 Weekly Digest",
+          body: weekly.headline,
+          data: { type: "weekly_digest", url: "/insights" },
+        });
+        if (pushed > 0) delivered = true;
+      }
+      if (user.weeklyDigestEmailEnabled) {
+        await resend.emails.send({
+          from: FROM,
+          to: user.email,
+          subject: subject.slice(0, 120),
+          html,
+        });
+        delivered = true;
+      }
 
-      sent++;
+      // Mark processed for the week only if a channel went out.
+      if (delivered) {
+        await db.update(users).set({ lastDigestWeekKey: lastWeekKey }).where(eq(users.id, user.id));
+        sent++;
+      }
     } catch {
       failed++;
     }

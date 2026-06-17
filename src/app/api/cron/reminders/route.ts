@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { getDb } from "@/lib/cf";
 import { users, moodEntries } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import { resend } from "@/lib/resend";
 import { pushToUser } from "@/lib/push";
 
@@ -38,9 +38,11 @@ export async function POST(req: NextRequest) {
       locale: users.locale,
       reminderTime: users.reminderTime,
       reminderDays: users.reminderDays,
+      reminderEmailEnabled: users.reminderEmailEnabled,
+      reminderPushEnabled: users.reminderPushEnabled,
     })
     .from(users)
-    .where(eq(users.reminderEnabled, true));
+    .where(or(eq(users.reminderEmailEnabled, true), eq(users.reminderPushEnabled, true)));
 
   let sent = 0;
   let pushedCount = 0;
@@ -59,22 +61,23 @@ export async function POST(req: NextRequest) {
 
     const locale = (user.locale as "en" | "th") || "en";
 
-    // Mobile users get a push; web-only users (no device token) get the email.
-    // pushToUser is best-effort and never throws — 0 means "no device" → email.
-    const pushed = await pushToUser(user.id, reminderPush(locale));
-    if (pushed > 0) {
-      sent++;
-      pushedCount++;
-      continue;
+    // Independent channels: a user can get push, email, or both (per their toggles).
+    // pushToUser is best-effort and never throws — 0 means "no device".
+    let delivered = false;
+    if (user.reminderPushEnabled) {
+      const pushed = await pushToUser(user.id, reminderPush(locale));
+      if (pushed > 0) { pushedCount++; delivered = true; }
     }
-
-    const { subject, html } = reminderEmail(locale, user.name);
-    try {
-      await resend.emails.send({ from: FROM, to: user.email, subject, html });
-      sent++;
-    } catch {
-      // skip failed sends
+    if (user.reminderEmailEnabled) {
+      const { subject, html } = reminderEmail(locale, user.name);
+      try {
+        await resend.emails.send({ from: FROM, to: user.email, subject, html });
+        delivered = true;
+      } catch {
+        // skip failed sends
+      }
     }
+    if (delivered) sent++;
   }
 
   return NextResponse.json({ ok: true, sent, pushed: pushedCount, checked: eligibleUsers.length });

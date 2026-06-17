@@ -35,6 +35,12 @@ export async function GET() {
       reminderDays: users.reminderDays,
       aiCoachEnabled: users.aiCoachEnabled,
       weeklyDigestEnabled: users.weeklyDigestEnabled,
+      reminderEmailEnabled: users.reminderEmailEnabled,
+      reminderPushEnabled: users.reminderPushEnabled,
+      weeklyDigestEmailEnabled: users.weeklyDigestEmailEnabled,
+      weeklyDigestPushEnabled: users.weeklyDigestPushEnabled,
+      aiCoachEmailEnabled: users.aiCoachEmailEnabled,
+      aiCoachPushEnabled: users.aiCoachPushEnabled,
       moodPack: users.moodPack,
       createdAt: users.createdAt,
       currentPeriodEnd: users.currentPeriodEnd,
@@ -147,6 +153,12 @@ export async function GET() {
       reminderDays: user.reminderDays,
       aiCoachEnabled: user.aiCoachEnabled,
       weeklyDigestEnabled: user.weeklyDigestEnabled,
+      reminderEmailEnabled: user.reminderEmailEnabled,
+      reminderPushEnabled: user.reminderPushEnabled,
+      weeklyDigestEmailEnabled: user.weeklyDigestEmailEnabled,
+      weeklyDigestPushEnabled: user.weeklyDigestPushEnabled,
+      aiCoachEmailEnabled: user.aiCoachEmailEnabled,
+      aiCoachPushEnabled: user.aiCoachPushEnabled,
       moodPack: user.moodPack,
       createdAt: user.createdAt.toISOString(),
       currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
@@ -203,11 +215,27 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.anonymousInsights === "boolean") {
     updates.anonymousInsights = body.anonymousInsights;
   }
+  // Legacy single flags (un-migrated web clients during transition) — mirror to
+  // the email channel so cron, which now gates on *EmailEnabled, stays in sync.
   if (typeof body.reminderEnabled === "boolean") {
     updates.reminderEnabled = body.reminderEnabled;
+    updates.reminderEmailEnabled = body.reminderEnabled;
   }
-  if (typeof body.aiCoachEnabled === "boolean") updates.aiCoachEnabled = body.aiCoachEnabled;
-  if (typeof body.weeklyDigestEnabled === "boolean") updates.weeklyDigestEnabled = body.weeklyDigestEnabled;
+  if (typeof body.aiCoachEnabled === "boolean") {
+    updates.aiCoachEnabled = body.aiCoachEnabled;
+    updates.aiCoachEmailEnabled = body.aiCoachEnabled;
+  }
+  if (typeof body.weeklyDigestEnabled === "boolean") {
+    updates.weeklyDigestEnabled = body.weeklyDigestEnabled;
+    updates.weeklyDigestEmailEnabled = body.weeklyDigestEnabled;
+  }
+  // Per-channel flags (mobile + migrated web) — authoritative, override the mirror.
+  if (typeof body.reminderEmailEnabled === "boolean") updates.reminderEmailEnabled = body.reminderEmailEnabled;
+  if (typeof body.reminderPushEnabled === "boolean") updates.reminderPushEnabled = body.reminderPushEnabled;
+  if (typeof body.weeklyDigestEmailEnabled === "boolean") updates.weeklyDigestEmailEnabled = body.weeklyDigestEmailEnabled;
+  if (typeof body.weeklyDigestPushEnabled === "boolean") updates.weeklyDigestPushEnabled = body.weeklyDigestPushEnabled;
+  if (typeof body.aiCoachEmailEnabled === "boolean") updates.aiCoachEmailEnabled = body.aiCoachEmailEnabled;
+  if (typeof body.aiCoachPushEnabled === "boolean") updates.aiCoachPushEnabled = body.aiCoachPushEnabled;
   if (typeof body.reminderTime === "string" && /^\d{2}:\d{2}$/.test(body.reminderTime as string)) {
     updates.reminderTime = body.reminderTime;
   }

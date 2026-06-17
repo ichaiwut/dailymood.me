@@ -39,6 +39,15 @@ export const users = pgTable("users", {
   reminderDays: text("reminder_days").notNull().default("1,2,3,4,5"),
   aiCoachEnabled: boolean("ai_coach_enabled").notNull().default(false),
   weeklyDigestEnabled: boolean("weekly_digest_enabled").notNull().default(false),
+  // Notification prefs split per channel (email/push). The 3 bools above are the
+  // legacy "email on/off" flags, kept during the mobile transition; the *EmailEnabled
+  // columns are backfilled from them (migration 0019). Drop the legacy 3 once mobile ships.
+  reminderEmailEnabled: boolean("reminder_email_enabled").notNull().default(false),
+  reminderPushEnabled: boolean("reminder_push_enabled").notNull().default(false),
+  weeklyDigestEmailEnabled: boolean("weekly_digest_email_enabled").notNull().default(false),
+  weeklyDigestPushEnabled: boolean("weekly_digest_push_enabled").notNull().default(false),
+  aiCoachEmailEnabled: boolean("ai_coach_email_enabled").notNull().default(false),
+  aiCoachPushEnabled: boolean("ai_coach_push_enabled").notNull().default(false),
   // Idempotency guards for the daily/weekly email cron jobs — prevent duplicate
   // sends if the scheduler fires a job more than once per period (double tick,
   // retry, or a future second instance).

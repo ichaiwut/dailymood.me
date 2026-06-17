@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/cf";
 import { users, moodEntries } from "@/db/schema";
-import { and, eq, gte, desc } from "drizzle-orm";
+import { and, eq, gte, desc, or } from "drizzle-orm";
 import { moodScore, ymd, addDays } from "@/lib/mood-scores";
 import { generateCoachTip } from "@/lib/gemini";
 import { resend } from "@/lib/resend";
+import { pushToUser } from "@/lib/push";
 import { EMAIL_LOGO, emailUnsubFooter } from "@/lib/email-parts";
 
 const FROM = "Dailymood AI Coach <hello@dailymood.me>";
@@ -27,10 +28,12 @@ export async function GET(req: NextRequest) {
       email: users.email,
       locale: users.locale,
       name: users.name,
+      aiCoachEmailEnabled: users.aiCoachEmailEnabled,
+      aiCoachPushEnabled: users.aiCoachPushEnabled,
       lastAiCoachSentAt: users.lastAiCoachSentAt,
     })
     .from(users)
-    .where(and(eq(users.aiCoachEnabled, true), eq(users.isPremium, true)))
+    .where(and(or(eq(users.aiCoachEmailEnabled, true), eq(users.aiCoachPushEnabled, true)), eq(users.isPremium, true)))
     .limit(100);
 
   let sent = 0;
@@ -72,23 +75,39 @@ export async function GET(req: NextRequest) {
       const payload = JSON.stringify({ locale, avgMood, moods: moodCounts, topTags, recentMoods });
       const tip = await generateCoachTip(payload);
 
-      const html = coachEmailHtml({
-        name: user.name ?? "",
-        emoji: tip.emoji,
-        title: tip.title,
-        tip: tip.tip,
-        locale,
-      });
+      // Independent channels: push and/or email per the user's toggles.
+      let delivered = false;
+      if (user.aiCoachPushEnabled) {
+        const pushed = await pushToUser(user.id, {
+          title: `${tip.emoji} ${tip.title}`,
+          body: tip.tip,
+          data: { type: "ai_coach", url: "/insights" },
+        });
+        if (pushed > 0) delivered = true;
+      }
+      if (user.aiCoachEmailEnabled) {
+        const html = coachEmailHtml({
+          name: user.name ?? "",
+          emoji: tip.emoji,
+          title: tip.title,
+          tip: tip.tip,
+          locale,
+        });
+        await resend.emails.send({
+          from: FROM,
+          to: user.email,
+          subject: `${tip.emoji} ${tip.title}`,
+          html,
+        });
+        delivered = true;
+      }
 
-      await resend.emails.send({
-        from: FROM,
-        to: user.email,
-        subject: `${tip.emoji} ${tip.title}`,
-        html,
-      });
-      await db.update(users).set({ lastAiCoachSentAt: today }).where(eq(users.id, user.id));
-
-      sent++;
+      // Mark processed for the day only if a channel went out, so a re-fire
+      // can't double either channel.
+      if (delivered) {
+        await db.update(users).set({ lastAiCoachSentAt: today }).where(eq(users.id, user.id));
+        sent++;
+      }
     } catch {
       failed++;
     }

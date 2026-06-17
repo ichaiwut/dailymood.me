@@ -152,9 +152,9 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           if (!d) return;
-          const u = (d as { user: { aiCoachEnabled?: boolean; weeklyDigestEnabled?: boolean } }).user;
-          if (typeof u.aiCoachEnabled === "boolean") setAiCoach(u.aiCoachEnabled);
-          if (typeof u.weeklyDigestEnabled === "boolean") setWeeklyDigest(u.weeklyDigestEnabled);
+          const u = (d as { user: { aiCoachEmailEnabled?: boolean; weeklyDigestEmailEnabled?: boolean } }).user;
+          if (typeof u.aiCoachEmailEnabled === "boolean") setAiCoach(u.aiCoachEmailEnabled);
+          if (typeof u.weeklyDigestEmailEnabled === "boolean") setWeeklyDigest(u.weeklyDigestEmailEnabled);
         });
     }
   }, [tier]);
@@ -216,8 +216,8 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
     }
   }, [data]);
 
-  const handleToggle = useCallback(async (field: "aiCoachEnabled" | "weeklyDigestEnabled", value: boolean) => {
-    if (field === "aiCoachEnabled") setAiCoach(value);
+  const handleToggle = useCallback(async (field: "aiCoachEmailEnabled" | "weeklyDigestEmailEnabled", value: boolean) => {
+    if (field === "aiCoachEmailEnabled") setAiCoach(value);
     else setWeeklyDigest(value);
     await fetch("/api/profile", {
       method: "PATCH",
@@ -584,7 +584,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)", margin: "0 0 4px" }}>{t("aiCoachTitle")}</h3>
                 <p style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4, margin: 0 }}>{t("aiCoachDesc")}</p>
               </div>
-              <TogglePill enabled={aiCoach} disabled={!isPremium} onChange={(v) => handleToggle("aiCoachEnabled", v)} />
+              <TogglePill enabled={aiCoach} disabled={!isPremium} onChange={(v) => handleToggle("aiCoachEmailEnabled", v)} />
             </div>
           </div>
           <div style={CARD}>
@@ -600,7 +600,7 @@ export function InsightsShell({ tier = "free" }: { tier?: Tier }) {
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--w-ink)", margin: "0 0 4px" }}>{t("weeklyDigestTitle")}</h3>
                 <p style={{ fontSize: 14, color: "var(--w-ink-3)", lineHeight: 1.4, margin: 0 }}>{t("weeklyDigestDesc")}</p>
               </div>
-              <TogglePill enabled={weeklyDigest} disabled={!isPremium} onChange={(v) => handleToggle("weeklyDigestEnabled", v)} />
+              <TogglePill enabled={weeklyDigest} disabled={!isPremium} onChange={(v) => handleToggle("weeklyDigestEmailEnabled", v)} />
             </div>
           </div>
         </div>
