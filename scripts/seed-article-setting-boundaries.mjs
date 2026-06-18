@@ -60,6 +60,13 @@ A no doesn't need a paragraph of apology or a stack of excuses — the more you 
 
 You don't have to begin with the hardest person in your life. Like any muscle, this one grows from light reps first: decline a small request, skip an event you don't want to attend, let a non-urgent message wait until tomorrow. Each small no teaches your nervous system that the feared disaster doesn't come — the other person is usually fine, and you're still okay. The guilt that shows up afterward isn't a verdict; it's just an old habit fading. Give it time, and "no" stops feeling like a betrayal and starts feeling like self-respect.
 
+## Sources & Further Reading
+
+This article draws on ideas from assertiveness training and boundary-setting work:
+
+- **Assertiveness — expressing your needs clearly and without apology** — [Alberti & Emmons, Your Perfect Right](https://en.wikipedia.org/wiki/Assertiveness)
+- **Setting healthy boundaries in everyday relationships** — [Tawwab, N. G. (2021), Set Boundaries, Find Peace](https://www.nedratawwab.com/books/set-boundaries-find-peace)
+
 ---
 
 > Every time you say no to something that drains you, you're quietly saying yes to something that matters more.`,
@@ -80,6 +87,13 @@ You don't have to begin with the hardest person in your life. Like any muscle, t
 ## 4. เริ่มจากเรื่องเล็กๆ ก่อน (Start Small)
 
 ไม่ต้องเริ่มจากคนที่ยากที่สุดในชีวิตก็ได้ครับ เหมือนกล้ามเนื้อมัดหนึ่ง มันโตจากการฝึกเบาๆ ก่อน ลองปฏิเสธคำขอเล็กน้อย ลองไม่ไปงานที่ไม่ได้อยากไป ลองปล่อยข้อความที่ไม่ด่วนไว้ตอบพรุ่งนี้ คำว่าไม่เล็กๆ แต่ละครั้งกำลังสอนใจเราว่า เรื่องร้ายที่กลัวไว้มันไม่ได้เกิดขึ้นจริง — อีกฝ่ายส่วนใหญ่ก็โอเคดี และเราก็ยังโอเคอยู่ ความรู้สึกผิดที่โผล่มาทีหลังไม่ใช่คำตัดสินว่าเราทำผิด มันเป็นแค่ความเคยชินเก่าๆ ที่กำลังจางลง ให้เวลามันหน่อย แล้วคำว่า "ไม่" จะเลิกรู้สึกเหมือนการทรยศ และเริ่มรู้สึกเหมือนการเคารพตัวเองครับ
+
+## อ้างอิงและอ่านเพิ่มเติม
+
+บทความนี้ได้แรงบันดาลใจจากงานด้านการสื่อสารแบบหนักแน่น (assertiveness) และการตั้งขอบเขต:
+
+- **การสื่อสารแบบหนักแน่น — บอกความต้องการได้ชัดเจนโดยไม่ต้องขอโทษ** — [Alberti & Emmons, Your Perfect Right](https://en.wikipedia.org/wiki/Assertiveness)
+- **การตั้งขอบเขตที่ดีในความสัมพันธ์ประจำวัน** — [Nedra Glover Tawwab (2021), Set Boundaries, Find Peace](https://www.nedratawwab.com/books/set-boundaries-find-peace)
 
 ---
 

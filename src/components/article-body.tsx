@@ -182,6 +182,80 @@ export function ArticleBody({
               )}
             </div>
           </div>
+        ) : s.content.startsWith("##") ? (
+          // Sources / references — a non-numbered heading section (e.g. the
+          // "อ้างอิงและอ่านเพิ่มเติม" footer). Styled as a paper sheet so it
+          // sits in the same visual language as the numbered tip cards instead
+          // of floating as bare prose. External links open in a new tab.
+          <div
+            key={i}
+            className={isPaper ? "pa-sheet" : undefined}
+            style={
+              isPaper
+                ? {
+                    borderRadius: "4px 16px 16px 16px",
+                    padding: "24px 28px",
+                    marginBottom: 22,
+                    transform: "rotate(-0.3deg)",
+                    position: "relative",
+                  }
+                : {
+                    background: "var(--surface)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: 16,
+                    padding: "22px 24px",
+                    marginBottom: 14,
+                    marginTop: 8,
+                  }
+            }
+          >
+            {isPaper && <span className="pa-washi lav" style={{ left: 32, width: 88 }} />}
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSanitize]}
+              components={{
+                h2: ({ children }) => (
+                  <h2
+                    id={`section-${s.sectionIndex}`}
+                    style={{
+                      fontSize: isPaper ? 19 : 17,
+                      fontWeight: 800,
+                      margin: "0 0 10px",
+                      lineHeight: 1.3,
+                      letterSpacing: isPaper ? "-0.01em" : undefined,
+                      color: isPaper ? "var(--w-ink)" : "var(--ink)",
+                    }}
+                  >
+                    {children}
+                  </h2>
+                ),
+                p: ({ children }) => (
+                  <p style={{ margin: "0 0 14px", fontSize: 14, lineHeight: 1.6, color: isPaper ? "var(--w-ink-3)" : "var(--ink-2)" }}>
+                    {children}
+                  </p>
+                ),
+                ul: ({ children }) => (
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 11 }}>{children}</ul>
+                ),
+                li: ({ children }) => (
+                  <li style={{ display: "flex", gap: 9, fontSize: 14, lineHeight: 1.6, color: isPaper ? "var(--w-ink-2)" : "var(--ink-2)" }}>
+                    <span aria-hidden style={{ color, fontWeight: 800, flexShrink: 0, marginTop: 1 }}>›</span>
+                    <span style={{ flex: 1, minWidth: 0 }}>{children}</span>
+                  </li>
+                ),
+                strong: ({ children }) => (
+                  <strong style={{ fontWeight: 800, color: isPaper ? "var(--w-ink)" : "var(--ink)" }}>{children}</strong>
+                ),
+                a: ({ href, children }) => (
+                  <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)", textDecoration: "underline", textUnderlineOffset: "2px", fontWeight: 600 }}>
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {s.content}
+            </ReactMarkdown>
+          </div>
         ) : (
           <div key={i} className="article-prose-section">
             <ReactMarkdown

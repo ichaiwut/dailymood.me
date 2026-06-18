@@ -30,8 +30,6 @@ interface Category {
   order: number;
 }
 
-const WASHI = ["mint", "lav", "yellow"] as const;
-
 export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
   const locale = useLocale();
   const t = useTranslations("articles");
@@ -80,8 +78,8 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
     iso ? new Date(iso).toLocaleDateString(locale === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" }) : "";
 
   const featured = articles[0] ?? null;
-  const sidebar = articles.slice(1, 4);
-  const rest = articles.slice(4);
+  const sidebar = articles.slice(1, 3);
+  const rest = articles.slice(3);
 
   return (
     <section className="pa-wrap fade-in" style={{ padding: "clamp(20px, 4vw, 36px) 0 40px", marginBottom: 24, position: "relative" }}>
@@ -164,9 +162,9 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
             <Link href={`/articles/${featured.slug}` as "/"} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <article className="pa-sheet pa-card-lift" style={{ overflow: "visible", display: "flex", flexDirection: "column" }}>
                 <PAClip style={{ top: -15, right: 34, transform: "rotate(8deg)", zIndex: 8 }} />
-                <div style={{ position: "relative", margin: 14, marginBottom: 0, borderRadius: 14, overflow: "hidden", aspectRatio: "16 / 10" }}>
+                <div style={{ position: "relative", borderRadius: "4px 18px 0 0", overflow: "hidden", aspectRatio: "16 / 9" }}>
                   <Cover article={featured} />
-                  <span style={{ position: "absolute", top: 14, right: 14, padding: "6px 12px", borderRadius: 100, background: "rgba(255,255,255,.92)", backdropFilter: "blur(8px)", fontSize: 11, fontWeight: 800, color: "#4A3F55" }}>
+                  <span style={{ position: "absolute", bottom: 14, right: 14, padding: "6px 12px", borderRadius: 100, background: "rgba(255,255,255,.92)", backdropFilter: "blur(8px)", fontSize: 11, fontWeight: 800, color: "#4A3F55" }}>
                     ⏱ {featured.readingTimeMinutes} {t("minUnit")}
                   </span>
                 </div>
@@ -194,28 +192,27 @@ export function ArticlesShell({ isGuest = false }: { isGuest?: boolean }) {
             </Link>
           </div>
 
-          {/* Side stack */}
+          {/* Side stack — 2 vertical image-top cards (16:9 cover + text below).
+              Two tall cards stack to roughly the height of the featured folder
+              beside them, so the right column doesn't read as empty. */}
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             {sidebar.map((a, i) => (
               <Link key={a.id} href={`/articles/${a.slug}` as "/"} style={{ textDecoration: "none", color: "inherit" }}>
-                <article className="pa-sheet pa-card-lift" style={{ overflow: "hidden", display: "grid", gridTemplateColumns: "132px 1fr", borderRadius: "4px 14px 14px 14px", transform: `rotate(${i % 2 ? 0.5 : -0.5}deg)` }}>
-                  <span className={`pa-washi ${WASHI[i % WASHI.length]}`} style={{ left: 90, width: 80 }} />
-                  <div style={{ position: "relative", overflow: "hidden", minHeight: 120 }}>
+                <article className="pa-sheet pa-card-lift" style={{ overflow: "hidden", display: "flex", flexDirection: "column", borderRadius: "4px 14px 14px 14px", transform: `rotate(${i % 2 ? 0.5 : -0.5}deg)` }}>
+                  <div style={{ position: "relative", overflow: "hidden", aspectRatio: "16 / 9" }}>
                     <Cover article={a} />
-                    <PASticker moodId={toneMoodId(a.tone)} color={toneHue(a.tone)} size={34} borderWidth={3} style={{ position: "absolute", bottom: 8, left: 8, transform: "rotate(-8deg)" }} />
+                    <PASticker moodId={toneMoodId(a.tone)} color={toneHue(a.tone)} size={38} borderWidth={3} style={{ position: "absolute", bottom: -10, right: 14, transform: "rotate(-8deg)" }} />
                   </div>
-                  <div style={{ padding: "15px 17px", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
-                    <div>
-                      {a.categoryLabelTh && (
-                        <div style={{ fontSize: 10, fontWeight: 800, color: toneHue(a.tone), textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 6 }}>
-                          {l(a.categoryLabelTh, a.categoryLabelEn)}
-                        </div>
-                      )}
-                      <h3 style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.3, margin: 0, color: "var(--w-ink)", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {l(a.titleTh, a.titleEn)}
-                      </h3>
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--w-ink-3)", marginTop: 10, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+                  <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    {a.categoryLabelTh && (
+                      <div style={{ fontSize: 11, fontWeight: 800, color: toneHue(a.tone), textTransform: "uppercase", letterSpacing: ".06em" }}>
+                        {l(a.categoryLabelTh, a.categoryLabelEn)}
+                      </div>
+                    )}
+                    <h3 style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.3, margin: 0, color: "var(--w-ink)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {l(a.titleTh, a.titleEn)}
+                    </h3>
+                    <div style={{ fontSize: 11, color: "var(--w-ink-3)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
                       {fmtDate(a.publishedAt) && (
                         <>
                           <span>{fmtDate(a.publishedAt)}</span>

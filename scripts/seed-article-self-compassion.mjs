@@ -60,6 +60,13 @@ Here's the simplest doorway in. Next time you catch the harsh voice mid-sentence
 
 Self-compassion doesn't require a ritual. On a rough day, it can be as small as putting a hand on your chest and taking one slow breath. Saying quietly, "today was genuinely hard." Letting yourself rest without earning it first. Even noting your mood at the end of the day — honestly, without grading yourself — is a small act of treating your feelings as worth listening to. None of these fix the problem on the spot. What they do is change who shows up to face the problem: someone who's been kicked while down, or someone who has their own back.
 
+## Sources & Further Reading
+
+The ideas in this article draw on well-established psychology research:
+
+- **The three parts of self-compassion (self-kindness, common humanity, mindfulness)** — [Neff, K. (2003)](https://self-compassion.org/what-is-self-compassion/)
+- **Why self-kindness fuels motivation rather than laziness** — [Breines & Chen (2012)](https://pubmed.ncbi.nlm.nih.gov/22645164/)
+
 ---
 
 > You can hold yourself to high standards and still be on your own side — the two were never opposites.`,
@@ -80,6 +87,13 @@ Self-compassion doesn't require a ritual. On a rough day, it can be as small as 
 ## 4. ท่าทีเล็กๆ สำคัญกว่าคำพูดสวยๆ (Small Gestures)
 
 การใจดีกับตัวเองไม่ต้องมีพิธีอะไรเลยครับ ในวันที่หนักๆ มันเล็กได้ขนาดเอามือวางที่หน้าอกแล้วหายใจช้าๆ สักหนึ่งครั้ง บอกตัวเองเบาๆ ว่า "วันนี้ยากจริงๆ นะ" หรือยอมให้ตัวเองพักโดยไม่ต้องรู้สึกว่าต้องทำอะไรให้สมควรพักก่อน แม้แต่การบันทึกอารมณ์ตอนท้ายวันแบบตรงไปตรงมา โดยไม่ตัดสินว่ารู้สึกแบบนี้ถูกหรือผิด ก็เป็นการบอกตัวเองเล็กๆ ว่าความรู้สึกของเราน่ารับฟัง สิ่งเหล่านี้ไม่ได้แก้ปัญหาตรงหน้าทันที แต่มันเปลี่ยนคนที่จะลุกไปเจอปัญหานั้น จากคนที่เพิ่งโดนซ้ำเติม เป็นคนที่มีตัวเองอยู่ข้างๆ ครับ
+
+## อ้างอิงและอ่านเพิ่มเติม
+
+แนวคิดในบทความนี้อิงจากงานจิตวิทยาที่ยอมรับกันมานาน:
+
+- **สามส่วนของการใจดีกับตัวเอง (อ่อนโยน, รู้ว่าไม่ได้แย่อยู่คนเดียว, รับรู้ตามจริง)** — [Neff (2003)](https://self-compassion.org/what-is-self-compassion/)
+- **ทำไมการใจดีกับตัวเองทำให้มีแรงพัฒนา ไม่ใช่ขี้เกียจ** — [Breines & Chen (2012)](https://pubmed.ncbi.nlm.nih.gov/22645164/)
 
 ---
 
