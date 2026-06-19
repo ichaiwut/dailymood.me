@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { trackInsightsView, trackShareInsight } from "@/lib/analytics";
 import type { Tier } from "@/lib/tier";
+import { PRICING } from "@/lib/pricing";
 import { moodIconUrl, DEFAULT_MOOD_PACK } from "@/lib/moods";
 import { PAClip } from "./paper";
 import { AiSubTabs } from "./ai-sub-tabs";
@@ -1016,7 +1017,7 @@ function FreeGate({ locale }: { locale: string }) {
               ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
             </button>
             <div style={{ fontSize: 14, opacity: 0.85, textAlign: "center" }}>
-              ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+              ฿{PRICING.monthly}/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
             </div>
           </div>
         </div>

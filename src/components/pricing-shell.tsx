@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import type { Tier } from "@/lib/tier";
+import { PRICING } from "@/lib/pricing";
 import { trackPricingView, trackPlanSelect, trackCheckoutStart, trackCheckoutSuccess, trackCheckoutCancelled } from "@/lib/analytics";
 import { PAClip } from "./paper";
 import { TrialConfirmSheet } from "./trial-confirm-sheet";
@@ -171,17 +172,17 @@ export function PricingShell({ tier, hasUsedTrial }: { tier: Tier; hasUsedTrial:
           active={plan === "monthly"}
           onClick={() => { setPlan("monthly"); trackPlanSelect("monthly"); }}
           label={isTh ? "รายเดือน" : "Monthly"}
-          price="฿99"
+          price={`฿${PRICING.monthly}`}
           per={`/${isTh ? "เดือน" : "mo"}`}
         />
         <PlanCard
           active={plan === "yearly"}
           onClick={() => { setPlan("yearly"); trackPlanSelect("yearly"); }}
           label={isTh ? "รายปี" : "Yearly"}
-          price="฿790"
+          price={`฿${PRICING.yearly}`}
           per={`/${isTh ? "ปี" : "yr"}`}
-          badge={isTh ? "ประหยัด 33%" : "Save 33%"}
-          sub={`฿66/${isTh ? "เดือน" : "mo"}`}
+          badge={isTh ? `ประหยัด ${PRICING.savingsPct}%` : `Save ${PRICING.savingsPct}%`}
+          sub={`฿${PRICING.yearlyPerMonth}/${isTh ? "เดือน" : "mo"}`}
         />
       </div>
 
