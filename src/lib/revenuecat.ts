@@ -19,7 +19,10 @@
 //   REVENUECAT_SECRET_KEY      v1 REST secret key (sk_...)
 //   REVENUECAT_WEBHOOK_AUTH    shared secret echoed in the webhook Authorization header
 //   REVENUECAT_ENTITLEMENT_ID  entitlement identifier (default "pro")
-//   REVENUECAT_ALLOW_SANDBOX   "1" on staging to accept SANDBOX events (prod ignores them)
+//   REVENUECAT_ALLOW_SANDBOX   "1" on staging to accept SANDBOX purchases. Prod must
+//                              leave this UNSET so sandbox/test purchases never grant
+//                              Pro — gated on BOTH the webhook (event.environment) and
+//                              the REST/reconcile path (subscription.is_sandbox).
 
 import { getDb } from "@/lib/cf";
 import { users } from "@/db/schema";
@@ -33,6 +36,15 @@ export function isRevenueCatConfigured(): boolean {
 
 function entitlementId(): string {
   return process.env.REVENUECAT_ENTITLEMENT_ID || "pro";
+}
+
+/**
+ * Sandbox (TestFlight / Play internal-test / store-review) purchases must NOT grant
+ * Pro in production. Only staging opts in via REVENUECAT_ALLOW_SANDBOX="1". One switch,
+ * shared by the webhook and REST paths so they can never disagree.
+ */
+function sandboxAllowed(): boolean {
+  return process.env.REVENUECAT_ALLOW_SANDBOX === "1";
 }
 
 export type IapStore = "apple" | "google";
@@ -64,6 +76,7 @@ interface RcSubscriberResponse {
       store?: string;
       unsubscribe_detected_at?: string | null;
       period_type?: string;
+      is_sandbox?: boolean;
     }>;
   };
 }
@@ -112,6 +125,11 @@ export async function fetchIapEntitlement(appUserId: string): Promise<IapEntitle
   const active = expiresAt === null || expiresAt.getTime() > Date.now();
   const productId = ent.product_identifier ?? null;
   const sub = productId ? data.subscriber?.subscriptions?.[productId] : undefined;
+
+  // The webhook gates sandbox on event.environment; the REST API has no such field,
+  // so reconcile would otherwise grant Pro for a sandbox/test purchase. Gate on the
+  // subscription's is_sandbox flag here, behind the same switch. ⇒ no entitlement.
+  if (sub?.is_sandbox && !sandboxAllowed()) return EMPTY;
 
   return {
     active,
@@ -197,6 +215,6 @@ export function resolveAppUserId(event: { app_user_id?: string; original_app_use
 
 /** Prod ignores SANDBOX events; staging sets REVENUECAT_ALLOW_SANDBOX=1 to accept them. */
 export function shouldIgnoreEnvironment(environment: string | undefined): boolean {
-  if (environment === "SANDBOX" && process.env.REVENUECAT_ALLOW_SANDBOX !== "1") return true;
+  if (environment === "SANDBOX" && !sandboxAllowed()) return true;
   return false;
 }
