@@ -64,6 +64,13 @@ One bad experience gets stretched into a rule about everything. One awkward conv
 
 These are the silent rules we hold ourselves to: "I should be further along by now," "I shouldn't feel this way." Every *should* tends to arrive with a quiet side of guilt when we fall short — and often the rule was never really ours; we just absorbed it from somewhere. Try swapping "I should" for "I'd like to" or "it would be nice if." It turns a demand into a choice, and that small shift takes off a surprising amount of pressure.
 
+## Sources & Further Reading
+
+The ideas in this article draw on well-established psychology research:
+
+- **Cognitive distortions in cognitive therapy** — [Aaron T. Beck (cognitive therapy)](https://en.wikipedia.org/wiki/Cognitive_distortion)
+- **The popular list of thinking traps** — [Burns, D. (1980), Feeling Good: The New Mood Therapy](https://en.wikipedia.org/wiki/Feeling_Good:_The_New_Mood_Therapy)
+
 ---
 
 > You can't always stop the first thought from showing up — but you can learn to notice it, name it, and decide whether it's worth believing.`,
@@ -88,6 +95,13 @@ These are the silent rules we hold ourselves to: "I should be further along by n
 ## 5. กฎ "ต้อง" และ "ควร" ที่แบกไว้ (Should Statements)
 
 คือกฎเงียบๆ ที่เราตั้งให้ตัวเอง เช่น "อายุเท่านี้ควรไปได้ไกลกว่านี้แล้ว" หรือ "ไม่ควรรู้สึกแบบนี้เลย" ทุกคำว่า "ต้อง" และ "ควร" มักแถมความรู้สึกผิดมาด้วยเวลาเราทำไม่ได้ตามนั้น และหลายข้อก็ไม่ใช่กฎของเราเองด้วยซ้ำ เราแค่ซึมซับมันมาจากที่ไหนสักแห่ง ลองเปลี่ยนจาก "เราต้อง" เป็น "เราอยากจะ" หรือ "ถ้าได้ก็ดี" ดูครับ มันเปลี่ยนคำสั่งให้กลายเป็นทางเลือก แล้วความกดดันจะเบาลงเยอะเลย
+
+## อ้างอิงและอ่านเพิ่มเติม
+
+แนวคิดในบทความนี้อิงจากงานจิตวิทยาที่ยอมรับกันมานาน:
+
+- **กับดักความคิดในการบำบัดแบบ CBT** — [Aaron T. Beck](https://en.wikipedia.org/wiki/Cognitive_distortion)
+- **รายการกับดักความคิดที่เป็นที่รู้จัก** — [David Burns (1980), Feeling Good](https://en.wikipedia.org/wiki/Feeling_Good:_The_New_Mood_Therapy)
 
 ---
 

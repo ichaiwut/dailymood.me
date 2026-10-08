@@ -62,7 +62,11 @@ function parseHeadings(body: string): TocItem[] {
     const m = line.match(/^##\s+(.+)/);
     if (m) {
       n++;
-      const text = m[1].replace(/[*_`#]/g, "").trim();
+      // Strip the leading "N. " that numbered section headings carry (e.g.
+      // "## 1. คิดวน…") — the TOC renders its own number marker, so keeping it
+      // in the text would double it up ("1.  1. คิดวน…"). Non-numbered
+      // headings (the references footer) are unaffected.
+      const text = m[1].replace(/^\d+\.\s*/, "").replace(/[*_`#]/g, "").trim();
       items.push({ id: `section-${n}`, text, n });
     }
   }
@@ -321,14 +325,18 @@ export function ArticleDetailShell({ slug, isGuest = false }: { slug: string; is
                   {l(category.labelTh, category.labelEn)}
                 </span>
               )}
-              <div className="pa-sheet" style={{ overflow: "hidden", borderRadius: "4px 18px 18px 18px" }}>
+              {/* overflow visible so the overhanging PAClip (top:-15) isn't cut
+                  off — the cover below self-clips via its own margin+radius, so
+                  the sheet's rounded corners stay clean (same fix as the
+                  articles-overview featured folder). */}
+              <div className="pa-sheet" style={{ overflow: "visible", borderRadius: "4px 18px 18px 18px" }}>
                 <PAClip style={{ top: -15, right: 42, transform: "rotate(8deg)", zIndex: 8 }} />
-                <div style={{ margin: 14, borderRadius: 14, overflow: "hidden", position: "relative" }}>
+                <div style={{ borderRadius: "4px 18px 18px 18px", overflow: "hidden", position: "relative", aspectRatio: "16 / 9" }}>
                   {article.coverImageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={article.coverImageUrl} alt="" style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }} />
+                    <img src={article.coverImageUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   ) : (
-                    <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9" }}>
+                    <div style={{ position: "absolute", inset: 0 }}>
                       <ArticleArt tone={article.tone} />
                     </div>
                   )}

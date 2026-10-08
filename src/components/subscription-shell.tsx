@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { PRICING } from "@/lib/pricing";
 import { PAClip } from "./paper";
 import { BottomSheet } from "./bottom-sheet";
 import { TrialConfirmSheet } from "./trial-confirm-sheet";
@@ -175,8 +176,8 @@ export function SubscriptionShell() {
                   <div style={{ fontSize: 14, opacity: 0.7 }}>
                     {isStripeSub
                       ? (isYearly
-                        ? `฿790 / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? "ประหยัด 33%" : "Save 33%"})`
-                        : `฿99 / ${locale === "th" ? "เดือน" : "month"}`)
+                        ? `฿${PRICING.yearly} / ${locale === "th" ? "ปี" : "year"} (${locale === "th" ? `ประหยัด ${PRICING.savingsPct}%` : `Save ${PRICING.savingsPct}%`})`
+                        : `฿${PRICING.monthly} / ${locale === "th" ? "เดือน" : "month"}`)
                       : isIapSub
                       ? (locale === "th" ? `จัดการหรือยกเลิกได้ที่ ${storeName}` : `Manage or cancel in ${storeName}`)
                       : (locale === "th" ? "ปลดล็อกทุกฟีเจอร์" : "All features unlocked")}
@@ -477,7 +478,7 @@ function FreeState({ data, onRefresh }: { data: SubData; onRefresh: () => void }
           </div>
           <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Pro</div>
           <div style={{ fontSize: 14, opacity: 0.85, marginBottom: 16 }}>
-            ฿99 / {isTh ? "เดือน" : "month"}
+            ฿{PRICING.monthly} / {isTh ? "เดือน" : "month"}
           </div>
 
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px", display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>

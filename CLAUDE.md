@@ -108,7 +108,7 @@ The DB is **PostgreSQL** (Railway). Migrations live in `drizzle-pg/` and are tra
 - **Mobile ขาย Pro ผ่าน RevenueCat (IAP)** — backend: `POST /api/iap/reconcile` (app เรียกหลังซื้อ/restore) + `POST /api/webhooks/revenuecat` ทั้งคู่ดึงความจริงจาก RC REST API มา apply (idempotent)
 - **Entitlement ใน RC dashboard ชื่อ `Dailymood Pro`** (ไม่ใช่ default `pro`) — env `REVENUECAT_ENTITLEMENT_ID="Dailymood Pro"` บน Railway **ห้ามลบ** ไม่งั้น reconcile/webhook จะหา entitlement ไม่เจอแบบเงียบๆ และ user ที่จ่ายแล้วจะไม่ได้ Pro
 - Env อื่น: `REVENUECAT_SECRET_KEY`, `REVENUECAT_WEBHOOK_AUTH` (raw string ใน Authorization header ไม่มี "Bearer ")
-- ⚠️ `REVENUECAT_ALLOW_SANDBOX=1` เปิดอยู่บน prod เพื่อเทส TestFlight — **ต้องเอาออกก่อน launch จริง** ไม่งั้นการซื้อ sandbox จะได้ Pro จริง
+- `REVENUECAT_ALLOW_SANDBOX` — "1" บน staging เพื่อรับ sandbox purchase (TestFlight / Play internal-test / store review). **Prod ต้องไม่ตั้งค่านี้** (ลบออกแล้ว 2026-06-22 ก่อน launch Android) ไม่งั้น sandbox/test purchase จะได้ Pro จริง. โค้ด gate sandbox **ทั้ง 2 ทาง** ผ่าน flag เดียว (`sandboxAllowed()` ใน `src/lib/revenuecat.ts`): webhook เช็ก `event.environment === "SANDBOX"`, REST/reconcile เช็ก `subscription.is_sandbox` (REST API ไม่มี field environment) — สำคัญเพราะ app เรียก `/api/iap/reconcile` **ก่อน** webhook เสมอ
 - แยกแหล่ง premium ด้วย `users.premium_source` ("stripe" | "iap" | null) — ฝั่ง IAP downgrade ได้เฉพาะ user ที่ source เป็น "iap" เท่านั้น
 
 ## LINE OA — Admin Notifications

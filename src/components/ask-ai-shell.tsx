@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useLocale } from "next-intl";
 import type { Tier } from "@/lib/tier";
+import { PRICING } from "@/lib/pricing";
 import type { AskAiSource } from "@/db/schema";
 import { PAClip } from "./paper";
 import { AiSubTabs } from "./ai-sub-tabs";
@@ -249,7 +250,7 @@ export function AskAiShell({ tier = "free" }: { tier?: Tier }) {
                 ✨ {isTh ? "สมัคร Pro" : "Subscribe to Pro"}
               </button>
               <div style={{ fontSize: 14, opacity: 0.75, textAlign: "center" }}>
-                ฿99/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
+                ฿{PRICING.monthly}/{isTh ? "เดือน" : "month"} · {isTh ? "ยกเลิกเมื่อไหร่ก็ได้" : "Cancel anytime"}
               </div>
             </div>
           </div>
