@@ -134,6 +134,7 @@
 - [x] Password reset (1h token, Resend)
 - [x] Login UI — email-first flow: email → register/sign-in/Google-only branches. **"Paper Desk · Sign-in slip" reskin**: split-screen reading desk — left = articles-first paperclipped `.pa-sheet` clippings ("read before you sign up", `PAClip` + framed `ArticleArt`/photo cover + tone category + `PAMark` headline + see-all folder); right = `LoginForm` as a purple folder-tab paper slip (DM-logo header, paper inputs, chunky `.pa-btn` peach primary + paper-outline Google, danger-tint error box, email pill). Mobile (`MobileLoginFeed`) = same paper feed + sticky paper CTA. Theme-adaptive (`--w-ink*` on sheets, `--ink*` loose). Auth logic/step-machine/guest-token handoff unchanged.
 - [x] Login wall — unauthenticated users redirect to `/login`
+- [x] Sign-in methods — the account knows which providers can sign it in. Links live in the (previously unused) `accounts` table, written on **every** social sign-in (web `jwt` callback + mobile `socialLogin`) and on explicit connect; `src/lib/auth-providers.ts` owns reading/writing them. Accounts that haven't signed in since are **inferred at read time** — `password_hash` set → password, `googleusercontent.com` avatar → Google, `@privaterelay.appleid.com` email → Apple, otherwise unknown (no backfill rows, so a wrong guess never lands in the auth table). `GET /api/profile` returns `user.auth`. Connect/disconnect via `POST|DELETE /api/account/link/{google|apple}`: the provider email must equal the account email (our login path resolves users by email, so a mismatch would fork a duplicate account on the next sign-in), an identity held by another user is refused, and disconnecting the last way in is refused. Unlink tombstones the row (`type='unlinked'`) rather than deleting it, so the read-time inference can't resurrect a provider from evidence that outlives the link. Provider avatars refresh on every sign-in (`users.image`); a user-uploaded `image_key` still wins. Apple never supplies an avatar. Mobile UI: Profile → "How you sign in"
 - [x] Rate limiting on email-sending routes (5/hr register+forgot, 3/hr resend-verify) via D1
 - [ ] Guest Mode — disabled (app is login-only; `dailymood.me` landing TBD)
 - [x] Stripe Checkout + Webhook + Customer Portal (paid subscriptions only, no Stripe trial)
@@ -207,6 +208,8 @@
 | GET | `/api/moods` | any | List system + user's custom moods |
 | POST | `/api/moods` | premium | Create custom mood |
 | DELETE | `/api/moods/:id` | premium | Delete own custom mood |
+| POST | `/api/account/link/{provider}` | auth | Connect Google/Apple to the signed-in user from a native identity token. 409 `email_mismatch` / `already_linked` |
+| DELETE | `/api/account/link/{provider}` | auth | Disconnect. 409 `last_sign_in_method` when it is the only way in |
 | DELETE | `/api/account` | auth | Permanent account deletion (Play/App Store requirement): cancels active Stripe sub, deletes user row (cascades all user-owned tables), email-keyed verification tokens, R2 images. Returns `{ok:true}` |
 | GET | `/api/profile` | auth | Profile data: user info, stats (streak, totalEntries, avgMood), mood signature (30-day mood distribution), tier |
 | PATCH | `/api/profile` | auth | Update profile: name, bio, accentColor, locale |

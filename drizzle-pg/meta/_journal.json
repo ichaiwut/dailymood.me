@@ -141,6 +141,13 @@
       "when": 1781655321892,
       "tag": "0019_tranquil_james_howlett",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791431678172,
+      "tag": "0020_closed_slyde",
+      "breakpoints": true
     }
   ]
 }

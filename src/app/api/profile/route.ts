@@ -6,6 +6,7 @@ import { and, eq, desc, gte, count as countFn } from "drizzle-orm";
 import { moodScore, addDays, computeStreak, scoreToEmoji, ymd } from "@/lib/mood-scores";
 import { BADGE_CATALOG, computeBadgeProgress } from "@/lib/achievements";
 import { getSignedReadUrl } from "@/lib/r2";
+import { readAuthMethods } from "@/lib/auth-providers";
 
 
 export async function GET() {
@@ -129,9 +130,10 @@ export async function GET() {
   });
   const earnedCount = badges.filter((b) => b.status === "earned").length;
 
-  const imageUrl = user.imageKey
-    ? await getSignedReadUrl(user.imageKey)
-    : user.image ?? null;
+  const [imageUrl, auth] = await Promise.all([
+    user.imageKey ? getSignedReadUrl(user.imageKey) : Promise.resolve(user.image ?? null),
+    readAuthMethods(userId),
+  ]);
 
   return NextResponse.json({
     user: {
@@ -142,6 +144,8 @@ export async function GET() {
       image: user.image,
       imageUrl,
       imageKey: user.imageKey,
+      // How this account can sign in — see src/lib/auth-providers.ts.
+      auth,
       locale: user.locale,
       isPremium: user.isPremium || (!!user.trialEndsAt && user.trialEndsAt.getTime() > Date.now()),
       bio: user.bio,

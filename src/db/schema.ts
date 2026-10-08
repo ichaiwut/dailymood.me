@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, primaryKey, index, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, real, primaryKey, index, uniqueIndex, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -78,7 +78,12 @@ export const accounts = pgTable("accounts", {
   tokenType: text("token_type"),
   scope: text("scope"),
   idToken: text("id_token"),
-});
+}, (t) => ({
+  // One provider identity belongs to exactly one user. This is what the link
+  // upsert conflicts on, and what stops two concurrent link requests from
+  // racing past the "already linked to someone else" check.
+  providerAccountIdx: uniqueIndex("accounts_provider_account_idx").on(t.provider, t.providerAccountId),
+}));
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),

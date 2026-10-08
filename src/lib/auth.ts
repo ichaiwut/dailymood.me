@@ -8,6 +8,7 @@ import { ulid } from "@/lib/ulid";
 import { verifyPassword } from "@/lib/password";
 import { rateLimit } from "@/lib/rate-limit";
 import { notifyAdmin } from "@/lib/line";
+import { recordProviderLink, refreshProviderImage } from "@/lib/auth-providers";
 
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "email_not_verified";
@@ -94,6 +95,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.sub = id;
           notifyAdmin(`🆕 มีคนสมัครใหม่ (Google)`);
         }
+      }
+
+      // `account` is only populated on the initial sign-in, never on the token
+      // refreshes that follow — so this records the link once per sign-in rather
+      // than on every request.
+      if (account?.provider === "google" && account.providerAccountId && token.sub) {
+        await recordProviderLink(token.sub, "google", account.providerAccountId);
+        await refreshProviderImage(token.sub, user?.image ?? null);
       }
       return token;
     },

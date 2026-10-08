@@ -18,6 +18,7 @@ import { getDb } from "@/lib/cf";
 import { mobileRefreshTokens, users } from "@/db/schema";
 import { ulid } from "@/lib/ulid";
 import { generateToken } from "@/lib/password";
+import { recordProviderLink, refreshProviderImage, type ProviderId } from "@/lib/auth-providers";
 import { notifyAdmin } from "@/lib/line";
 
 const ACCESS_TTL_SEC = 60 * 60; // 1 hour
@@ -162,6 +163,9 @@ export async function revokeAllForUser(userId: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export interface ProviderIdentity {
+  /** The provider's stable subject id (`sub`). Survives email changes; this is
+   *  what we store in `accounts.provider_account_id`. */
+  sub: string;
   email: string;
   name: string | null;
   image: string | null;
@@ -199,8 +203,10 @@ export async function verifyGoogleIdToken(idToken: string): Promise<ProviderIden
     });
     const email = typeof payload.email === "string" ? payload.email.toLowerCase() : null;
     const emailVerified = payload.email_verified === true || payload.email_verified === "true";
-    if (!email || !emailVerified) return null;
+    const sub = typeof payload.sub === "string" ? payload.sub : null;
+    if (!email || !emailVerified || !sub) return null;
     return {
+      sub,
       email,
       name: typeof payload.name === "string" ? payload.name : null,
       image: typeof payload.picture === "string" ? payload.picture : null,
@@ -220,10 +226,12 @@ export async function verifyAppleIdToken(idToken: string): Promise<ProviderIdent
     });
     const email = typeof payload.email === "string" ? payload.email.toLowerCase() : null;
     const emailVerified = payload.email_verified === true || payload.email_verified === "true";
-    if (!email || !emailVerified) return null;
+    const sub = typeof payload.sub === "string" ? payload.sub : null;
+    if (!email || !emailVerified || !sub) return null;
     // Apple only sends the name on the very first authorization, and not in the
     // identity token — the client forwards it separately, applied by the caller.
-    return { email, name: null, image: null };
+    // It never sends an avatar at all, so `image` is permanently null here.
+    return { sub, email, name: null, image: null };
   } catch {
     return null;
   }
@@ -318,6 +326,16 @@ export async function socialLogin(
   }
 
   const userId = await upsertUserByEmail(identity, provider);
+
+  // Record which provider this was, and keep the cached avatar current. Doing it
+  // on every sign-in (not just on an explicit link) is what turns the inference
+  // in readAuthMethods() into recorded fact as users come back.
+  const providerId: ProviderId = provider === "Google" ? "google" : "apple";
+  await Promise.all([
+    recordProviderLink(userId, providerId, identity.sub),
+    refreshProviderImage(userId, identity.image),
+  ]);
+
   const [tokens, user] = await Promise.all([issueTokenPair(userId, device), getMobileUser(userId)]);
   if (!user) return { status: 500, body: { error: "server_error" } };
   return { status: 200, body: { ...tokens, user } };
